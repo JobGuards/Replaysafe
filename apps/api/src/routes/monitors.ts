@@ -6,6 +6,7 @@ import {
   updateMonitorSchema,
 } from '../validators/monitor.js'
 import { generateHeartbeatToken } from '../utils/token.js'
+import { calculateMonitorStatus } from '../utils/status.js'
 import { z } from 'zod'
 
 const router = Router()
@@ -83,6 +84,9 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
       },
     })
 
+    // Calculate status (new monitors will always be UP initially)
+    const calculatedStatus = calculateMonitorStatus(monitor)
+
     res.status(201).json({
       monitor: {
         id: monitor.id,
@@ -90,8 +94,11 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
         intervalMinutes: validatedData.intervalMinutes,
         gracePeriodMinutes: validatedData.gracePeriodMinutes,
         heartbeatToken: monitor.heartbeatToken,
-        heartbeatUrl: `${process.env.FRONTEND_URL || 'http://localhost:3001'}/hb/${monitor.heartbeatToken}`,
+        heartbeatUrl: `${process.env.API_URL || 'http://localhost:4000'}/api/ping/${monitor.heartbeatToken}`,
         status: monitor.status,
+        calculatedStatus,
+        lastHeartbeatAt: monitor.lastHeartbeatAt,
+        nextExpectedAt: monitor.nextExpectedAt,
         createdAt: monitor.createdAt,
       },
     })
@@ -172,14 +179,18 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
         intervalMinutes = 1440
       }
 
+      // Calculate status dynamically
+      const calculatedStatus = calculateMonitorStatus(monitor)
+
       return {
         id: monitor.id,
         name: monitor.name,
         intervalMinutes,
         gracePeriodMinutes: Math.floor(monitor.graceSeconds / 60),
         heartbeatToken: monitor.heartbeatToken,
-        heartbeatUrl: `${process.env.FRONTEND_URL || 'http://localhost:3001'}/hb/${monitor.heartbeatToken}`,
+        heartbeatUrl: `${process.env.API_URL || 'http://localhost:4000'}/api/ping/${monitor.heartbeatToken}`,
         status: monitor.status,
+        calculatedStatus,
         lastHeartbeatAt: monitor.lastHeartbeatAt,
         nextExpectedAt: monitor.nextExpectedAt,
         createdAt: monitor.createdAt,
@@ -257,6 +268,9 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
       intervalMinutes = 1440
     }
 
+    // Calculate status dynamically
+    const calculatedStatus = calculateMonitorStatus(monitor)
+
     res.json({
       monitor: {
         id: monitor.id,
@@ -264,8 +278,9 @@ router.get('/:id', async (req: Request, res: Response): Promise<void> => {
         intervalMinutes,
         gracePeriodMinutes: Math.floor(monitor.graceSeconds / 60),
         heartbeatToken: monitor.heartbeatToken,
-        heartbeatUrl: `${process.env.FRONTEND_URL || 'http://localhost:3001'}/hb/${monitor.heartbeatToken}`,
+        heartbeatUrl: `${process.env.API_URL || 'http://localhost:4000'}/api/ping/${monitor.heartbeatToken}`,
         status: monitor.status,
+        calculatedStatus,
         lastHeartbeatAt: monitor.lastHeartbeatAt,
         nextExpectedAt: monitor.nextExpectedAt,
         createdAt: monitor.createdAt,
@@ -359,6 +374,9 @@ router.put('/:id', async (req: Request, res: Response): Promise<void> => {
       intervalMinutes = 1440
     }
 
+    // Calculate status dynamically
+    const calculatedStatus = calculateMonitorStatus(monitor)
+
     res.json({
       monitor: {
         id: monitor.id,
@@ -366,8 +384,9 @@ router.put('/:id', async (req: Request, res: Response): Promise<void> => {
         intervalMinutes,
         gracePeriodMinutes: Math.floor(monitor.graceSeconds / 60),
         heartbeatToken: monitor.heartbeatToken,
-        heartbeatUrl: `${process.env.FRONTEND_URL || 'http://localhost:3001'}/hb/${monitor.heartbeatToken}`,
+        heartbeatUrl: `${process.env.API_URL || 'http://localhost:4000'}/api/ping/${monitor.heartbeatToken}`,
         status: monitor.status,
+        calculatedStatus,
         lastHeartbeatAt: monitor.lastHeartbeatAt,
         nextExpectedAt: monitor.nextExpectedAt,
         updatedAt: monitor.updatedAt,

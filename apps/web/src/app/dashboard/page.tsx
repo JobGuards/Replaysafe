@@ -8,6 +8,7 @@ import {
   Plus,
   CheckCircle,
   AlertCircle,
+  AlertTriangle,
   Clock,
   TrendingUp,
   Activity,
@@ -27,7 +28,9 @@ interface Monitor {
   heartbeatToken: string
   heartbeatUrl: string
   status: 'UP' | 'DOWN' | 'DEGRADED' | 'PAUSED'
+  calculatedStatus: 'UP' | 'LATE' | 'MISSED' | 'DEGRADED' | 'PAUSED'
   lastHeartbeatAt: string | null
+  nextExpectedAt: string | null
   createdAt: string
   totalHeartbeats?: number
   openIncidents?: number
@@ -127,20 +130,25 @@ export default function Dashboard() {
 
   const stats = {
     totalMonitors: monitors.length,
-    upMonitors: monitors.filter((m) => m.status === 'UP').length,
-    degradedMonitors: monitors.filter((m) => m.status === 'DEGRADED').length,
-    downMonitors: monitors.filter((m) => m.status === 'DOWN').length,
+    upMonitors: monitors.filter((m) => m.calculatedStatus === 'UP').length,
+    lateMonitors: monitors.filter((m) => m.calculatedStatus === 'LATE').length,
+    missedMonitors: monitors.filter((m) => m.calculatedStatus === 'MISSED').length,
+    degradedMonitors: monitors.filter((m) => m.calculatedStatus === 'DEGRADED').length,
   }
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'up':
         return { bg: 'bg-primary/10', text: 'text-primary', icon: CheckCircle }
+      case 'late':
+        return { bg: 'bg-yellow-500/10', text: 'text-yellow-500', icon: Clock }
+      case 'missed':
       case 'down':
         return { bg: 'bg-destructive/10', text: 'text-destructive', icon: AlertCircle }
       case 'degraded':
+        return { bg: 'bg-orange-500/10', text: 'text-orange-500', icon: AlertTriangle }
       case 'paused':
-        return { bg: 'bg-accent/10', text: 'text-accent', icon: Clock }
+        return { bg: 'bg-muted/10', text: 'text-muted-foreground', icon: Clock }
       default:
         return { bg: 'bg-muted/10', text: 'text-muted-foreground', icon: Activity }
     }
@@ -237,7 +245,7 @@ export default function Dashboard() {
         ) : (
           <div className="space-y-3">
             {monitors.map((monitor) => {
-              const statusConfig = getStatusColor(monitor.status)
+              const statusConfig = getStatusColor(monitor.calculatedStatus)
               const Icon = statusConfig.icon
               const isExpanded = expandedMonitor === monitor.id
 
@@ -264,7 +272,7 @@ export default function Dashboard() {
                       <div className="hidden md:flex items-center gap-6 flex-shrink-0">
                         <div>
                           <p className="text-xs text-muted-foreground mb-1">Status</p>
-                          <p className="font-semibold text-foreground">{monitor.status}</p>
+                          <p className="font-semibold text-foreground capitalize">{monitor.calculatedStatus}</p>
                         </div>
                         <div>
                           <p className="text-xs text-muted-foreground mb-1">Last Check</p>
@@ -290,7 +298,7 @@ export default function Dashboard() {
                           <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full ${statusConfig.bg}`}>
                             <Icon className={`w-4 h-4 ${statusConfig.text}`} />
                             <span className={`text-sm font-medium ${statusConfig.text} capitalize`}>
-                              {monitor.status}
+                              {monitor.calculatedStatus}
                             </span>
                           </div>
                         </div>
