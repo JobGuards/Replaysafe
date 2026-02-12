@@ -22,29 +22,25 @@ export default function SignIn() {
     setIsLoading(true)
 
     try {
-      // TODO: Replace with backend API call
-      // const response = await fetch('/api/auth/signin', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ email, password }),
-      // })
+      const response = await fetch('http://localhost:4000/api/auth/signin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // Important: send cookies
+        body: JSON.stringify({ email, password }),
+      })
 
-      // Simulating API call
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      const data = await response.json()
 
-      console.log('[v0] Sign in with:', { email, password })
-      // TODO: Handle successful login - redirect to dashboard
-      // if (response.ok) {
-      //   const data = await response.json()
-      //   localStorage.setItem('token', data.token) // or use secure cookie
-      //   window.location.href = '/dashboard'
-      // }
-      
-      // For now, redirect to dashboard
+      if (!response.ok) {
+        setError(data.error || 'Invalid email or password')
+        return
+      }
+
+      // Sign in successful - redirect to dashboard
       window.location.href = '/dashboard'
     } catch (err) {
       setError('Failed to sign in. Please try again.')
-      console.error('[v0] Sign in error:', err)
+      console.error('Sign in error:', err)
     } finally {
       setIsLoading(false)
     }
