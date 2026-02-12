@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.js";
+import monitorRoutes from "./routes/monitors.js";
 
 dotenv.config();
 
@@ -28,6 +29,9 @@ export function startServer() {
 
   // Auth routes
   app.use("/api/auth", authRoutes);
+
+  // Monitor routes (protected by auth middleware in routes file)
+  app.use("/api/monitors", monitorRoutes);
 
   const port = process.env.PORT || 4000;
   app.listen(port, () =>
