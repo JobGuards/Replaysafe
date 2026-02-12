@@ -2,10 +2,11 @@
 
 import React from "react"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
-import { Menu, X, LogOut, Settings, Home, BarChart3, Clock, Ear as Gear } from 'lucide-react'
+import { Menu, X, LogOut, Settings, Home, BarChart3, Clock, Ear as Gear, Loader2 } from 'lucide-react'
 
 export default function DashboardLayout({
   children,
@@ -13,6 +14,28 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const { isAuthenticated, isLoading, signout } = useAuth()
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      window.location.href = '/auth/signin'
+    }
+  }, [isLoading, isAuthenticated])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return null
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -41,11 +64,13 @@ export default function DashboardLayout({
                 <Settings className="w-5 h-5" />
               </button>
             </Link>
-            <Link href="/">
-              <button className="p-2 hover:bg-secondary rounded-lg transition text-muted-foreground hover:text-foreground">
-                <LogOut className="w-5 h-5" />
-              </button>
-            </Link>
+            <button
+              onClick={signout}
+              className="p-2 hover:bg-secondary rounded-lg transition text-muted-foreground hover:text-foreground"
+              title="Sign out"
+            >
+              <LogOut className="w-5 h-5" />
+            </button>
           </div>
         </div>
       </header>
