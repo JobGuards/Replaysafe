@@ -1,8 +1,5 @@
-// This is your Prisma schema file,
+// This is your Prisma schema file
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
   provider = "prisma-client-js"
@@ -13,11 +10,223 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Check {
-  id        String   @id @default(uuid())
-  name      String
-  pingUrl   String   @unique
-  frequency Int
-  lastPing  DateTime?
-  createdAt DateTime @default(now())
+// ============================================
+// USER & AUTHENTICATION
+// ============================================
+
+model User {
+  id            String               @id @default(uuid())
+  email         String               @unique
+  passwordHash  String
+  fullName      String
+  emailVerified Boolean              @default(false)
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  memberships   OrganizationMember[]
+  apiKeys       ApiKey[]
+
+  @@index([email])
+}
+
+model ApiKey {
+  id          String    @id @default(uuid())
+  name        String
+  keyHash     String    @unique
+  lastUsedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime?
+
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ============================================
+// MULTI-TENANCY
+// ============================================
+
+model Organization {
+  id            String               @id @default(uuid())
+  name          String
+  slug          String               @unique
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  members       OrganizationMember[]
+  monitors      Monitor[]
+  alertChannels AlertChannel[]
+
+  @@index([slug])
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+model OrganizationMember {
+  id             String       @id @default(uuid())
+  role           Role         @default(MEMBER)
+  joinedAt       DateTime     @default(now())
+
+  userId         String
+  organizationId String
+
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([userId])
+  @@index([organizationId])
+}
+
+// ============================================
+// MONITORING
+// ============================================
+
+enum MonitorStatus {
+  UP
+  DOWN
+  DEGRADED
+  PAUSED
+}
+
+model Monitor {
+  id              String        @id @default(uuid())
+  name            String
+  schedule        String
+  scheduleType    String        @default("cron")
+  graceSeconds    Int           @default(300)
+  timezone        String        @default("UTC")
+  status          MonitorStatus @default(UP)
+  heartbeatToken  String        @unique
+  lastHeartbeatAt DateTime?
+  nextExpectedAt  DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  deletedAt       DateTime?
+
+  organizationId  String
+  organization    Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  heartbeats      Heartbeat[]
+  incidents       Incident[]
+
+  @@index([organizationId])
+  @@index([heartbeatToken])
+  @@index([status])
+  @@index([nextExpectedAt])
+  @@index([deletedAt])
+}
+
+enum HeartbeatType {
+  SUCCESS
+  FAILURE
+  TIMEOUT
+}
+
+model Heartbeat {
+  id          String        @id @default(uuid())
+  type        HeartbeatType
+  duration    Int?
+  output      String?       @db.Text
+  exitCode    Int?
+  receivedAt  DateTime      @default(now())
+
+  monitorId   String
+  incidentId  String?
+
+  monitor     Monitor       @relation(fields: [monitorId], references: [id], onDelete: Cascade)
+  incident    Incident?     @relation(fields: [incidentId], references: [id], onDelete: SetNull)
+
+  @@index([monitorId, receivedAt])
+  @@index([type])
+}
+
+// ============================================
+// INCIDENTS & FAILURES
+// ============================================
+
+enum IncidentStatus {
+  OPEN
+  RESOLVED
+  IGNORED
+}
+
+enum IncidentType {
+  MISSED
+  FAILED
+}
+
+model Incident {
+  id              String         @id @default(uuid())
+  type            IncidentType
+  status          IncidentStatus @default(OPEN)
+  startedAt       DateTime       @default(now())
+  resolvedAt      DateTime?
+  resolutionNotes String?        @db.Text
+  errorMessage    String?        @db.Text
+
+  monitorId       String
+  monitor         Monitor        @relation(fields: [monitorId], references: [id], onDelete: Cascade)
+
+  heartbeats      Heartbeat[]
+  alerts          Alert[]
+
+  @@index([monitorId, status])
+  @@index([startedAt])
+  @@index([status])
+}
+
+// ============================================
+// ALERTING
+// ============================================
+
+enum ChannelType {
+  EMAIL
+  WEBHOOK
+}
+
+model AlertChannel {
+  id             String       @id @default(uuid())
+  name           String
+  type           ChannelType
+  enabled        Boolean      @default(true)
+  config         Json
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  alerts         Alert[]
+
+  @@index([organizationId])
+}
+
+enum AlertStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+model Alert {
+  id         String      @id @default(uuid())
+  status     AlertStatus @default(PENDING)
+  sentAt     DateTime?
+  error      String?     @db.Text
+  createdAt  DateTime    @default(now())
+
+  incidentId String
+  channelId  String
+
+  incident   Incident     @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  channel    AlertChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  @@index([incidentId])
+  @@index([channelId])
+  @@index([status])
 }
