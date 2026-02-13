@@ -7,6 +7,7 @@ import monitorRoutes from "./routes/monitors.js";
 import apiKeyRoutes from "./routes/apiKeys.js";
 import { prisma } from '@stillup/db'
 import { calculateNextExpectedAt } from './utils/status.js'
+import { heartbeatLimiter } from './middleware/rateLimit.js'
 
 dotenv.config();
 
@@ -30,8 +31,8 @@ export function startServer() {
     res.json({ status: "still up" });
   });
 
-  // PUBLIC ENDPOINT - Heartbeat ping (no authentication required)
-  app.post('/api/ping/:heartbeatToken', async (req, res) => {
+  // PUBLIC ENDPOINT - Heartbeat ping (no authentication required, rate limited)
+  app.post('/api/ping/:heartbeatToken', heartbeatLimiter, async (req, res) => {
     const { heartbeatToken } = req.params
 
     try {

@@ -3,12 +3,16 @@ import { prisma } from '@stillup/db'
 import { authMiddleware } from '../middleware/auth.js'
 import { generateApiKey, hashApiKey, getKeyPrefix } from '../utils/apiKey.js'
 import { createApiKeySchema } from '../validators/apiKey.js'
+import { managementLimiter } from '../middleware/rateLimit.js'
 import { z } from 'zod'
 
 const router = Router()
 
 // All routes require JWT auth (must be logged in to manage keys)
 router.use(authMiddleware)
+
+// Apply rate limiting (100 requests/min per user)
+router.use(managementLimiter)
 
 /**
  * POST /api/keys

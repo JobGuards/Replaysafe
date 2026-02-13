@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express'
 import { prisma } from '@stillup/db'
 import { apiKeyOrAuthMiddleware } from '../middleware/auth.js'
+import { managementLimiter } from '../middleware/rateLimit.js'
 import {
   createMonitorSchema,
   updateMonitorSchema,
@@ -13,6 +14,9 @@ const router = Router()
 
 // All routes require authentication (JWT cookie or API key)
 router.use(apiKeyOrAuthMiddleware)
+
+// Apply rate limiting (100 requests/min per user)
+router.use(managementLimiter)
 
 /**
  * Helper function to convert interval in minutes to cron-like schedule string
