@@ -10,10 +10,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ============================================
-// USER & AUTHENTICATION
-// ============================================
-
 model User {
   id            String               @id @default(uuid())
   email         String               @unique
@@ -24,37 +20,49 @@ model User {
   updatedAt     DateTime             @updatedAt
 
   memberships   OrganizationMember[]
-  apiKeys       ApiKey[]
 
   @@index([email])
 }
+
+// =============================================================================
+// 2. API KEYS
+//
+// Scoped to Organization (not User) so that team members share keys.
+// Keys are hashed — never stored in plaintext.
+// =============================================================================
 
 model ApiKey {
   id          String    @id @default(uuid())
   name        String
   keyHash     String    @unique
+  keyPrefix   String  
   lastUsedAt  DateTime?
   createdAt   DateTime  @default(now())
   expiresAt   DateTime?
 
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
+  @@index([organizationId])
 }
 
-// ============================================
-// MULTI-TENANCY
-// ============================================
+// =============================================================================
+// 3. ORGANIZATION (Multi-tenancy)
+//
+// Top-level tenant boundary. All monitors, alerts, and data are
+// scoped under an Organization.
+// =============================================================================
 
 model Organization {
   id            String               @id @default(uuid())
   name          String
-  slug          String               @unique
+  slug          String               @unique  // Used in URLs: stillup.io/org/my-company
+  plan          String               @default("free") // "free" | "starter" | "pro" | "enterprise"
   createdAt     DateTime             @default(now())
   updatedAt     DateTime             @updatedAt
 
   members       OrganizationMember[]
+  apiKeys       ApiKey[]
   monitors      Monitor[]
   alertChannels AlertChannel[]
 
@@ -83,72 +91,120 @@ model OrganizationMember {
   @@index([organizationId])
 }
 
-// ============================================
-// MONITORING
-// ============================================
+// =============================================================================
+// 5. MONITOR
+//
+// Core entity. Each monitor represents one job/cron/script being watched.
+// heartbeatToken is the secret used in the ping URL: /hb/<heartbeatToken>
+//
+// Cached counters (totalHeartbeats, consecutiveFailures) avoid expensive
+// COUNT() aggregations on every dashboard load.
+// =============================================================================
 
 enum MonitorStatus {
-  UP
-  DOWN
-  DEGRADED
-  PAUSED
+  UP        // Last heartbeat received on time
+  DOWN      // Heartbeat missed or failure reported
+  DEGRADED  // Late heartbeats detected, job is slow
+  PAUSED    // Monitoring explicitly paused by user
+}
+
+enum ScheduleType {
+  CRON    // Standard cron expression: "0 2 * * *"
+  SIMPLE  // Human-readable: "every 5 minutes", "every hour"
 }
 
 model Monitor {
   id              String        @id @default(uuid())
   name            String
-  schedule        String
-  scheduleType    String        @default("cron")
-  graceSeconds    Int           @default(300)
+  description     String?       @db.Text          // What this job does (shown in UI)
+  schedule        String                          // Cron expr or human string
+  scheduleType    ScheduleType  @default(CRON)
+  graceSeconds    Int           @default(300)     // Extra seconds allowed after expected time
   timezone        String        @default("UTC")
   status          MonitorStatus @default(UP)
-  heartbeatToken  String        @unique
-  lastHeartbeatAt DateTime?
-  nextExpectedAt  DateTime?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  deletedAt       DateTime?
+  heartbeatToken  String        @unique           // Secret token for /hb/<token> URL
+  enabled         Boolean       @default(true)
+
+  lastHeartbeatAt DateTime?                      // When the last ping arrived
+  nextExpectedAt  DateTime?                      // When the next ping is due
+
+  alertOnLate         Boolean @default(true)     // Alert on late (not just missed) heartbeats
+  notifyAfterSeconds  Int     @default(0)        // Delay first alert by N seconds (reduces noise)
+
+  // Cached metrics — updated on each heartbeat ping to avoid expensive aggregations
+  healthScore          Float?                    // 0–100 score, computed and cached
+  totalHeartbeats      Int    @default(0)        // Running total for uptime % calculations
+  consecutiveFailures  Int    @default(0)        // Current failure streak
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
   organizationId  String
-  organization    Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization    Organization  @relation(fields: [organizationId], references: [id], onDelete: Restrict)
 
   heartbeats      Heartbeat[]
   incidents       Incident[]
+  executionSummaries ExecutionSummary[]
+  patterns           IncidentPattern[]
 
-  @@index([organizationId])
-  @@index([heartbeatToken])
-  @@index([status])
-  @@index([nextExpectedAt])
-  @@index([deletedAt])
+  // Index on nextExpectedAt is CRITICAL — the checker worker queries this every 60 seconds
+  @@index([organizationId, deletedAt])
+  @@index([nextExpectedAt])        // Checker worker: "which monitors are due?"
+  @@index([heartbeatToken])        // Every ping: O(1) token lookup
 }
 
+// =============================================================================
+// 6. HEARTBEAT
+//
+// Immutable record of every ping received. Written once, never updated.
+// Represents a single execution of the monitored job.
+//
+// HeartbeatType has only SUCCESS and FAILURE — TIMEOUT is NOT a heartbeat
+// type because a heartbeat only exists when a ping arrives. Missed/timeout
+// detection lives in the Incident model (created by the checker worker).
+// =============================================================================
+
 enum HeartbeatType {
-  SUCCESS
-  FAILURE
-  TIMEOUT
+  SUCCESS  // Ping received, job completed successfully
+  FAILURE  // Job explicitly reported failure via /hb/<token>/fail
 }
 
 model Heartbeat {
   id          String        @id @default(uuid())
   type        HeartbeatType
-  duration    Int?
+  duration    Int?     
+  exitCode       Int?                             // Exit code reported by the job
   output      String?       @db.Text
-  exitCode    Int?
-  receivedAt  DateTime      @default(now())
+  outputSizeBytes Int?                            // Size of backup/output in bytes
+  //                                               (enables anomaly detection: "backup only 12MB, usually 1.2GB")
+  metadata       Json?                            // Extensible bag for custom key/value pairs
 
-  monitorId   String
-  incidentId  String?
+  receivedAt     DateTime      @default(now())    // When StillUp received the ping
+  deletedAt      DateTime?                        // Soft delete (for data retention policy)
 
-  monitor     Monitor       @relation(fields: [monitorId], references: [id], onDelete: Cascade)
-  incident    Incident?     @relation(fields: [incidentId], references: [id], onDelete: SetNull)
+  monitorId      String
+  incidentId     String?                          // Set if this heartbeat resolved an incident
 
-  @@index([monitorId, receivedAt])
-  @@index([type])
+  monitor        Monitor   @relation(fields: [monitorId], references: [id], onDelete: Restrict)
+  incident       Incident? @relation(fields: [incidentId], references: [id], onDelete: Restrict)
+
+  @@index([monitorId, receivedAt])   // Dashboard: "recent heartbeats for this monitor"
+  @@index([monitorId, type])         // Analytics: "failures for this monitor"
+  @@index([deletedAt])               // Cleanup worker: "delete heartbeats older than 30 days"
 }
 
-// ============================================
-// INCIDENTS & FAILURES
-// ============================================
+// =============================================================================
+// 7. INCIDENT
+//
+// Created by the checker worker when a heartbeat is missed, or immediately
+// when /hb/<token>/fail is called. Auto-resolved when the next SUCCESS
+// heartbeat arrives.
+//
+// autoResolved distinguishes system recovery (job started working again)
+// from manual resolution (human intervened). This powers the analytics
+// dashboard: "how often do things self-heal vs require human action?"
+// =============================================================================
 
 enum IncidentStatus {
   OPEN
@@ -167,66 +223,240 @@ model Incident {
   status          IncidentStatus @default(OPEN)
   startedAt       DateTime       @default(now())
   resolvedAt      DateTime?
-  resolutionNotes String?        @db.Text
+  durationSeconds Int?           // Computed on resolution: (resolvedAt - startedAt)
+
+  autoResolved    Boolean        @default(false)  // true = resolved by next heartbeat success
+  resolutionNotes String?        @db.Text         // User-written notes on what happened
+
   errorMessage    String?        @db.Text
 
-  monitorId       String
-  monitor         Monitor        @relation(fields: [monitorId], references: [id], onDelete: Cascade)
+  // Categorisation (enables "similar incident" suggestions)
+  category        String?        // "disk" | "network" | "credentials" | "code" | "other"
 
-  heartbeats      Heartbeat[]
-  alerts          Alert[]
+  alertsSent      Int            @default(0)      // Prevents duplicate alerts; tracks escalation
+  lastAlertedAt   DateTime?                       // When the last alert was sent
 
-  @@index([monitorId, status])
-  @@index([startedAt])
-  @@index([status])
+  // Acknowledgement (who saw it and when — TTAA metric: Time To Acknowledge Alert)
+  acknowledgedAt  DateTime?
+  acknowledgedBy  String?        // userId of who acknowledged
+
+  deletedAt       DateTime?
+
+  monitorId  String
+  monitor    Monitor    @relation(fields: [monitorId], references: [id], onDelete: Restrict)
+
+  heartbeats         Heartbeat[]
+  alerts             Alert[]
+  resolutionHistory  ResolutionHistory?
+
+  @@index([monitorId, status, deletedAt])  // Dashboard: "open incidents for this monitor"
+  @@index([startedAt])                      // Analytics: time-range queries
+  @@index([status, deletedAt])             // Global: "all open incidents across org"
+  @@index([deletedAt])                     // Cleanup worker
 }
 
-// ============================================
-// ALERTING
-// ============================================
+// =============================================================================
+// 8. RESOLUTION HISTORY :
+//
+// Institutional memory. One ResolutionHistory per resolved Incident.
+// Powers:
+//   - "Last time this monitor failed, it was fixed by..."
+//   - "3 similar incidents in the past month"
+//   - Resolution search: find past incidents by category or tags
+//   - MTTR (Mean Time To Resolve) analytics
+//
+// =============================================================================
+
+model ResolutionHistory {
+  id         String   @id @default(uuid())
+  createdAt  DateTime @default(now())
+
+  // What happened and what fixed it — the institutional memory
+  whatHappened String  @db.Text   // Root cause in user's words
+  whatFixed    String  @db.Text   // The actual fix — most valuable field
+
+  // Context
+  category              String?            // "disk" | "network" | "credentials" | "code" | "other"
+  tags                  String[]           // ["s3", "disk-full", "permissions"] — free-form search tags
+  timeToResolveSeconds  Int?               // MTTR input
+  resolvedBy            String?            // userId of resolver (accountability)
+
+  incidentId String   @unique   // One resolution per incident
+  monitorId  String              // Direct FK for fast "past resolutions for this monitor" query
+
+  incident   Incident @relation(fields: [incidentId], references: [id], onDelete: Restrict)
+
+  @@index([monitorId])   // "Show me past resolutions for this monitor"
+  @@index([category])    // "Find similar incidents by category"
+}
+
+// =============================================================================
+// 9. INCIDENT PATTERN :
+//
+// Failure intelligence. Stores detected recurring failure patterns.
+// Populated by the pattern detection background worker (runs nightly).
+// Powers:
+//   - "This job fails every Monday between 2–3 AM"
+//   - "Job duration spiked 10× vs baseline — degradation detected"
+//   - Pre-emptive alerts before a failure even happens
+//
+// confidence: 0.0–1.0. Only surface patterns with confidence >= 0.75
+// in the UI to avoid false positives.
+// =============================================================================
+
+model IncidentPattern {
+  id          String   @id @default(uuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  patternType      String   // "time_of_day" | "day_of_week" | "duration_spike" | "frequency_drop"
+  description      String   // Human-readable: "Fails every Monday between 2–3 AM UTC"
+  confidence       Float    // 0.0–1.0 statistical confidence
+  occurrenceCount  Int      // How many times observed
+  firstSeenAt      DateTime
+  lastSeenAt       DateTime
+  active           Boolean  @default(true)  // Deactivate if pattern stops occurring
+
+  // Raw pattern data (stored as JSON for flexibility)
+  // e.g. { "dayOfWeek": 1, "hourStart": 2, "hourEnd": 3 }
+  patternData      Json
+
+  monitorId String
+  monitor   Monitor @relation(fields: [monitorId], references: [id], onDelete: Restrict)
+
+  @@index([monitorId, active])   // Dashboard: "active patterns for this monitor"
+  @@index([confidence])          // Worker: "high-confidence patterns to surface"
+}
+
+// =============================================================================
+// 10. EXECUTION SUMMARY:
+//
+// Pre-aggregated analytics. The background aggregation worker computes
+// daily and weekly summaries at midnight so that dashboard charts never
+// run raw COUNT() queries over millions of Heartbeat rows.
+//
+// Without this model, loading a 90-day uptime chart for a monitor that
+// pings every minute would scan 129,600 rows on every page load.
+// With this model, it's 90 rows.
+//
+// Also used to compute and cache the monitor's healthScore.
+// =============================================================================
+
+model ExecutionSummary {
+  id           String   @id @default(uuid())
+  createdAt    DateTime @default(now())
+
+  periodStart  DateTime   // Start of the day/week (midnight UTC)
+  periodType   String     // "daily" | "weekly"
+
+  // Computed from Heartbeat rows in the period
+  totalHeartbeats  Int
+  successCount     Int
+  failureCount     Int
+  missedCount      Int    // Incidents of type MISSED in this period
+  lateCount        Int    // Heartbeats that arrived after expected time but before grace expired
+
+  // Computed from Heartbeat.durationMs
+  avgDurationMs    Float?
+  minDurationMs    Float?
+  maxDurationMs    Float?
+
+  // Pre-computed metrics
+  uptimePercent    Float   // (successCount / totalHeartbeats) * 100
+
+  monitorId String
+  monitor   Monitor @relation(fields: [monitorId], references: [id], onDelete: Restrict)
+
+  // Unique constraint ensures the worker is idempotent — re-running
+  // the aggregation for the same period is safe (upsert on conflict).
+  @@unique([monitorId, periodStart, periodType])
+  @@index([monitorId, periodStart])   // Charts: "last N days of summaries"
+}
+
+// =============================================================================
+// 11. ALERT CHANNEL
+//
+// Defines where alerts are sent. Config is stored as JSON because each
+// channel type has different config fields:
+//   EMAIL:   { "email": "ops@company.com" }
+//   WEBHOOK: { "url": "https://...", "secret": "..." }
+//   SLACK:   { "webhookUrl": "https://hooks.slack.com/..." }
+//   DISCORD: { "webhookUrl": "https://discord.com/api/webhooks/..." }
+// =============================================================================
 
 enum ChannelType {
   EMAIL
   WEBHOOK
+  SLACK
+  DISCORD
+  TELEGRAM
 }
 
 model AlertChannel {
-  id             String       @id @default(uuid())
-  name           String
-  type           ChannelType
-  enabled        Boolean      @default(true)
-  config         Json
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id      String      @id @default(uuid())
+  name    String
+  type    ChannelType
+  enabled Boolean     @default(true)
+  config  Json        // Channel-specific config
+
+  // Events to alert on (stored as array of strings)
+  // e.g. ["incident.created", "incident.resolved"]
+  // Allows users to get resolution alerts on one channel but not another
+  events  String[]    @default(["incident.created", "incident.resolved"])
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
   organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
 
-  alerts         Alert[]
+  alerts Alert[]
 
-  @@index([organizationId])
+  @@index([organizationId, deletedAt])
 }
 
+// =============================================================================
+// 12. ALERT
+//
+// Immutable log of every alert delivery attempt. Written once per
+// delivery attempt. retryCount tracks webhook retry attempts.
+// nextRetryAt enables the exponential backoff scheduler.
+//
+// Delivery flow:
+//   1. Incident created → Alert rows inserted with status PENDING
+//   2. Alert worker picks up PENDING alerts
+//   3. Sends to channel → updates to SENT or FAILED
+//   4. On FAILED: increments retryCount, sets nextRetryAt
+//   5. Worker retries up to 3 times with exponential backoff
+// =============================================================================
+
 enum AlertStatus {
-  PENDING
-  SENT
-  FAILED
+  PENDING  // Queued, not yet sent
+  SENT     // Successfully delivered
+  FAILED   // All retries exhausted
 }
 
 model Alert {
   id         String      @id @default(uuid())
   status     AlertStatus @default(PENDING)
-  sentAt     DateTime?
-  error      String?     @db.Text
-  createdAt  DateTime    @default(now())
+  eventType  String      // "incident.created" | "incident.resolved" | "incident.late"
+
+  // Delivery tracking
+  sentAt       DateTime?
+  retryCount   Int       @default(0)
+  nextRetryAt  DateTime?            // Set after failure: now + (2^retryCount * 30 seconds)
+  error        String?   @db.Text  // Last error message (for debugging)
+
+  createdAt  DateTime @default(now())
 
   incidentId String
   channelId  String
 
-  incident   Incident     @relation(fields: [incidentId], references: [id], onDelete: Cascade)
-  channel    AlertChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  incident Incident     @relation(fields: [incidentId], references: [id], onDelete: Restrict)
+  channel  AlertChannel @relation(fields: [channelId], references: [id], onDelete: Restrict)
 
-  @@index([incidentId])
-  @@index([channelId])
-  @@index([status])
+  @@index([status, nextRetryAt])  // Alert worker: "PENDING alerts due for delivery"
+  @@index([incidentId])           // Incident detail: "all alerts for this incident"
+  @@index([channelId])            // Channel detail: "all alerts sent via this channel"
 }
