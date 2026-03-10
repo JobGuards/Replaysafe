@@ -4,14 +4,8 @@
   "version": "1.0.0",
   "type": "module",
   "description": "",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
   "scripts": {
-    "dev:api": "npm run dev --prefix apps/api",
-    "dev:web": "npm run dev --prefix apps/web",
-    "dev": "concurrently \"npm run dev:api\" \"npm run dev:web\""
+    "dev": "concurrently \"pnpm --filter api dev\" \"pnpm --filter web dev\""
   },
   "keywords": [],
   "author": "pallavi",

@@ -14,28 +14,28 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(true)
-  const { isAuthenticated, isLoading, signout } = useAuth()
+  // const { isAuthenticated, isLoading, signout } = useAuth()
 
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      window.location.href = '/auth/signin'
-    }
-  }, [isLoading, isAuthenticated])
+  // useEffect(() => {
+  //   if (!isLoading && !isAuthenticated) {
+  //     window.location.href = '/auth/signin'
+  //   }
+  // }, [isLoading, isAuthenticated])
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    )
-  }
+  // if (isLoading) {
+  //   return (
+  //     <div className="min-h-screen bg-background flex items-center justify-center">
+  //       <div className="text-center">
+  //         <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
+  //         <p className="text-muted-foreground">Loading...</p>
+  //       </div>
+  //     </div>
+  //   )
+  // }
 
-  if (!isAuthenticated) {
-    return null
-  }
+  // if (!isAuthenticated) {
+  //   return null
+  // }
 
   return (
     <div className="min-h-screen bg-background">
@@ -65,7 +65,7 @@ export default function DashboardLayout({
               </button>
             </Link>
             <button
-              onClick={signout}
+              // onClick={signout}
               className="p-2 hover:bg-secondary rounded-lg transition text-muted-foreground hover:text-foreground"
               title="Sign out"
             >
@@ -78,9 +78,8 @@ export default function DashboardLayout({
       <div className="flex">
         {/* Sidebar */}
         <aside
-          className={`fixed lg:static left-0 top-16 h-[calc(100vh-64px)] w-64 border-r border-border bg-secondary/30 transition-transform z-40 ${
-            sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-          }`}
+          className={`fixed lg:static left-0 top-16 h-[calc(100vh-64px)] w-64 border-r border-border bg-secondary/30 transition-transform z-40 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+            }`}
         >
           <nav className="p-6 space-y-2">
             <Link
