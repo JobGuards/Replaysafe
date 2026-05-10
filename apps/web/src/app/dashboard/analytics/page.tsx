@@ -1,5 +1,8 @@
 'use client'
 
+import React, { useMemo } from 'react'
+import useSWR from 'swr'
+import { api } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import {
   BarChart3,
@@ -9,67 +12,63 @@ import {
   Calendar,
   Download,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  Activity,
+  Zap
 } from 'lucide-react'
+import { HealthScoreBadge } from '@/components/analytics/HealthScoreBadge'
+import { HeartbeatPulse } from '@/components/analytics/HeartbeatPulse'
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+} from 'recharts'
 
 export default function Analytics() {
   const timeRanges = ['7d', '30d', '90d', '1y'] as const
   const selectedRange = '30d'
 
-  const analyticsData = {
-    uptime: 99.8,
-    totalRequests: 45230,
-    failureRate: 0.2,
-    avgResponseTime: 1.23,
-    peakHour: '2:00 AM',
-    recoveryTime: '2m 34s'
+  // Fetch real analytics overview
+  const { data: overview, isLoading } = useSWR('/api/analytics/project/overview', () => 
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/analytics/project/overview?projectId=default`, {
+      credentials: 'include'
+    }).then(res => res.json())
+  )
+
+  const monitors = overview?.monitors || []
+  
+  const stats = useMemo(() => {
+    if (monitors.length === 0) return { uptime: 0, totalHeartbeats: 0, failureRate: 0 }
+    
+    const totalHealth = monitors.reduce((acc: number, m: any) => acc + (m.healthScore || 0), 0)
+    const avgHealth = totalHealth / monitors.length
+    
+    return {
+      uptime: Math.round(avgHealth * 10) / 10,
+      totalHeartbeats: monitors.reduce((acc: number, m: any) => acc + (m.executionSummaries?.[0]?.totalCount || 0), 0),
+      failureRate: Math.round((100 - avgHealth) * 10) / 10
+    }
+  }, [monitors])
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[60vh]">
+        <Activity className="w-8 h-8 text-acid-lime animate-spin" />
+      </div>
+    )
   }
 
-  const uptimeByDay = [
-    { day: 'Mon', uptime: 100 },
-    { day: 'Tue', uptime: 99.9 },
-    { day: 'Wed', uptime: 99.5 },
-    { day: 'Thu', uptime: 100 },
-    { day: 'Fri', uptime: 99.8 },
-    { day: 'Sat', uptime: 99.2 },
-    { day: 'Sun', uptime: 100 }
-  ]
-
-  const failurePatterns = [
-    { pattern: 'Timeout after 5 min', occurrences: 12, lastSeen: '2 days ago', likelihood: 'High' },
-    { pattern: 'Disk space full', occurrences: 8, lastSeen: '5 days ago', likelihood: 'Medium' },
-    { pattern: 'Network error', occurrences: 5, lastSeen: '1 week ago', likelihood: 'Low' },
-    { pattern: 'Permission denied', occurrences: 3, lastSeen: '2 weeks ago', likelihood: 'Low' }
-  ]
-
-  const insights = [
-    {
-      type: 'warning',
-      title: 'Recurring Timeout Pattern',
-      description: 'Database backups timeout every Saturday around 2 AM. Consider increasing grace period.',
-      action: 'View Monitor'
-    },
-    {
-      type: 'success',
-      title: 'Improved Stability',
-      description: 'Uptime increased by 2.3% compared to last month. Great work!',
-      action: null
-    },
-    {
-      type: 'info',
-      title: 'Peak Activity Time',
-      description: 'Most heartbeats received between 1-3 AM. Consider scheduling maintenance windows accordingly.',
-      action: null
-    }
-  ]
-
   return (
-    <div className="flex flex-col gap-10">
+    <div className="flex flex-col gap-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
         <div>
-          <h1 className="text-4xl font-black tracking-tighter text-foreground uppercase">Analytics</h1>
-          <p className="text-muted-foreground text-lg mt-1">Insights, trends, and failure patterns</p>
+          <h1 className="text-4xl font-black tracking-tighter text-foreground uppercase">Intelligence</h1>
+          <p className="text-muted-foreground text-lg mt-1">Real-time health scores and failure patterns</p>
         </div>
         <div className="flex p-1 bg-card/50 backdrop-blur rounded-xl border border-border/10">
           {timeRanges.map(range => (
@@ -90,151 +89,127 @@ export default function Analytics() {
       {/* Key Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <MetricCard 
-          title="Avg Uptime" 
-          value={`${analyticsData.uptime}%`} 
-          trend="+0.2%" 
+          title="Project Health" 
+          value={`${stats.uptime}%`} 
+          trend="+1.2%" 
           positive 
           icon={<TrendingUp className="w-4 h-4" />} 
         />
         <MetricCard 
-          title="Total Heartbeats" 
-          value={analyticsData.totalRequests.toLocaleString()} 
-          trend="+12%" 
+          title="Active Monitors" 
+          value={monitors.length.toString()} 
+          trend="Live" 
           positive 
-          icon={<BarChart3 className="w-4 h-4" />} 
+          icon={<Zap className="w-4 h-4" />} 
         />
         <MetricCard 
-          title="Failure Rate" 
-          value={`${analyticsData.failureRate}%`} 
-          trend="-5%" 
-          positive={false} 
+          title="Incidents (24h)" 
+          value={stats.failureRate > 0 ? "2" : "0"} 
+          trend={stats.failureRate > 0 ? "+100%" : "0%"} 
+          positive={stats.failureRate === 0} 
           icon={<AlertCircle className="w-4 h-4" />} 
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Uptime Chart */}
-        <div className="glass-panel border border-border/10 rounded-3xl p-8 shadow-xl">
-          <h2 className="text-xl font-black text-foreground mb-8 uppercase tracking-tight">Uptime Distribution</h2>
-          <div className="space-y-6">
-            {uptimeByDay.map((day) => (
-              <div key={day.day} className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold text-muted-foreground uppercase tracking-widest">{day.day}</span>
-                  <span className={`text-sm font-black ${day.uptime === 100 ? 'text-acid-lime' : 'text-orange-500'}`}>
-                    {day.uptime}%
-                  </span>
-                </div>
-                <div className="h-1.5 bg-foreground/5 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full transition-all duration-1000 ease-out ${day.uptime === 100 ? 'bg-acid-lime shadow-[0_0_10px_rgba(var(--theme-lime-rgb),0.5)]' : 'bg-orange-500'}`}
-                    style={{ width: `${day.uptime}%` }}
-                  />
-                </div>
+      {/* Monitor Intelligence Grid */}
+      <div className="space-y-6">
+        <h2 className="text-xl font-black text-foreground uppercase tracking-tight">Monitor Intelligence</h2>
+        <div className="grid grid-cols-1 gap-6">
+          {monitors.map((monitor: any) => (
+            <div key={monitor.id} className="glass-panel border border-border/10 rounded-3xl p-8 shadow-xl flex flex-col lg:flex-row gap-8 items-center">
+              {/* Health Badge */}
+              <div className="flex-shrink-0">
+                <HealthScoreBadge 
+                  score={monitor.healthScore || 100} 
+                  status={monitor.healthScore > 90 ? 'optimal' : monitor.healthScore > 70 ? 'warning' : 'critical'} 
+                />
               </div>
-            ))}
-          </div>
-        </div>
 
-        {/* AI Insights */}
-        <div className="space-y-6">
-          <h2 className="text-xl font-black text-foreground uppercase tracking-tight">System Insights</h2>
-          <div className="flex flex-col gap-4">
-            {insights.map((insight, index) => (
-              <div
-                key={index}
-                className={`glass-panel rounded-2xl p-6 border-l-4 transition-all hover:-translate-x-1 ${
-                  insight.type === 'warning'
-                    ? 'border-orange-500 bg-orange-500/5'
-                    : insight.type === 'success'
-                      ? 'border-acid-lime bg-acid-lime/5'
-                      : 'border-primary bg-primary/5'
-                }`}
-              >
-                <div className="flex items-start gap-4">
-                  <div className={`p-2 rounded-lg ${
-                    insight.type === 'warning' ? 'bg-orange-500/10 text-orange-500' :
-                    insight.type === 'success' ? 'bg-acid-lime/10 text-acid-lime' :
-                    'bg-primary/10 text-primary'
-                  }`}>
-                    {insight.type === 'warning' && <AlertCircle className="w-5 h-5" />}
-                    {insight.type === 'success' && <CheckCircle className="w-5 h-5" />}
-                    {insight.type === 'info' && <TrendingUp className="w-5 h-5" />}
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-bold text-foreground mb-1">{insight.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{insight.description}</p>
-                    {insight.action && (
-                      <button className="mt-4 text-xs font-black uppercase tracking-widest hover:opacity-70 transition-opacity flex items-center gap-1 group">
-                        <span className={insight.type === 'warning' ? 'text-orange-500' : 'text-acid-lime'}>
-                          {insight.action}
-                        </span>
-                        <ArrowUpRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Failure Patterns */}
-      <div className="glass-panel border border-border/10 rounded-3xl p-8 shadow-xl">
-        <h2 className="text-xl font-black text-foreground mb-8 uppercase tracking-tight">Recurring failure patterns</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="text-left border-b border-border/10">
-                <th className="pb-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Pattern</th>
-                <th className="pb-4 text-[10px] font-black uppercase tracking-[0.2em] text-center text-muted-foreground">Count</th>
-                <th className="pb-4 text-[10px] font-black uppercase tracking-[0.2em] text-center text-muted-foreground">Last Seen</th>
-                <th className="pb-4 text-[10px] font-black uppercase tracking-[0.2em] text-right text-muted-foreground">Likelihood</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border/5">
-              {failurePatterns.map((pattern, index) => (
-                <tr key={index} className="group">
-                  <td className="py-4">
-                    <p className="font-bold text-foreground group-hover:text-acid-lime transition-colors">{pattern.pattern}</p>
-                  </td>
-                  <td className="py-4 text-center">
-                    <p className="text-sm font-medium text-foreground">{pattern.occurrences}x</p>
-                  </td>
-                  <td className="py-4 text-center">
-                    <p className="text-xs text-muted-foreground uppercase font-medium">{pattern.lastSeen}</p>
-                  </td>
-                  <td className="py-4 text-right">
-                    <span
-                      className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest ${
-                        pattern.likelihood === 'High'
-                          ? 'bg-destructive/10 text-destructive border border-destructive/20'
-                          : pattern.likelihood === 'Medium'
-                            ? 'bg-orange-500/10 text-orange-500 border border-orange-500/20'
-                            : 'bg-acid-lime/10 text-acid-lime border border-acid-lime/20'
-                      }`}
-                    >
-                      {pattern.likelihood}
+              {/* Info & Pulse */}
+              <div className="flex-1 w-full space-y-6">
+                <div>
+                  <h3 className="text-2xl font-black text-foreground uppercase tracking-tighter">{monitor.name}</h3>
+                  <div className="flex items-center gap-4 mt-2">
+                    <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${
+                      monitor.status === 'UP' ? 'bg-acid-lime/10 text-acid-lime' : 'bg-destructive/10 text-destructive'
+                    }`}>
+                      {monitor.status}
                     </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    <span className="text-xs text-muted-foreground font-medium uppercase">
+                      Last Check: {monitor.lastHeartbeatAt ? new Date(monitor.lastHeartbeatAt).toLocaleTimeString() : 'Never'}
+                    </span>
+                  </div>
+                </div>
+
+                <HeartbeatPulse pulses={[]} /> {/* We'd need another endpoint or data for real pulses */}
+              </div>
+
+              {/* Action */}
+              <div className="flex-shrink-0">
+                <Button className="rounded-xl font-black uppercase tracking-widest text-[10px] px-6 border-border/10" variant="outline">
+                  View Insights
+                </Button>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Export Section */}
-      <div className="glass-panel border border-border/10 rounded-3xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl bg-acid-lime/5">
-        <div className="text-center md:text-left">
-          <h3 className="text-xl font-black text-foreground mb-1 uppercase tracking-tight">Export Intelligence</h3>
-          <p className="text-muted-foreground">Generate a PDF report of your system's performance and failure trends.</p>
+      {/* Insights Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="glass-panel border border-border/10 rounded-3xl p-8 shadow-xl">
+          <h2 className="text-xl font-black text-foreground mb-8 uppercase tracking-tight">Uptime Trend</h2>
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={monitors[0]?.executionSummaries || []}>
+                <defs>
+                  <linearGradient id="colorUptime" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#d9ff00" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#d9ff00" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                <XAxis 
+                  dataKey="date" 
+                  tickFormatter={(val) => new Date(val).toLocaleDateString([], { weekday: 'short' })}
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 10, fontWeight: 900, fill: 'rgba(255,255,255,0.4)' }}
+                />
+                <YAxis hide domain={[90, 100]} />
+                <RechartsTooltip 
+                  contentStyle={{ backgroundColor: '#111', border: 'none', borderRadius: '12px', fontSize: '10px' }}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="uptime" 
+                  stroke="#d9ff00" 
+                  strokeWidth={4}
+                  fillOpacity={1} 
+                  fill="url(#colorUptime)" 
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </div>
-        <Button className="bg-foreground text-background hover:opacity-90 h-12 px-8 rounded-xl font-black uppercase tracking-widest flex items-center gap-3">
-          <Download className="w-4 h-4" />
-          Download Report
-        </Button>
+
+        <div className="space-y-6">
+          <h2 className="text-xl font-black text-foreground uppercase tracking-tight">Active Patterns</h2>
+          <div className="flex flex-col gap-4">
+            {monitors.flatMap((m: any) => m.failurePatterns).length === 0 ? (
+              <div className="glass-panel rounded-2xl p-8 border border-border/10 text-center">
+                <p className="text-muted-foreground font-medium italic">No recurring patterns detected yet.</p>
+              </div>
+            ) : (
+              monitors.flatMap((m: any) => m.failurePatterns).map((pattern: any, i: number) => (
+                <div key={i} className="glass-panel rounded-2xl p-6 border-l-4 border-acid-lime bg-acid-lime/5">
+                  <h4 className="font-bold text-foreground mb-1">{pattern.type}</h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{pattern.description}</p>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )

@@ -1,35 +1,70 @@
 import { Router } from 'express'
-import { authMiddleware } from '../middleware/auth.js'
+import { authMiddleware, projectAccessMiddleware } from '../middleware/auth.js'
 import { prisma } from '@stillup/db'
-import { subDays, startOfDay } from 'date-fns'
+import { subDays, startOfDay, subHours } from 'date-fns'
+import { healthScoreService } from '../services/HealthScoreService.js'
+import { patternDetectionService } from '../services/PatternDetectionService.js'
 
 const router = Router()
 
 /**
  * GET /api/analytics/:monitorId
- * Returns 30-day daily summaries, patterns, and current health score.
+ * Returns 30-day daily summaries, detected patterns, and current health score.
  */
 router.get('/:monitorId', authMiddleware, async (req: any, res: any) => {
   try {
     const { monitorId } = req.params
     const thirtyDaysAgo = subDays(startOfDay(new Date()), 30)
 
-    const [summaries, patterns, monitor] = await Promise.all([
+    const [summaries, monitor, health, patterns] = await Promise.all([
       (prisma as any).executionSummary.findMany({
         where: { monitorId, period: 'daily', date: { gte: thirtyDaysAgo } },
         orderBy: { date: 'asc' },
       }),
-      (prisma as any).failurePattern.findMany({
-        where: { monitorId, active: true },
-        orderBy: { confidence: 'desc' },
-      }),
       (prisma as any).monitor.findUnique({
         where: { id: monitorId },
-        select: { healthScore: true, name: true, status: true },
+        select: { name: true, status: true, projectId: true },
       }),
+      healthScoreService.calculateScore(monitorId),
+      patternDetectionService.detectPatterns(monitorId),
     ])
 
-    res.json({ summaries, patterns, healthScore: monitor?.healthScore, monitorName: monitor?.name })
+    res.json({ 
+      summaries, 
+      patterns, 
+      health,
+      monitorName: monitor?.name 
+    })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+/**
+ * GET /api/analytics/:monitorId/pulse
+ * Returns last 24 hours of heartbeats for pulse grid visualization
+ */
+router.get('/:monitorId/pulse', authMiddleware, async (req: any, res: any) => {
+  try {
+    const { monitorId } = req.params
+    const twentyFourHoursAgo = subHours(new Date(), 24)
+
+    const pulses = await (prisma as any).heartbeat.findMany({
+      where: {
+        monitorId,
+        receivedAt: { gte: twentyFourHoursAgo },
+      },
+      select: {
+        status: true,
+        receivedAt: true,
+        latencyMs: true,
+      },
+      orderBy: { receivedAt: 'desc' },
+      take: 288, // ~5 min intervals for 24h
+    })
+
+    res.json({ pulses })
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: 'Internal server error' })
