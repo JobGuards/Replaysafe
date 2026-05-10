@@ -1,5 +1,5 @@
 import { AlertProvider, AlertData } from './AlertProvider.js'
-import fetch from 'node-fetch'
+
 
 export class DiscordAlertProvider implements AlertProvider {
   async sendAlert(channelConfig: any, data: AlertData): Promise<void> {

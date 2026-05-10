@@ -7,7 +7,8 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
-import { Menu, X, LogOut, Settings, Home, BarChart3, Clock, Ear as Gear, Loader2 } from 'lucide-react'
+import { Logo } from "@/components/Logo"
+import { Menu, X, LogOut, Settings, Home, BarChart3, Clock, Loader2 } from 'lucide-react'
 
 export default function DashboardLayout({
   children,
@@ -16,37 +17,15 @@ export default function DashboardLayout({
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const pathname = usePathname()
-  // const { isAuthenticated, isLoading, signout } = useAuth()
-
-  // useEffect(() => {
-  //   if (!isLoading && !isAuthenticated) {
-  //     window.location.href = '/auth/signin'
-  //   }
-  // }, [isLoading, isAuthenticated])
-
-  // if (isLoading) {
-  //   return (
-  //     <div className="min-h-screen bg-background flex items-center justify-center">
-  //       <div className="text-center">
-  //         <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
-  //         <p className="text-muted-foreground">Loading...</p>
-  //       </div>
-  //     </div>
-  //   )
-  // }
-
-  // if (!isAuthenticated) {
-  //   return null
-  // }
 
   return (
-    <div className="min-h-screen bg-background bg-tech-grid relative overflow-x-hidden">
+    <div className="h-screen flex flex-col bg-background bg-tech-grid overflow-hidden">
       {/* Dynamic Background Elements */}
-      <div className="radial-glow-hero opacity-50"></div>
+      <div className="radial-glow-hero opacity-30 pointer-events-none"></div>
 
       {/* Top Navigation */}
-      <header className="glass-panel sticky top-0 z-50 border-b border-border/20 backdrop-blur-xl">
-        <div className="flex items-center justify-between h-16 px-6 max-w-[1600px] mx-auto">
+      <header className="glass-panel h-16 shrink-0 z-50 border-b border-border/10 backdrop-blur-xl">
+        <div className="flex items-center justify-between h-full px-6 max-w-[1600px] mx-auto">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -55,12 +34,7 @@ export default function DashboardLayout({
             >
               {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
-            <Link href="/" className="flex items-center gap-2 group">
-              <div className="w-8 h-8 rounded-lg bg-acid-lime flex items-center justify-center font-bold text-primary-foreground shadow-[0_0_15px_rgba(var(--theme-lime-rgb),0.3)] group-hover:shadow-[0_0_25px_rgba(var(--theme-lime-rgb),0.5)] transition-all">
-                S
-              </div>
-              <span className="font-bold text-foreground text-lg hidden sm:inline tracking-tighter">StillUp<span className="text-acid-lime">.</span></span>
-            </Link>
+            <Logo />
           </div>
 
           <div className="flex items-center gap-4">
@@ -79,25 +53,25 @@ export default function DashboardLayout({
         </div>
       </header>
 
-      <div className="flex max-w-[1600px] mx-auto relative z-10">
+      <div className="flex flex-1 overflow-hidden max-w-[1600px] mx-auto w-full relative z-10">
         {/* Sidebar */}
         <aside
-          className={`fixed lg:static left-0 top-16 h-[calc(100vh-64px)] w-64 border-r border-border/10 bg-background/50 backdrop-blur-md transition-transform z-40 ${
+          className={`fixed lg:static inset-y-0 left-0 w-64 border-r border-border/10 bg-background/50 backdrop-blur-md transition-transform z-40 overflow-y-auto shrink-0 ${
             sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
           }`}
         >
-          <nav className="p-6 space-y-2">
+          <nav className="p-8 space-y-6">
             <SidebarLink href="/dashboard" icon={<Home className="w-4 h-4" />} label="Dashboard" active={pathname === '/dashboard'} />
             <SidebarLink href="/dashboard/activity" icon={<Clock className="w-4 h-4" />} label="Activity" active={pathname === '/dashboard/activity'} />
             <SidebarLink href="/dashboard/analytics" icon={<BarChart3 className="w-4 h-4" />} label="Analytics" active={pathname === '/dashboard/analytics'} />
-            <div className="border-t border-border/10 my-4" />
+            <div className="border-t border-border/5 my-8" />
             <SidebarLink href="/dashboard/settings" icon={<Settings className="w-4 h-4" />} label="Settings" active={pathname?.startsWith('/dashboard/settings')} />
           </nav>
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-8 lg:p-10 min-h-[calc(100vh-64px)] overflow-auto">
-          <div className="max-w-6xl mx-auto">
+        <main className="flex-1 overflow-y-auto p-8 lg:p-12">
+          <div className="max-w-5xl mx-auto">
             {children}
           </div>
         </main>

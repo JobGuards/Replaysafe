@@ -30,38 +30,38 @@ export default function ArchitectureDoc() {
           <h2 className="text-3xl font-black uppercase tracking-tight text-foreground">Core Components</h2>
           
           <div className="space-y-12">
-            <div className="flex gap-6">
-              <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-acid-lime/10 flex items-center justify-center border border-acid-lime/20 text-acid-lime">
-                <Server className="w-6 h-6" />
+            <div className="flex gap-8 group">
+              <div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-acid-lime/10 flex items-center justify-center border border-acid-lime/20 text-acid-lime group-hover:scale-110 transition-transform duration-500">
+                <Server className="w-7 h-7" />
               </div>
-              <div className="space-y-2">
-                <h4 className="font-black uppercase tracking-widest text-xs text-foreground">API Gateway</h4>
-                <p className="text-sm leading-relaxed">
-                  Central entry point for all frontend requests and external heartbeats. Features multi-layered rate limiting and secure HttpOnly cookie-based JWT sessions.
+              <div className="space-y-3">
+                <h4 className="font-black uppercase tracking-[0.3em] text-[10px] text-acid-lime italic">Sentinel_Gateway</h4>
+                <p className="text-muted-foreground leading-relaxed">
+                  The primary ingest layer for high-fidelity telemetry. Optimized for millisecond-latency processing of both heartbeat pushes and complex tunnel handshake data.
                 </p>
               </div>
             </div>
 
-            <div className="flex gap-6">
-              <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-acid-lime/10 flex items-center justify-center border border-acid-lime/20 text-acid-lime">
-                <Zap className="w-6 h-6" />
+            <div className="flex gap-8 group">
+              <div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-acid-lime/10 flex items-center justify-center border border-acid-lime/20 text-acid-lime group-hover:scale-110 transition-transform duration-500">
+                <Zap className="w-7 h-7" />
               </div>
-              <div className="space-y-2">
-                <h4 className="font-black uppercase tracking-widest text-xs text-foreground">Worker Engine</h4>
-                <p className="text-sm leading-relaxed">
-                  Resilient background workers that handle missed heartbeat detection, analytics aggregation, and intelligence scoring without blocking the main API threads.
+              <div className="space-y-3">
+                <h4 className="font-black uppercase tracking-[0.3em] text-[10px] text-acid-lime italic">Intelligence_Engine</h4>
+                <p className="text-muted-foreground leading-relaxed">
+                  A high-concurrency processing layer that calculates health scores in real-time. It detects silent failures and network degradation using advanced statistical analysis of historical pulse data.
                 </p>
               </div>
             </div>
 
-            <div className="flex gap-6">
-              <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-acid-lime/10 flex items-center justify-center border border-acid-lime/20 text-acid-lime">
-                <Lock className="w-6 h-6" />
+            <div className="flex gap-8 group">
+              <div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-acid-lime/10 flex items-center justify-center border border-acid-lime/20 text-acid-lime group-hover:scale-110 transition-transform duration-500">
+                <Lock className="w-7 h-7" />
               </div>
-              <div className="space-y-2">
-                <h4 className="font-black uppercase tracking-widest text-xs text-foreground">Security Layer</h4>
-                <p className="text-sm leading-relaxed">
-                  Implements AES-256-GCM for field-level encryption of sensitive configurations. All mutation actions are logged in an immutable audit trail.
+              <div className="space-y-3">
+                <h4 className="font-black uppercase tracking-[0.3em] text-[10px] text-acid-lime italic">Security_Vault</h4>
+                <p className="text-muted-foreground leading-relaxed">
+                  Implements field-level AES-256-GCM encryption for all sensitive infrastructure configurations. Manages the lifecycle of cryptographic keys and performs the proactive Security Audits.
                 </p>
               </div>
             </div>

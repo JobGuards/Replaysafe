@@ -27,12 +27,16 @@ const handleHeartbeat = async (req: any, res: any) => {
     let duration: number | undefined
     let exitCode: number | undefined
     let output: string | undefined
+    let latency: number | undefined
+    let handshakeAge: number | undefined
 
     if (req.method === 'POST') {
       type = req.body.type === 'FAILURE' ? 'FAILURE' : 'SUCCESS'
       duration = req.body.duration
       exitCode = req.body.exitCode
       output = req.body.output
+      latency = req.body.latency
+      handshakeAge = req.body.handshakeAge
     }
 
     const now = new Date()
@@ -45,6 +49,8 @@ const handleHeartbeat = async (req: any, res: any) => {
       duration,
       exitCode,
       output,
+      latency,
+      handshakeAge,
       isLate: !!isLate,
     })
 

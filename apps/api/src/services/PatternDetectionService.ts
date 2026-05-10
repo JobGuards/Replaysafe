@@ -44,15 +44,32 @@ export class PatternDetectionService {
       }
     }
 
-    // 2. Detect Flapping (many state changes in short time)
-    // We'd need to look at state transitions, but for now we'll count total failures in last 24h
-    const last24h = failures.filter((f: any) => f.receivedAt > subDays(new Date(), 1)).length
-    if (last24h > 10) {
+    // 3. Detect Latency Spikes (for Tunnelight)
+    const recentHeartbeats = await (prisma.heartbeat as any).findMany({
+      where: { monitorId },
+      orderBy: { receivedAt: 'desc' },
+      take: 20
+    })
+
+    const latencySpikes = recentHeartbeats.filter((h: any) => h.latency && h.latency > 1000).length
+    if (latencySpikes >= 3) {
+      patterns.push({
+        type: 'LATENCY_SPIKE',
+        description: `High latency detected in ${latencySpikes} of the last 20 heartbeats. Tunnel performance is degrading.`,
+        occurrences: latencySpikes,
+        lastSeen: recentHeartbeats[0].receivedAt,
+        severity: 'medium',
+      })
+    }
+
+    // 4. Detect Stale Handshakes (Security Risk)
+    const staleHandshakes = recentHeartbeats.filter((h: any) => h.handshakeAge && h.handshakeAge > 3600).length // 1 hour threshold
+    if (staleHandshakes >= 1) {
       patterns.push({
         type: 'FLAPPING',
-        description: `Monitor is "flapping" with ${last24h} failures in the last 24 hours.`,
-        occurrences: last24h,
-        lastSeen: failures[0].receivedAt,
+        description: `Stale tunnel handshakes detected. The secure tunnel may be functionally disconnected even if the process is running.`,
+        occurrences: staleHandshakes,
+        lastSeen: recentHeartbeats[0].receivedAt,
         severity: 'high',
       })
     }

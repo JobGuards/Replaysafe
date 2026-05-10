@@ -1,6 +1,7 @@
 import React from "react"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
+import { Logo } from "@/components/Logo"
 
 export default function AuthLayout({
   children,
@@ -15,19 +16,10 @@ export default function AuthLayout({
       <div className="flex-1 flex flex-col items-center justify-center p-6 relative z-10">
         {/* Branding */}
         <div className="mb-12 text-center group">
-          <Link href="/" className="flex flex-col items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-acid-lime flex items-center justify-center font-black text-2xl text-primary-foreground shadow-[0_0_30px_rgba(var(--theme-lime-rgb),0.3)] group-hover:shadow-[0_0_50px_rgba(var(--theme-lime-rgb),0.5)] transition-all duration-500 transform group-hover:scale-110">
-              S
-            </div>
-            <div>
-              <h1 className="text-3xl font-black text-foreground uppercase tracking-tighter">
-                StillUp<span className="text-acid-lime">.</span>
-              </h1>
-              <p className="text-muted-foreground text-[10px] font-black uppercase tracking-[0.4em] mt-2 opacity-60">
-                Heartbeat Monitoring
-              </p>
-            </div>
-          </Link>
+          <Logo className="flex-col !gap-6 scale-150 mb-8" />
+          <p className="text-muted-foreground text-[10px] font-black uppercase tracking-[0.4em] mt-4 opacity-60">
+            Infrastructure Sentinel
+          </p>
         </div>
 
         <div className="w-full max-w-[440px]">

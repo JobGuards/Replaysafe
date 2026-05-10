@@ -152,6 +152,12 @@ enum ScheduleType {
   SIMPLE  // Human-readable: "every 5 minutes", "every hour"
 }
 
+enum MonitorType {
+  HEARTBEAT
+  TUNNEL
+  CERTIFICATE
+}
+
 model Monitor {
   id              String        @id @default(cuid())
   name            String
@@ -160,6 +166,8 @@ model Monitor {
   scheduleType    ScheduleType  @default(CRON)
   graceSeconds    Int           @default(300)
   timezone        String        @default("UTC")
+  type            MonitorType   @default(HEARTBEAT)
+  config          Json?         // Flexible config for Tunnelight (PublicKeys, Endpoints, etc)
   status          MonitorStatus @default(UP)
   heartbeatToken   String        @unique
   enabled          Boolean       @default(true)
@@ -208,6 +216,8 @@ model Heartbeat {
   output          String?       @db.Text
   outputSizeBytes Int?
   metadata        Json?
+  latency         Int?          // ms (for Tunnelight ping monitoring)
+  handshakeAge    Int?          // seconds (for WireGuard/VPN handshake freshness)
   isLate          Boolean       @default(false)
 
   receivedAt     DateTime      @default(now())

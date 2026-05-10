@@ -1,16 +1,19 @@
 import { z } from 'zod'
 
 export const ScheduleTypeEnum = z.enum(['CRON', 'SIMPLE'])
+export const MonitorTypeEnum = z.enum(['HEARTBEAT', 'TUNNEL', 'CERTIFICATE'])
 
 export const createMonitorSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   description: z.string().optional(),
+  type: MonitorTypeEnum.default('HEARTBEAT'),
   schedule: z.string().min(1, 'Schedule is required'),
   scheduleType: ScheduleTypeEnum.default('CRON'),
   graceSeconds: z.number().int().min(0).default(300),
   timezone: z.string().default('UTC'),
   alertOnLate: z.boolean().default(true),
   notifyAfterSeconds: z.number().int().min(0).default(0),
+  config: z.record(z.any()).optional(),
 })
 
 export const updateMonitorSchema = createMonitorSchema.partial()

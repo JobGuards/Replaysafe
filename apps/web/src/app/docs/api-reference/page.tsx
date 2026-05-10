@@ -54,14 +54,42 @@ export default function APIReferenceDoc() {
               </div>
             </div>
 
-            {/* Intelligence */}
+            {/* Sentinel Telemetry */}
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <span className="px-3 py-1 bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest rounded-lg">GET</span>
+                <span className="px-3 py-1 bg-acid-lime text-primary-foreground text-[10px] font-black uppercase tracking-widest rounded-lg">POST</span>
+                <h3 className="text-xl font-black text-foreground uppercase tracking-tight">/api/sentinel/telemetry</h3>
+              </div>
+              <p className="leading-relaxed text-muted-foreground">
+                High-fidelity endpoint for infrastructure telemetry. Used by the Sentinel CLI to report secure tunnel health, network latency, and cryptographic handshake age.
+              </p>
+              <div className="p-6 bg-foreground/[0.03] rounded-2xl border border-border/5 space-y-4">
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Request Body</p>
+                <pre className="text-xs font-mono text-acid-lime whitespace-pre-wrap">
+{`{
+  "type": "TUNNEL",
+  "metrics": {
+    "handshakeAge": 124,  // in seconds
+    "latency": 18.5,       // in milliseconds
+    "peerCount": 1
+  },
+  "config": {
+    "publicKey": "base64_string...",
+    "endpoint": "vpn.example.com"
+  }
+}`}
+                </pre>
+              </div>
+            </div>
+
+            {/* Intelligence */}
+            <div className="space-y-4 pt-8 border-t border-border/5">
+              <div className="flex items-center gap-3">
+                <span className="px-3 py-1 bg-foreground/[0.05] text-foreground/60 text-[10px] font-black uppercase tracking-widest rounded-lg">GET</span>
                 <h3 className="text-xl font-black text-foreground uppercase tracking-tight">/api/analytics/overview</h3>
               </div>
-              <p className="leading-relaxed">
-                Returns aggregated health scores, uptime trends, and active failure patterns for all monitors in your project.
+              <p className="leading-relaxed text-muted-foreground">
+                Returns aggregated health scores, uptime trends, and active failure patterns for all infrastructure sentinels.
               </p>
             </div>
           </div>

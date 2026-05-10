@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { Logo } from "./Logo";
 import { NavActions } from "./NavActions";
 import { ModeToggle } from "./ModeToggle";
 
@@ -13,11 +14,8 @@ export function NewNav({ userEmail }: Props) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   return (
-    <header className="fixed mt-4 left-1/2 -translate-x-1/2 w-[calc(100%-2*theme(spacing.margin))] z-50 flex justify-between items-center px-md py-sm max-w-[1600px] mx-auto glass-panel rounded-full border border-outline-variant/20 backdrop-blur-xl transition-all duration-300">
-      <Link href="/" className="text-headline-md font-headline-md font-bold text-on-background tracking-tighter group cursor-pointer shrink-0">
-        <span className="tracking-[0.2em] font-black uppercase text-on-background group-hover:text-acid-lime transition-colors duration-500" style={{ textShadow: "0 0 10px rgba(228, 225, 237, 0.2)" }}>StillUp</span>
-        <span className="text-acid-lime">.</span>
-      </Link>
+    <header className="fixed mt-4 left-1/2 -translate-x-1/2 w-[calc(100%-2*theme(spacing.margin))] z-50 flex justify-between items-center px-md py-sm max-w-[1600px] mx-auto glass-panel rounded-full border border-border/10 backdrop-blur-xl transition-all duration-300">
+      <Logo />
       <nav className="hidden md:flex gap-md">
         <Link className="text-acid-lime font-bold tracking-wider hover:glow-lime transition-all duration-300 relative group" href="/dashboard">
           Dashboard
