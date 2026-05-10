@@ -94,13 +94,13 @@ export default function Settings() {
         )}
 
         {/* Profile Settings */}
-        <div className="bg-secondary border border-border rounded-lg p-6 mb-6">
-          <h2 className="text-xl font-bold text-foreground mb-6">Profile Information</h2>
+        <div className="glass-panel border border-border/10 rounded-2xl p-8 mb-8 shadow-xl">
+          <h2 className="text-xl font-black text-foreground mb-6 uppercase tracking-tight">Profile Information</h2>
 
-          <form onSubmit={handleProfileSubmit} className="space-y-5">
-            <div className="grid md:grid-cols-2 gap-5">
+          <form onSubmit={handleProfileSubmit} className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="fullName" className="text-foreground">
+                <Label htmlFor="fullName" className="text-sm font-bold text-muted-foreground uppercase tracking-widest">
                   Full Name
                 </Label>
                 <Input
@@ -109,12 +109,12 @@ export default function Settings() {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   disabled={isLoading}
-                  className="bg-background border-border text-foreground"
+                  className="bg-background/50 border-border/20 text-foreground h-12 focus:border-acid-lime/50 transition-all"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-foreground">
+                <Label htmlFor="email" className="text-sm font-bold text-muted-foreground uppercase tracking-widest">
                   Email Address
                 </Label>
                 <Input
@@ -123,7 +123,7 @@ export default function Settings() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
-                  className="bg-background border-border text-foreground"
+                  className="bg-background/50 border-border/20 text-foreground h-12 focus:border-acid-lime/50 transition-all"
                 />
               </div>
             </div>
@@ -131,7 +131,7 @@ export default function Settings() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full md:w-auto bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
+              className="bg-acid-lime text-primary-foreground hover:opacity-90 h-12 px-8 rounded-xl font-bold shadow-[0_0_15px_rgba(var(--theme-lime-rgb),0.2)] transition-all"
             >
               {isLoading ? (
                 <>
@@ -149,12 +149,12 @@ export default function Settings() {
         </div>
 
         {/* Password Settings */}
-        <div className="bg-secondary border border-border rounded-lg p-6 mb-6">
-          <h2 className="text-xl font-bold text-foreground mb-6">Change Password</h2>
+        <div className="glass-panel border border-border/10 rounded-2xl p-8 mb-8 shadow-xl">
+          <h2 className="text-xl font-black text-foreground mb-6 uppercase tracking-tight">Change Password</h2>
 
-          <form onSubmit={handlePasswordSubmit} className="space-y-5">
+          <form onSubmit={handlePasswordSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="currentPassword" className="text-foreground">
+              <Label htmlFor="currentPassword" className="text-sm font-bold text-muted-foreground uppercase tracking-widest">
                 Current Password
               </Label>
               <Input
@@ -163,13 +163,13 @@ export default function Settings() {
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 disabled={isLoading}
-                className="bg-background border-border text-foreground"
+                className="bg-background/50 border-border/20 text-foreground h-12 focus:border-acid-lime/50 transition-all"
               />
             </div>
 
-            <div className="grid md:grid-cols-2 gap-5">
+            <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="newPassword" className="text-foreground">
+                <Label htmlFor="newPassword" className="text-sm font-bold text-muted-foreground uppercase tracking-widest">
                   New Password
                 </Label>
                 <Input
@@ -178,13 +178,13 @@ export default function Settings() {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   disabled={isLoading}
-                  className="bg-background border-border text-foreground"
+                  className="bg-background/50 border-border/20 text-foreground h-12 focus:border-acid-lime/50 transition-all"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-foreground">
-                  Confirm New Password
+                <Label htmlFor="confirmPassword" className="text-sm font-bold text-muted-foreground uppercase tracking-widest">
+                  Confirm Password
                 </Label>
                 <Input
                   id="confirmPassword"
@@ -192,7 +192,7 @@ export default function Settings() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   disabled={isLoading}
-                  className="bg-background border-border text-foreground"
+                  className="bg-background/50 border-border/20 text-foreground h-12 focus:border-acid-lime/50 transition-all"
                 />
               </div>
             </div>
@@ -200,7 +200,7 @@ export default function Settings() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full md:w-auto bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
+              className="bg-acid-lime text-primary-foreground hover:opacity-90 h-12 px-8 rounded-xl font-bold shadow-[0_0_15px_rgba(var(--theme-lime-rgb),0.2)] transition-all"
             >
               {isLoading ? (
                 <>

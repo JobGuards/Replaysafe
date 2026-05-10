@@ -7,7 +7,9 @@ import {
   AlertCircle,
   CheckCircle,
   Calendar,
-  Download
+  Download,
+  ArrowUpRight,
+  ArrowDownRight
 } from 'lucide-react'
 
 export default function Analytics() {
@@ -62,144 +64,155 @@ export default function Analytics() {
   ]
 
   return (
-    <div className="p-6 lg:p-8 space-y-8">
+    <div className="flex flex-col gap-10">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-bold text-foreground mb-1">Analytics</h1>
-          <p className="text-muted-foreground">Insights, trends, and failure patterns</p>
+          <h1 className="text-4xl font-black tracking-tighter text-foreground uppercase">Analytics</h1>
+          <p className="text-muted-foreground text-lg mt-1">Insights, trends, and failure patterns</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex p-1 bg-card/50 backdrop-blur rounded-xl border border-border/10">
           {timeRanges.map(range => (
-            <Button
+            <button
               key={range}
-              variant={selectedRange === range ? 'default' : 'outline'}
-              size="sm"
-              className={
+              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
                 selectedRange === range
-                  ? 'bg-primary text-primary-foreground'
-                  : 'border-border text-foreground hover:bg-secondary'
-              }
+                  ? 'bg-acid-lime text-primary-foreground shadow-lg shadow-acid-lime/20'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
             >
-              {range === '7d' ? '7 Days' : range === '30d' ? '30 Days' : range === '90d' ? '90 Days' : '1 Year'}
-            </Button>
+              {range.toUpperCase()}
+            </button>
           ))}
         </div>
       </div>
 
       {/* Key Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div className="bg-secondary border border-border rounded-lg p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-muted-foreground">Uptime</h3>
-            <TrendingUp className="w-5 h-5 text-primary/50" />
-          </div>
-          <p className="text-3xl font-bold text-primary mb-2">{analyticsData.uptime}%</p>
-          <p className="text-xs text-muted-foreground">Excellent performance this month</p>
-        </div>
-
-        <div className="bg-secondary border border-border rounded-lg p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-muted-foreground">Total Requests</h3>
-            <BarChart3 className="w-5 h-5 text-primary/50" />
-          </div>
-          <p className="text-3xl font-bold text-foreground mb-2">{analyticsData.totalRequests.toLocaleString()}</p>
-          <p className="text-xs text-muted-foreground">+12% from last period</p>
-        </div>
-
-        <div className="bg-secondary border border-border rounded-lg p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-muted-foreground">Failure Rate</h3>
-            <AlertCircle className="w-5 h-5 text-accent/50" />
-          </div>
-          <p className="text-3xl font-bold text-accent mb-2">{analyticsData.failureRate}%</p>
-          <p className="text-xs text-muted-foreground">Very low - excellent reliability</p>
-        </div>
-
-        <div className="bg-secondary border border-border rounded-lg p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-muted-foreground">Avg Response Time</h3>
-            <Calendar className="w-5 h-5 text-primary/50" />
-          </div>
-          <p className="text-3xl font-bold text-foreground mb-2">{analyticsData.avgResponseTime}s</p>
-          <p className="text-xs text-muted-foreground">Peak: {analyticsData.peakHour}</p>
-        </div>
-
-        <div className="bg-secondary border border-border rounded-lg p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-muted-foreground">Avg Recovery Time</h3>
-            <CheckCircle className="w-5 h-5 text-primary/50" />
-          </div>
-          <p className="text-3xl font-bold text-foreground mb-2">{analyticsData.recoveryTime}</p>
-          <p className="text-xs text-muted-foreground">After failure detection</p>
-        </div>
-
-        <div className="bg-secondary border border-border rounded-lg p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-muted-foreground">MTTR Trend</h3>
-            <TrendingUp className="w-5 h-5 text-primary/50" />
-          </div>
-          <p className="text-3xl font-bold text-primary mb-2">-15%</p>
-          <p className="text-xs text-muted-foreground">Improved from last month</p>
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <MetricCard 
+          title="Avg Uptime" 
+          value={`${analyticsData.uptime}%`} 
+          trend="+0.2%" 
+          positive 
+          icon={<TrendingUp className="w-4 h-4" />} 
+        />
+        <MetricCard 
+          title="Total Heartbeats" 
+          value={analyticsData.totalRequests.toLocaleString()} 
+          trend="+12%" 
+          positive 
+          icon={<BarChart3 className="w-4 h-4" />} 
+        />
+        <MetricCard 
+          title="Failure Rate" 
+          value={`${analyticsData.failureRate}%`} 
+          trend="-5%" 
+          positive={false} 
+          icon={<AlertCircle className="w-4 h-4" />} 
+        />
       </div>
 
-      {/* Uptime Chart */}
-      <div className="bg-secondary border border-border rounded-lg p-6">
-        <h2 className="text-lg font-semibold text-foreground mb-6">Uptime by Day</h2>
-        <div className="space-y-4">
-          {uptimeByDay.map((day) => (
-            <div key={day.day} className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-foreground">{day.day}</span>
-                <span className={`text-sm font-semibold ${day.uptime === 100 ? 'text-primary' : 'text-accent'}`}>
-                  {day.uptime}%
-                </span>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Uptime Chart */}
+        <div className="glass-panel border border-border/10 rounded-3xl p-8 shadow-xl">
+          <h2 className="text-xl font-black text-foreground mb-8 uppercase tracking-tight">Uptime Distribution</h2>
+          <div className="space-y-6">
+            {uptimeByDay.map((day) => (
+              <div key={day.day} className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-bold text-muted-foreground uppercase tracking-widest">{day.day}</span>
+                  <span className={`text-sm font-black ${day.uptime === 100 ? 'text-acid-lime' : 'text-orange-500'}`}>
+                    {day.uptime}%
+                  </span>
+                </div>
+                <div className="h-1.5 bg-foreground/5 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full transition-all duration-1000 ease-out ${day.uptime === 100 ? 'bg-acid-lime shadow-[0_0_10px_rgba(var(--theme-lime-rgb),0.5)]' : 'bg-orange-500'}`}
+                    style={{ width: `${day.uptime}%` }}
+                  />
+                </div>
               </div>
-              <div className="h-2 bg-background rounded-full overflow-hidden">
-                <div
-                  className={`h-full transition-all ${day.uptime === 100 ? 'bg-primary' : 'bg-accent'}`}
-                  style={{ width: `${day.uptime}%` }}
-                />
+            ))}
+          </div>
+        </div>
+
+        {/* AI Insights */}
+        <div className="space-y-6">
+          <h2 className="text-xl font-black text-foreground uppercase tracking-tight">System Insights</h2>
+          <div className="flex flex-col gap-4">
+            {insights.map((insight, index) => (
+              <div
+                key={index}
+                className={`glass-panel rounded-2xl p-6 border-l-4 transition-all hover:-translate-x-1 ${
+                  insight.type === 'warning'
+                    ? 'border-orange-500 bg-orange-500/5'
+                    : insight.type === 'success'
+                      ? 'border-acid-lime bg-acid-lime/5'
+                      : 'border-primary bg-primary/5'
+                }`}
+              >
+                <div className="flex items-start gap-4">
+                  <div className={`p-2 rounded-lg ${
+                    insight.type === 'warning' ? 'bg-orange-500/10 text-orange-500' :
+                    insight.type === 'success' ? 'bg-acid-lime/10 text-acid-lime' :
+                    'bg-primary/10 text-primary'
+                  }`}>
+                    {insight.type === 'warning' && <AlertCircle className="w-5 h-5" />}
+                    {insight.type === 'success' && <CheckCircle className="w-5 h-5" />}
+                    {insight.type === 'info' && <TrendingUp className="w-5 h-5" />}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-foreground mb-1">{insight.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{insight.description}</p>
+                    {insight.action && (
+                      <button className="mt-4 text-xs font-black uppercase tracking-widest hover:opacity-70 transition-opacity flex items-center gap-1 group">
+                        <span className={insight.type === 'warning' ? 'text-orange-500' : 'text-acid-lime'}>
+                          {insight.action}
+                        </span>
+                        <ArrowUpRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Failure Patterns */}
-      <div className="bg-secondary border border-border rounded-lg p-6">
-        <h2 className="text-lg font-semibold text-foreground mb-6">Detected Failure Patterns</h2>
+      <div className="glass-panel border border-border/10 rounded-3xl p-8 shadow-xl">
+        <h2 className="text-xl font-black text-foreground mb-8 uppercase tracking-tight">Recurring failure patterns</h2>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full">
             <thead>
-              <tr className="border-b border-border">
-                <th className="text-left py-3 px-4 font-semibold text-muted-foreground">Pattern</th>
-                <th className="text-center py-3 px-4 font-semibold text-muted-foreground">Occurrences</th>
-                <th className="text-center py-3 px-4 font-semibold text-muted-foreground">Last Seen</th>
-                <th className="text-center py-3 px-4 font-semibold text-muted-foreground">Likelihood</th>
+              <tr className="text-left border-b border-border/10">
+                <th className="pb-4 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Pattern</th>
+                <th className="pb-4 text-[10px] font-black uppercase tracking-[0.2em] text-center text-muted-foreground">Count</th>
+                <th className="pb-4 text-[10px] font-black uppercase tracking-[0.2em] text-center text-muted-foreground">Last Seen</th>
+                <th className="pb-4 text-[10px] font-black uppercase tracking-[0.2em] text-right text-muted-foreground">Likelihood</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody className="divide-y divide-border/5">
               {failurePatterns.map((pattern, index) => (
-                <tr key={index} className="hover:bg-background/50 transition">
-                  <td className="py-3 px-4">
-                    <p className="font-medium text-foreground">{pattern.pattern}</p>
+                <tr key={index} className="group">
+                  <td className="py-4">
+                    <p className="font-bold text-foreground group-hover:text-acid-lime transition-colors">{pattern.pattern}</p>
                   </td>
-                  <td className="py-3 px-4 text-center">
-                    <p className="text-foreground">{pattern.occurrences}x</p>
+                  <td className="py-4 text-center">
+                    <p className="text-sm font-medium text-foreground">{pattern.occurrences}x</p>
                   </td>
-                  <td className="py-3 px-4 text-center">
-                    <p className="text-muted-foreground">{pattern.lastSeen}</p>
+                  <td className="py-4 text-center">
+                    <p className="text-xs text-muted-foreground uppercase font-medium">{pattern.lastSeen}</p>
                   </td>
-                  <td className="py-3 px-4 text-center">
+                  <td className="py-4 text-right">
                     <span
-                      className={`text-xs font-medium px-2 py-1 rounded-full ${
+                      className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest ${
                         pattern.likelihood === 'High'
-                          ? 'bg-destructive/20 text-destructive'
+                          ? 'bg-destructive/10 text-destructive border border-destructive/20'
                           : pattern.likelihood === 'Medium'
-                            ? 'bg-accent/20 text-accent'
-                            : 'bg-primary/20 text-primary'
+                            ? 'bg-orange-500/10 text-orange-500 border border-orange-500/20'
+                            : 'bg-acid-lime/10 text-acid-lime border border-acid-lime/20'
                       }`}
                     >
                       {pattern.likelihood}
@@ -212,56 +225,36 @@ export default function Analytics() {
         </div>
       </div>
 
-      {/* AI Insights */}
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-foreground">AI Insights</h2>
-        {insights.map((insight, index) => (
-          <div
-            key={index}
-            className={`rounded-lg p-6 border ${
-              insight.type === 'warning'
-                ? 'bg-accent/10 border-accent/30'
-                : insight.type === 'success'
-                  ? 'bg-primary/10 border-primary/30'
-                  : 'bg-blue-500/10 border-blue-500/30'
-            }`}
-          >
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 pt-0.5">
-                {insight.type === 'warning' && <AlertCircle className="w-5 h-5 text-accent" />}
-                {insight.type === 'success' && <CheckCircle className="w-5 h-5 text-primary" />}
-                {insight.type === 'info' && <TrendingUp className="w-5 h-5 text-blue-500" />}
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-foreground mb-1">{insight.title}</h3>
-                <p className="text-sm text-muted-foreground mb-3">{insight.description}</p>
-                {insight.action && (
-                  <button className="text-sm font-medium hover:underline">
-                    {insight.action === 'View Monitor' ? (
-                      <span className={insight.type === 'warning' ? 'text-accent' : 'text-primary'}>
-                        {insight.action}
-                      </span>
-                    ) : (
-                      insight.action
-                    )}
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
       {/* Export Section */}
-      <div className="bg-secondary border border-border rounded-lg p-6 flex items-center justify-between">
-        <div>
-          <h3 className="font-semibold text-foreground mb-1">Export Analytics</h3>
-          <p className="text-sm text-muted-foreground">Download detailed analytics report for this period</p>
+      <div className="glass-panel border border-border/10 rounded-3xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl bg-acid-lime/5">
+        <div className="text-center md:text-left">
+          <h3 className="text-xl font-black text-foreground mb-1 uppercase tracking-tight">Export Intelligence</h3>
+          <p className="text-muted-foreground">Generate a PDF report of your system's performance and failure trends.</p>
         </div>
-        <Button className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
+        <Button className="bg-foreground text-background hover:opacity-90 h-12 px-8 rounded-xl font-black uppercase tracking-widest flex items-center gap-3">
           <Download className="w-4 h-4" />
-          Export Report
+          Download Report
         </Button>
+      </div>
+    </div>
+  )
+}
+
+function MetricCard({ title, value, trend, positive, icon }: { title: string; value: string; trend: string; positive: boolean; icon: React.ReactNode }) {
+  return (
+    <div className="glass-panel border border-border/10 rounded-2xl p-6 shadow-lg transition-all hover:-translate-y-1">
+      <div className="flex items-center justify-between mb-4">
+        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">{title}</span>
+        <div className="opacity-40">{icon}</div>
+      </div>
+      <div className="flex items-end justify-between">
+        <p className="text-3xl font-black tracking-tighter text-foreground">{value}</p>
+        <div className={`flex items-center gap-1 text-[10px] font-black px-2 py-1 rounded-lg ${
+          positive ? 'bg-acid-lime/10 text-acid-lime' : 'bg-destructive/10 text-destructive'
+        }`}>
+          {positive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+          {trend}
+        </div>
       </div>
     </div>
   )
