@@ -1,7 +1,7 @@
 <div align="center">
   <img src="https://raw.githubusercontent.com/stillup/brand/main/logo.png" alt="StillUp Logo" width="200" />
   <h1>STILLUP</h1>
-  <p><strong>The High-Fidelity Infrastructure Sentinel for Modern DevOps</strong></p>
+  <p><strong>The High-Fidelity Infrastructure Sentinel & Job Reliability Platform</strong></p>
   
   [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-acidlime.svg)](LICENSE)
   [![Version](https://img.shields.io/badge/version-1.0.0--alpha-blue.svg)]()
@@ -12,16 +12,34 @@
 
 ## ⚡ The Monitor That Thinks
 
-StillUp is more than an uptime checker. It's a security-hardened **Infrastructure Sentinel** that understands your system's heartbeat patterns and secure tunnel telemetries. Built for engineers who demand robust safety audits, real-time observability, and a premium visual experience.
+StillUp is more than an uptime checker. It's a security-hardened **Reliability Platform** that combines **Infrastructure Safety** (Secure Tunnels, Crons, Backups) with **Job Safety** (ReplayGuard™). Built for engineers who demand exactly-once semantics, real-time observability, and a premium visual experience.
 
 ### ✨ Key Features
 
-- 🛡️ **Secure Tunnel Monitoring**: Real-time handshake tracking and latency metrics for encrypted networks (WireGuard, SSH, OpenVPN). Detect silent failures before they break your access.
-- 🧠 **Cryptographic Memory**: We track every handshake, key rotation, and heartbeat. Identify trends in network degradation and past resolution patterns.
-- 🔐 **Hardened Security Vault**: Enterprise-grade RBAC, Audit Logging, and AES-256-GCM secret encryption at rest. Track certificate validity and key age.
-- 🎨 **Sentinel Hub UI**: A premium, glassmorphic command center with a dynamic 'Control Center' grid, real-time pulse visualizations, and acid-lime aesthetics.
-- 🚀 **Instant Alerting**: Deep-linked, context-rich alerts dispatched via Slack (Block Kit), Discord (Embeds), and custom webhooks in milliseconds.
-- 📊 **Zero-Agent Telemetry**: Monitor crons and backups globally by simply appending a curl to your scripts. No invasive agents required.
+- 🛡️ **ReplayGuard™ (Safe Retries)**: The first safety layer for background jobs. Prevent duplicate side effects (double payments, double emails) during job retries with cryptographic fingerprinting.
+- 🛰️ **Secure Tunnel Monitoring**: Real-time handshake tracking and latency metrics for encrypted networks (WireGuard, SSH). Detect silent failures before they break your access.
+- 🧠 **Cryptographic Memory**: We track every side effect, handshake, and heartbeat. Identify trends in network degradation and past resolution patterns.
+- 💻 **Global CLI**: A powerful Node-based CLI for heartbeat ingestion, tunnel monitoring, and job guarding from any terminal or CI/CD pipeline.
+- 🔐 **Hardened Security Vault**: Enterprise-grade RBAC, Audit Logging, and AES-256-GCM secret encryption at rest.
+- 🎨 **Sentinel Hub UI**: A premium, glassmorphic command center with a dynamic 'Control Center' grid and acid-lime aesthetics.
+
+## 💻 StillUp CLI
+
+The StillUp CLI is the easiest way to monitor your infrastructure from the terminal.
+
+```bash
+# Install globally (once published)
+npm install -g @stillup/cli
+
+# Login to your project
+stillup login YOUR_API_KEY
+
+# Pulse a heartbeat
+stillup hb your-monitor-token
+
+# Monitor a secure tunnel (Tunnelight Engine)
+stillup tunnel monitor your-tunnel-token --target 8.8.8.8
+```
 
 ## 🚀 Quick Start
 

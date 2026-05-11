@@ -84,12 +84,21 @@ const handleHeartbeat = async (req: any, res: any) => {
 
     // Async: update health score and run pattern detection (non-blocking)
     setImmediate(() => {
-      healthScoreService.calculateAndUpdate(monitor.id).catch(console.error)
-      patternDetectionService.analyzeMonitor(monitor.id).catch(console.error)
+      healthScoreService.calculateAndUpdate(monitor.id).catch(err => {
+        console.error('[Heartbeat] Health score update failed:', err);
+      })
+      patternDetectionService.analyzeMonitor(monitor.id).catch(err => {
+        console.error('[Heartbeat] Pattern detection failed:', err);
+      })
     })
-  } catch (error) {
-    console.error('Heartbeat ingestion error:', error)
-    res.status(500).json({ error: 'Internal server error' })
+  } catch (error: any) {
+    const errorMsg = `[${new Date().toISOString()}] CRITICAL: Heartbeat ingestion error: ${error.message}\n${error.stack}\n`;
+    try {
+      import('fs').then(fs => fs.appendFileSync('error_log.txt', errorMsg));
+    } catch (e) {}
+    console.error('CRITICAL: Heartbeat ingestion error:', error.message);
+    console.error(error.stack);
+    res.status(500).json({ error: 'Internal server error', details: error.message })
   }
 }
 

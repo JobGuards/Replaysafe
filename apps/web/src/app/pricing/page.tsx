@@ -15,6 +15,7 @@ export default function PricingPage() {
       features: [
         'Up to 5 Heartbeat Monitors',
         '5 Minute Check Intervals',
+        '10 Guarded Job Runs / mo',
         '7 Day History Retention',
         'Basic Email Alerts',
         'StillUp Branded Status Page',
@@ -28,6 +29,8 @@ export default function PricingPage() {
       description: 'For teams requiring deep network visibility.',
       features: [
         'Up to 50 Monitors (Heartbeat + Tunnel)',
+        'Unlimited ReplayGuard Sessions',
+        'Exactly-Once Semantics for Retries',
         'Secure Tunnel Handshake Tracking',
         '30 Second High-Resolution Checks',
         '90 Day History Retention',
@@ -43,6 +46,8 @@ export default function PricingPage() {
       description: 'The complete Infrastructure Sentinel suite.',
       features: [
         'Unlimited Monitors & Tunnels',
+        'Enterprise-Wide ReplayGuard Memory',
+        'Side-Effect Fingerprint Auditing',
         'Key & Certificate Safety Audits',
         'Real-time Handshake Telemetry',
         'Custom Secret Rotation Alerts',
@@ -75,7 +80,7 @@ export default function PricingPage() {
             Scale your <br /> <span className="glow-lime">Reliability</span>
           </h1>
           <p className="text-muted-foreground text-xl max-w-2xl mx-auto font-medium opacity-80">
-            Deploy the Sentinel that fits your scale. From basic crons to global encrypted tunnel networks.
+            Deploy the Sentinel that fits your scale. From basic crons to global encrypted tunnel networks and <b>idempotent background jobs</b>.
           </p>
         </div>
 

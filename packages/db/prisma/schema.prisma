@@ -385,7 +385,7 @@ model GuardSideEffect {
   id              String    @id @default(cuid())
   executionId     String
   type            String    // "HTTP", "DB", "EMAIL", etc.
-  fingerprint     String    @unique
+  fingerprint     String
   target          String?   // URL, Table Name, Email
   inputHash       String    // Hash of the arguments/payload
   status          String    @default("COMPLETED")

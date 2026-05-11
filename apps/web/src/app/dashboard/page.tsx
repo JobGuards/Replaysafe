@@ -33,7 +33,7 @@ export default function DashboardPage() {
             Global infrastructure health and sentinel security status.
           </p>
         </div>
-        <Link href="/monitors/new">
+        <Link href="/dashboard/monitors/new">
           <Button size="lg" className="bg-acid-lime text-primary-foreground gap-3 px-10 h-16 rounded-2xl shadow-2xl shadow-acid-lime/20 hover:shadow-acid-lime/40 transition-all font-black uppercase tracking-widest text-sm group">
             <Plus className="h-5 w-5 group-hover:rotate-90 transition-transform" /> Deploy Monitor
           </Button>

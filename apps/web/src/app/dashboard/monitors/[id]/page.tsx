@@ -90,7 +90,7 @@ export default function MonitorDetailPage() {
     try {
       await api.deleteMonitor(monitor.id)
       toast.success('Monitor deleted')
-      router.push('/monitors')
+      router.push('/dashboard/monitors')
     } catch {
       toast.error('Failed to delete monitor')
     }
@@ -114,7 +114,7 @@ export default function MonitorDetailPage() {
       <div className="flex flex-col items-center justify-center h-64 gap-4">
         <AlertTriangle className="h-12 w-12 text-destructive opacity-50" />
         <p className="text-muted-foreground">Monitor not found or failed to load.</p>
-        <Link href="/monitors"><Button variant="outline">Back to Monitors</Button></Link>
+        <Link href="/dashboard/monitors"><Button variant="outline">Back to Monitors</Button></Link>
       </div>
     )
   }
@@ -125,7 +125,7 @@ export default function MonitorDetailPage() {
     <div className="flex flex-col gap-6">
       {/* Header */}
       <div className="flex flex-col gap-4">
-        <Link href="/monitors">
+        <Link href="/dashboard/monitors">
           <Button variant="ghost" size="sm" className="-ml-2 h-8 gap-1 text-muted-foreground">
             <ChevronLeft className="h-4 w-4" />
             Back to Monitors
@@ -142,7 +142,7 @@ export default function MonitorDetailPage() {
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <Link href={`/monitors/${monitor.id}/edit`}>
+            <Link href={`/dashboard/monitors/${monitor.id}/edit`}>
               <Button variant="outline" size="sm" className="gap-2">
                 <Edit className="h-4 w-4" /> Edit
               </Button>

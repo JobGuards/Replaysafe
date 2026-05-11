@@ -44,7 +44,7 @@ const items = [
   },
   {
     title: 'Monitors',
-    url: '/monitors',
+    url: '/dashboard/monitors',
     icon: Activity,
   },
   {

@@ -40,10 +40,11 @@ export default function LandingPage() {
   }
 
   const faqs = [
-    { q: "What is StillUp?", a: "StillUp is a heartbeat monitoring and infrastructure safety service that ensures your backups, tunnels, and scheduled tasks actually run. If they don't, we alert you immediately." },
+    { q: "What is StillUp?", a: "StillUp is a reliability platform that combines heartbeat monitoring for infrastructure with ReplayGuard for background job safety. We ensure your backups run and your job retries are idempotent." },
+    { q: "What is ReplayGuard?", a: "ReplayGuard makes retrying failed jobs safe. It tracks side effects (payments, emails) using cryptographic fingerprints to prevent duplicate execution during retries." },
     { q: "How does it monitor Tunnels?", a: "We track handshake age and latency for WireGuard, SSH, and OpenVPN. If your tunnel degrades or keys go stale, we detect it without intercepting traffic." },
-    { q: "Can I report failures explicitly?", a: "Yes! You can POST to our failure endpoint with error logs and exit codes, and we'll record exactly what happened." },
-    { q: "What is 'Execution Memory'?", a: "Unlike other tools, StillUp remembers past failures. We help you find patterns and suggest fixes based on what worked last time." },
+    { q: "Can I report failures explicitly?", a: "Yes! You can use our CLI or SDK to report failures, measure latency, and guard side effects with exactly-once semantics." },
+    { q: "What is 'Execution Memory'?", a: "StillUp remembers past failures and successful side effects. We help you find patterns and ensure that retrying a job never charges a customer twice." },
     { q: "Does it work with my existing tools?", a: "StillUp works anywhere curl works. We also integrate with Slack, Discord, and PagerDuty for alerting." },
   ];
 
@@ -72,7 +73,7 @@ export default function LandingPage() {
               If it fails or <span className="glow-lime font-black">degrades</span>, <br/> we're the first to know.
             </h1>
             <p className="text-body-lg font-body-lg text-muted-foreground max-w-2xl mt-2">
-              The first Infrastructure Safety layer for Crons, Backups, and Secure Tunnels. We monitor health, detect silent failures, and protect your keys.
+              The first Reliability Platform for Crons, Secure Tunnels, and <b>Safe Background Jobs</b>. We monitor health, detect silent failures, and prevent duplicate side effects.
             </p>
             <div className="flex flex-col items-center gap-md mt-10">
               <Link href="/dashboard" className="bg-acid-lime text-primary-foreground px-xl py-sm rounded-lg font-black uppercase tracking-widest text-sm shadow-[0_0_20px_rgba(var(--theme-lime-rgb),0.3)] hover:shadow-[0_0_40px_rgba(var(--theme-lime-rgb),0.6)] transition-all duration-500 flex items-center gap-xs transform hover:-translate-y-1">
@@ -150,19 +151,19 @@ export default function LandingPage() {
                     </div>
                   </div>
 
-                  {/* Node 3 */}
-                  <div className="glass-panel rounded-2xl p-6 flex flex-col gap-4 border-border/10 hover:border-acid-lime/50 transition-all hover:shadow-[0_0_20px_rgba(217,255,0,0.1)] relative overflow-hidden group">
+                  {/* Node 3 - ReplayGuard Node */}
+                  <div className="glass-panel rounded-2xl p-6 flex flex-col gap-4 border-border/10 hover:border-acid-lime/50 transition-all hover:shadow-[0_0_20px_rgba(217,255,0,0.1)] relative overflow-hidden group border-acid-lime/20 bg-acid-lime/5">
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-xl bg-foreground/[0.03] flex items-center justify-center border border-border/10">
-                        <RefreshCw className="text-muted-foreground w-5 h-5" />
+                        <Zap className="text-acid-lime w-5 h-5" />
                       </div>
                       <div>
-                        <div className="text-sm font-black uppercase tracking-tight">S3 Replication</div>
-                        <div className="text-[10px] text-muted-foreground font-code-md uppercase tracking-widest">Job_Live</div>
+                        <div className="text-sm font-black uppercase tracking-tight">Payment Retry</div>
+                        <div className="text-[10px] text-acid-lime font-code-md uppercase tracking-widest">ReplayGuard</div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground bg-foreground/[0.03] px-3 py-1.5 rounded-lg border border-border/10 w-fit">
-                      <RefreshCw className="w-3 h-3 animate-spin" /> SYNCING
+                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-acid-lime bg-acid-lime/10 px-3 py-1.5 rounded-lg border border-acid-lime/20 w-fit">
+                      <ShieldCheck className="w-3 h-3" /> IDEMPOTENT
                     </div>
                   </div>
                 </div>
@@ -217,8 +218,8 @@ export default function LandingPage() {
           {/* Feature Grid */}
           <section className="grid grid-cols-1 md:grid-cols-3 gap-md w-full mt-xl">
             {[
-              { icon: <Heart className="w-5 h-5" />, title: 'Heartbeat Sentinel.', desc: 'Zero-config monitoring for Crons and Backups. Just add a curl to your script and our sentinel engine does the rest.' },
-              { icon: <History className="w-5 h-5" />, title: 'Cryptographic Memory.', desc: 'We track every handshake and key rotation. See trends in network degradation and previous resolution patterns.' },
+              { icon: <Heart className="w-5 h-5" />, title: 'Heartbeat Sentinel.', desc: 'Zero-config monitoring for Crons and Backups. Pulse metrics from any script with our global CLI.' },
+              { icon: <ShieldCheck className="w-5 h-5" />, title: 'ReplayGuard™ Safety.', desc: 'The first "Exactly-Once" engine for background jobs. Prevent double payments and emails during retries.' },
               { icon: <Zap className="w-5 h-5" />, title: 'Sentinel Alerts.', desc: 'Deep-link alerts via Slack or Discord that take you directly to the root cause of a silent tunnel failure.' }
             ].map((f, i) => (
               <div 

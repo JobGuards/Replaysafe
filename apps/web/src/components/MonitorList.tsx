@@ -45,7 +45,7 @@ export function MonitorList() {
         <p className="mb-12 text-muted-foreground max-w-sm mt-4 font-medium leading-relaxed">
           Your fleet is currently invisible. Deploy your first heartbeat sentinel or secure network tunnel to begin observability.
         </p>
-        <Link href="/monitors/new">
+        <Link href="/dashboard/monitors/new">
           <Button size="lg" className="rounded-2xl h-16 px-12 bg-acid-lime text-primary-foreground shadow-2xl shadow-acid-lime/20 hover:shadow-acid-lime/40 transition-all font-black uppercase tracking-widest text-xs">
             <Plus className="w-4 h-4 mr-3" />
             Deploy First Sentinel

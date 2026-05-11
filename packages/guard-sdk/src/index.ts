@@ -9,6 +9,7 @@ export interface GuardConfig {
 export interface ReplayContext {
   executionId: string;
   attempt: number;
+  token?: string;
 }
 
 export type GuardAction = 'EXECUTE' | 'SKIP';
@@ -73,6 +74,7 @@ export class ReplayGuard {
       },
       body: JSON.stringify({
         executionId: this.context.executionId,
+        token: this.context.token,
         fingerprint,
         type,
         target,
@@ -101,7 +103,10 @@ export class ReplayGuard {
           'Content-Type': 'application/json',
           'x-api-key': this.config.apiKey,
         },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ 
+          status,
+          token: this.context.token
+        }),
       });
     } catch (e) {
       console.error('[ReplayGuard] Failed to complete session', e);

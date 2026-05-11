@@ -7,13 +7,17 @@ export class GuardsService {
    * Initializes a new guarded execution session.
    * If externalId is provided, it detects if this is a retry and increments the attempt counter.
    */
-  static async createSession(monitorId: string, externalId?: string) {
+  static async createSession(monitorId: string, projectId: string, externalId?: string) {
     const monitor = await prisma.monitor.findUnique({
       where: { id: monitorId },
     });
 
     if (!monitor) {
       throw new Error("Monitor not found");
+    }
+
+    if (monitor.projectId !== projectId) {
+      throw new Error("Unauthorized: Monitor does not belong to this project");
     }
 
     let attempt = 1;

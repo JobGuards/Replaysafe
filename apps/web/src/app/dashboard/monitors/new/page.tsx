@@ -11,7 +11,7 @@ export default function NewMonitorPage() {
         
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] items-center gap-12 relative z-10">
           <div className="space-y-6">
-            <Link href="/monitors" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 hover:text-acid-lime transition-colors">
+            <Link href="/dashboard/monitors" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/60 hover:text-acid-lime transition-colors">
               <ChevronLeft className="h-3 w-3" />
               Back to Infrastructure Hub
             </Link>

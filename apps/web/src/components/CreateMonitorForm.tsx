@@ -59,7 +59,7 @@ export function CreateMonitorForm() {
     try {
       await api.createMonitor(values)
       toast.success('Monitor created successfully')
-      router.push('/monitors')
+      router.push('/dashboard/monitors')
       router.refresh()
     } catch (error) {
       console.error(error)

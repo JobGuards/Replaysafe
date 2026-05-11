@@ -27,7 +27,7 @@ export function HeartbeatMonitorCard({ monitor }: MonitorCardProps) {
             <Activity className="w-5 h-5" />
           </div>
           <div>
-            <Link href={`/monitors/${monitor.id}`}>
+            <Link href={`/dashboard/monitors/${monitor.id}`}>
               <h3 className="text-2xl font-black uppercase tracking-tighter italic group-hover:text-acid-lime transition-colors leading-none">{monitor.name}</h3>
             </Link>
             <div className="flex items-center gap-2 mt-2">
@@ -47,10 +47,10 @@ export function HeartbeatMonitorCard({ monitor }: MonitorCardProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="rounded-xl border-border/10">
               <DropdownMenuItem asChild>
-                <Link href={`/monitors/${monitor.id}`}>Details</Link>
+                <Link href={`/dashboard/monitors/${monitor.id}`}>Details</Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link href={`/monitors/${monitor.id}/edit`}>Edit</Link>
+                <Link href={`/dashboard/monitors/${monitor.id}/edit`}>Edit</Link>
               </DropdownMenuItem>
               <DropdownMenuItem className="text-destructive">Pause</DropdownMenuItem>
             </DropdownMenuContent>
@@ -78,7 +78,7 @@ export function HeartbeatMonitorCard({ monitor }: MonitorCardProps) {
           <div className={`w-2 h-2 rounded-full animate-pulse ${monitor.status === 'UP' ? 'bg-acid-lime' : 'bg-destructive'}`} />
           {monitor.status}
         </div>
-        <Link href={`/monitors/${monitor.id}`} className="text-[10px] font-black uppercase tracking-widest text-acid-lime hover:opacity-70 transition-opacity flex items-center gap-2 group">
+        <Link href={`/dashboard/monitors/${monitor.id}`} className="text-[10px] font-black uppercase tracking-widest text-acid-lime hover:opacity-70 transition-opacity flex items-center gap-2 group">
           View Analytics
           <Zap className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
         </Link>

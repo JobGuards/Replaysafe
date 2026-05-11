@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { apiKeyMiddleware, authMiddleware, projectAccessMiddleware } from "../middleware/auth.js";
 import { GuardsService } from "../services/GuardsService.js";
+import { signToken, verifyToken } from "../utils/encryption.js";
 
 const router = Router();
 
@@ -16,11 +17,16 @@ router.post("/session", apiKeyMiddleware, async (req, res) => {
       return res.status(400).json({ error: "monitorId is required" });
     }
 
-    const execution = await GuardsService.createSession(monitorId, externalId);
+    const { project } = req;
+    if (!project) return res.status(401).json({ error: "Unauthorized" });
+
+    const execution = await GuardsService.createSession(monitorId, project.id, externalId);
+    const signature = signToken(execution.id);
     
     res.json({
       executionId: execution.id,
       attempt: execution.attempt,
+      token: `${execution.id}.${signature}`
     });
   } catch (error) {
     console.error("[Guards] Session initialization error:", error);
@@ -34,10 +40,18 @@ router.post("/session", apiKeyMiddleware, async (req, res) => {
  */
 router.post("/verify", apiKeyMiddleware, async (req, res) => {
   try {
-    const { executionId, fingerprint, type, target, inputHash } = req.body;
+    const { executionId, fingerprint, type, target, inputHash, token } = req.body;
 
     if (!executionId || !fingerprint) {
       return res.status(400).json({ error: "executionId and fingerprint are required" });
+    }
+
+    // Verify session token if provided (strict security)
+    if (token) {
+      const [id, sig] = token.split('.');
+      if (id !== executionId || !verifyToken(id, sig)) {
+        return res.status(401).json({ error: "Invalid session token" });
+      }
     }
 
     const result = await GuardsService.verifySideEffect(
@@ -49,9 +63,10 @@ router.post("/verify", apiKeyMiddleware, async (req, res) => {
     );
 
     res.json(result);
-  } catch (error) {
-    console.error("[Guards] Verification error:", error);
-    res.status(500).json({ error: "Failed to verify side effect" });
+  } catch (error: any) {
+    console.error("[Guards] Verification error:", error.message);
+    console.error(error.stack);
+    res.status(500).json({ error: "Failed to verify side effect", details: error.message });
   }
 });
 
@@ -62,10 +77,18 @@ router.post("/verify", apiKeyMiddleware, async (req, res) => {
 router.patch("/execution/:id", apiKeyMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, token } = req.body;
 
     if (!status || !["SUCCESS", "FAILED"].includes(status)) {
       return res.status(400).json({ error: "Invalid status" });
+    }
+
+    // Verify session token if provided
+    if (token) {
+      const [tokenId, sig] = token.split('.');
+      if (tokenId !== id || !verifyToken(tokenId, sig)) {
+        return res.status(401).json({ error: "Invalid session token" });
+      }
     }
 
     await GuardsService.completeExecution(id, status);

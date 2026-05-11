@@ -75,3 +75,24 @@ export function decryptJSON(encryptedText: string): any {
     return decrypted
   }
 }
+
+/**
+ * Signs a string with HMAC-SHA256
+ */
+export function signToken(data: string): string {
+  const hmac = crypto.createHmac('sha256', KEY)
+  hmac.update(data)
+  return hmac.digest('hex')
+}
+
+/**
+ * Verifies an HMAC-SHA256 signature
+ */
+export function verifyToken(data: string, signature: string): boolean {
+  try {
+    const expected = signToken(data)
+    return crypto.timingSafeEqual(Buffer.from(expected, 'hex'), Buffer.from(signature, 'hex'))
+  } catch {
+    return false
+  }
+}

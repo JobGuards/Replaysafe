@@ -9,11 +9,12 @@ In a world of microservices and complex cloud environments, traditional monitori
 ### Key Pillars
 
 1. **Intelligent Monitoring**: Beyond binary status checks. StillUp calculates real-time **Health Scores** and detects **Recurring Failure Patterns** using historical data analysis.
-2. **Security-First Architecture**: Built with security at the core. 
-    - **RBAC**: Fine-grained project-level access control.
+2. **ReplayGuard™ (Safe Retries)**: The first safety layer for background jobs. StillUp ensures that retrying a failed job is always safe by preventing duplicate side effects like double payments or duplicate emails.
+3. **Security-First Architecture**: Built with security at the core. 
+    - **HMAC Signing**: All job sessions are cryptographically signed to prevent spoofing.
     - **Encryption**: Field-level AES-256-GCM encryption for all secrets at rest.
     - **Audit Logs**: Comprehensive tracking of every sensitive action.
-3. **Premium UX**: A dashboard designed for clarity and speed. Glassmorphic UI, real-time heartbeat pulses, and rich notification integrations with Slack and Discord.
+4. **Premium UX**: A dashboard designed for clarity and speed. Glassmorphic UI, real-time heartbeat pulses, and rich notification integrations with Slack and Discord.
 
 ## How it Works
 
@@ -27,9 +28,10 @@ StillUp operates on a **Heartbeat Push** model. Instead of us polling your servi
 
 StillUp is evolving rapidly. Our current roadmap includes:
 - [x] Phase 1: Security Hardening (RBAC, Audit Logs, Encryption)
-- [x] Phase 2: Alerting Ecosystem (Slack, Discord, Enhanced Email)
-- [x] Phase 3: Intelligence UI (Health Scores, Pattern Detection)
-- [/] Phase 4: Launch Prep (Stripe, Public Status Pages, Documentation)
+- [x] Phase 2: Intelligence UI & Alerting (Health Scores, Pattern Detection)
+- [x] Phase 3: ReplayGuard™ (Exactly-Once Job Retries & SDK)
+- [x] Phase 4: Sentinel CLI (Production-ready Node CLI & Tunnelight Engine)
+- [/] Phase 5: Launch Prep (Stripe, Public Status Pages, Documentation)
 
 ---
 
