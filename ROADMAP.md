@@ -20,14 +20,14 @@ StillUp provides the "Safety Primitives" that prevent autonomous agents and back
 
 ---
 
-## 🟡 Phase 2: Agent-Centric Safety (In Progress)
+## 🟢 Phase 2: Agent-Centric Safety (COMPLETED)
 *Deepening support for AI Agents and non-deterministic autonomous systems.*
 
 - [x] **AI Action Verification**: Specialized `.ai()` wrapper to protect high-cost LLM generations.
 - [x] **Webhook Safety Layer**: Automatic idempotency headers and replay protection for outbound webhooks.
-- [ ] **State Fingerprinting**: Ability to snapshot infrastructure state before/after actions to detect drift.
-- [ ] **Deduplication Engine**: Global cross-project deduplication for identical jobs triggered by agents.
-- [ ] **Multi-Attempt History**: Aggregated view of a job's life across N failures and M recoveries.
+- [x] **State Fingerprinting**: Ability to snapshot infrastructure state before/after actions to detect drift.
+- [x] **Deduplication Engine**: Global cross-project deduplication for identical jobs triggered by agents.
+- [x] **Multi-Attempt History**: Aggregated view of a job's life across N failures and M recoveries.
 
 ---
 

@@ -19,6 +19,7 @@ import {
   ChevronDown,
   ShieldAlert,
   ShieldCheck,
+  CheckCircle,
   Lock,
   Wifi
 } from "lucide-react";
@@ -213,6 +214,113 @@ export default function LandingPage() {
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   See the heartbeat of your secure network. High-fidelity latency tracking and handshake metrics give you a "Single Pane of Glass" view into your global infrastructure health.
                 </p>
+              </div>
+            </div>
+          </section>
+
+          {/* ReplayGuard Deep Dive */}
+          <section className="w-full py-24 relative">
+            <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+              <div className="space-y-10">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-acid-lime/20 bg-acid-lime/5 backdrop-blur text-[10px] font-black italic text-acid-lime uppercase tracking-widest">
+                  Exactly-Once Semantics
+                </div>
+                <h3 className="text-5xl md:text-6xl font-black uppercase tracking-tighter leading-none italic">
+                  Execution <br/> <span className="glow-lime">Memory</span>.
+                </h3>
+                <p className="text-lg text-muted-foreground leading-relaxed font-medium">
+                  Autonomous agents fail. It’s inevitable. But retrying a failed agent job shouldn't charge your customer twice or corrupt your database.
+                </p>
+                <div className="space-y-6">
+                  <div className="flex gap-4">
+                    <div className="w-6 h-6 rounded-full bg-acid-lime/10 border border-acid-lime/20 flex items-center justify-center shrink-0">
+                      <Check className="w-3 h-3 text-acid-lime" />
+                    </div>
+                    <div>
+                      <h4 className="font-black uppercase tracking-tight italic text-sm">Intercept Side Effects</h4>
+                      <p className="text-sm text-muted-foreground mt-1">Automatically pause and verify dangerous actions (Payments, Emails, DB Writes) before they execute.</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-4">
+                    <div className="w-6 h-6 rounded-full bg-acid-lime/10 border border-acid-lime/20 flex items-center justify-center shrink-0">
+                      <Check className="w-3 h-3 text-acid-lime" />
+                    </div>
+                    <div>
+                      <h4 className="font-black uppercase tracking-tight italic text-sm">Result Replay</h4>
+                      <p className="text-sm text-muted-foreground mt-1">StillUp remembers the outcome of successful steps. On retry, we skip the action and replay the original result.</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="pt-6">
+                  <Link href="/dashboard/guards" className="text-acid-lime font-black uppercase tracking-widest text-xs flex items-center gap-2 group hover:gap-4 transition-all">
+                    Explore Execution Memory <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
+              </div>
+
+              {/* Visual Timeline Component */}
+              <div className="relative">
+                <div className="absolute -inset-4 bg-acid-lime/5 blur-3xl rounded-full opacity-50 animate-pulse"></div>
+                <div className="glass-panel rounded-[3rem] border-border/10 p-8 shadow-2xl relative bg-[#0a0a0f]/90 overflow-hidden group">
+                  <div className="flex items-center justify-between mb-10">
+                    <div className="flex items-center gap-3">
+                      <div className="w-3 h-3 rounded-full bg-destructive animate-pulse"></div>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 italic">Retry_Attempt_02</span>
+                    </div>
+                    <span className="text-[10px] font-code-md text-acid-lime/40">JOB_ID: agent-992</span>
+                  </div>
+
+                  <div className="space-y-4">
+                    {/* Step 1: Completed */}
+                    <div className="p-5 rounded-2xl bg-foreground/[0.03] border border-border/5 flex items-center justify-between opacity-50 grayscale transition-all group-hover:grayscale-0 group-hover:opacity-100">
+                      <div className="flex items-center gap-4">
+                        <div className="w-8 h-8 rounded-lg bg-acid-lime/20 flex items-center justify-center text-acid-lime border border-acid-lime/30">
+                          <Database className="w-4 h-4" />
+                        </div>
+                        <span className="text-xs font-bold uppercase tracking-tight">Auth Check</span>
+                      </div>
+                      <CheckCircle className="w-4 h-4 text-acid-lime" />
+                    </div>
+
+                    {/* Step 2: INTERCEPTED / SKIPPED */}
+                    <div className="p-5 rounded-2xl bg-acid-lime/5 border-2 border-acid-lime/20 flex items-center justify-between shadow-[0_0_30px_rgba(var(--theme-lime-rgb),0.1)] relative overflow-hidden">
+                       <div className="absolute top-0 right-0 p-2 opacity-5 scale-150"><Zap className="w-12 h-12 text-acid-lime" /></div>
+                       <div className="flex items-center gap-4 relative z-10">
+                        <div className="w-8 h-8 rounded-lg bg-acid-lime flex items-center justify-center text-primary-foreground">
+                          <Zap className="w-4 h-4" />
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-xs font-black uppercase tracking-tight">Charge_Customer</span>
+                          <span className="text-[9px] font-black text-acid-lime uppercase italic">Intercepted: Already Paid</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-acid-lime/10 border border-acid-lime/20 text-[9px] font-black uppercase tracking-widest text-acid-lime italic">
+                        SKIPPED
+                      </div>
+                    </div>
+
+                    {/* Step 3: PENDING */}
+                    <div className="p-5 rounded-2xl bg-foreground/[0.02] border border-border/5 flex items-center justify-between border-dashed">
+                      <div className="flex items-center gap-4">
+                        <div className="w-8 h-8 rounded-lg bg-foreground/5 flex items-center justify-center text-muted-foreground/40">
+                          <Bell className="w-4 h-4" />
+                        </div>
+                        <span className="text-xs font-bold uppercase tracking-tight text-muted-foreground/40">Send Receipt</span>
+                      </div>
+                      <RefreshCw className="w-4 h-4 text-muted-foreground/20 animate-spin" />
+                    </div>
+                  </div>
+
+                  <div className="mt-10 p-6 rounded-3xl bg-acid-lime/[0.02] border border-acid-lime/10 space-y-4">
+                    <div className="flex items-center gap-2">
+                       <ShieldCheck className="w-4 h-4 text-acid-lime" />
+                       <span className="text-[10px] font-black uppercase tracking-widest italic">Sentinel Insight</span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed font-medium">
+                      "StillUp detected a successful payment fingerprint in <span className="text-acid-lime">Attempt_01</span>. Execution halted to prevent double-spend. Replaying cached receipt."
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </section>

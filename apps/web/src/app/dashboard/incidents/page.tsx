@@ -94,7 +94,7 @@ export default function IncidentsPage() {
               <CheckCircle className="h-10 w-10 text-acid-lime" />
             </div>
             <h3 className="text-2xl font-black uppercase tracking-tight italic mb-4">Zero Deviations Detected</h3>
-            <p className="text-muted-foreground max-w-sm font-medium">All infrastructure sentinels are reporting optimal status. No incidents recorded in this cycle.</p>
+            <p className="text-muted-foreground font-medium">All infrastructure sentinels are reporting optimal status. No incidents recorded in this cycle.</p>
           </div>
         ) : (
           <div className="space-y-6">

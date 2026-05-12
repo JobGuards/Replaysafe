@@ -43,75 +43,143 @@ export class GuardsService {
 
   /**
    * Verifies if a side effect has already been successfully executed in a previous attempt.
+   * Now supports project-wide deduplication and state snapshot drift detection.
    */
   static async verifySideEffect(
     executionId: string,
     fingerprint: string,
     type: string,
     target: string,
-    inputHash: string
+    inputHash: string,
+    metadata: any = null,
+    scope: "MONITOR" | "PROJECT" = "MONITOR"
   ) {
     const currentExecution = await prisma.guardExecution.findUnique({
       where: { id: executionId },
+      include: { monitor: true }
     });
 
     if (!currentExecution) {
       throw new Error("Execution not found");
     }
 
-    // Check if this fingerprint exists in any attempt of the same job
-    if (currentExecution.externalId) {
-      const priorEffect = await prisma.guardSideEffect.findFirst({
-        where: {
-          fingerprint,
-          execution: {
-            externalId: currentExecution.externalId,
-            monitorId: currentExecution.monitorId,
-            // We consider it valid if it was completed in any previous run
+    const projectId = currentExecution.monitor.projectId;
+
+    // Handle State Snapshots (Phase 2)
+    if (type === "STATE_SNAPSHOT") {
+      let driftDetected = false;
+      if (currentExecution.externalId) {
+        const lastSnapshot = await prisma.guardSideEffect.findFirst({
+          where: {
+            type: "STATE_SNAPSHOT",
+            target, // The snapshot key
+            projectId,
+            execution: {
+              externalId: currentExecution.externalId,
+              monitorId: currentExecution.monitorId,
+            }
           },
-        },
-        orderBy: {
-          executedAt: "desc"
+          orderBy: { executedAt: "desc" }
+        });
+
+        if (lastSnapshot && lastSnapshot.inputHash !== inputHash) {
+          driftDetected = true;
+        }
+      }
+
+      await prisma.guardSideEffect.create({
+        data: {
+          executionId,
+          projectId,
+          fingerprint,
+          type,
+          target,
+          inputHash,
+          status: "COMPLETED",
+          metadata: { 
+            ...(metadata || {}),
+            driftDetected,
+            previousHash: driftDetected ? "mismatch" : "consistent"
+          }
         }
       });
 
-      if (priorEffect) {
-        // Record that we skipped this in the current execution for visibility
-        await prisma.guardSideEffect.create({
-          data: {
-            executionId,
-            fingerprint,
-            type,
-            target,
-            inputHash,
-            status: "SKIPPED",
-            metadata: { 
-              originalExecutionId: priorEffect.executionId,
-              message: "Bypassed via Execution Memory"
-            }
-          },
-        });
+      return { action: "EXECUTE" as const };
+    }
 
-        return { 
-          action: "SKIP", 
-          cachedResult: priorEffect.metadata || { message: "Already executed successfully" } 
+    // Deduplication Logic
+    const searchCriteria: any = {
+      fingerprint,
+      status: "COMPLETED",
+    };
+
+    if (scope === "PROJECT") {
+      searchCriteria.projectId = projectId;
+    } else {
+      // For MONITOR scope, we look for matches in the current execution OR previous attempts of the same job
+      if (currentExecution.externalId) {
+        searchCriteria.execution = {
+          externalId: currentExecution.externalId,
+          monitorId: currentExecution.monitorId
         };
+      } else {
+        searchCriteria.executionId = executionId;
       }
+    }
+
+    const priorEffect = await prisma.guardSideEffect.findFirst({
+      where: searchCriteria,
+      orderBy: { executedAt: "desc" }
+    });
+
+    if (priorEffect) {
+      // Phase 2: If this is the current execution reporting its result, update the metadata
+      if (priorEffect.executionId === executionId) {
+        await prisma.guardSideEffect.update({
+          where: { id: priorEffect.id },
+          data: { metadata: { ...(typeof priorEffect.metadata === 'object' ? (priorEffect.metadata as any) : {}), ...metadata } }
+        });
+        return { action: "EXECUTE" as const };
+      }
+
+      // Record that we skipped this in the current execution for visibility
+      await prisma.guardSideEffect.create({
+        data: {
+          executionId,
+          projectId,
+          fingerprint,
+          type,
+          target,
+          inputHash,
+          status: "SKIPPED",
+          metadata: { 
+            originalExecutionId: priorEffect.executionId,
+            message: `Bypassed via ${scope === "PROJECT" ? "Global" : "Execution"} Memory`
+          }
+        },
+      });
+
+      return { 
+        action: "SKIP" as const, 
+        cachedResult: priorEffect.metadata || { message: "Already executed successfully" } 
+      };
     }
 
     // Record this side effect as part of the current execution
     await prisma.guardSideEffect.create({
       data: {
         executionId,
+        projectId,
         fingerprint,
         type,
         target,
         inputHash,
         status: "COMPLETED",
+        metadata
       },
     });
 
-    return { action: "EXECUTE" };
+    return { action: "EXECUTE" as const };
   }
 
   /**

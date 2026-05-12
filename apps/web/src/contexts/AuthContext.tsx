@@ -21,6 +21,7 @@ interface AuthContextType {
   user: User | null;
   organizations: Organization[];
   activeOrganization: Organization | null;
+  setActiveOrganization: (id: string) => void;
   isLoading: boolean;
   isAuthenticated: boolean
   signin: (email: string, password: string) => Promise<void>;
@@ -35,9 +36,10 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [organizations, setOrganizations] = useState<Organization[]>([])
+  const [activeOrgId, setActiveOrgId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  const activeOrganization = organizations.length > 0 ? organizations[0] : null
+  const activeOrganization = organizations.find(org => org.id === activeOrgId) || (organizations.length > 0 ? organizations[0] : null)
 
   const fetchUser = async () => {
     try {
@@ -51,6 +53,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const data = await response.json()
         setUser(data.user)
         setOrganizations(data.projects || [])
+        
+        // Restore from localStorage or default to first project
+        const storedId = localStorage.getItem('stillup_active_project')
+        if (storedId && (data.projects || []).some((p: any) => p.id === storedId)) {
+          setActiveOrgId(storedId)
+        } else if (data.projects && data.projects.length > 0) {
+          setActiveOrgId(data.projects[0].id)
+        }
       } else {
         setUser(null)
         setOrganizations([])
@@ -64,6 +74,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const setActiveOrganization = (id: string) => {
+    setActiveOrgId(id)
+    localStorage.setItem('stillup_active_project', id)
+    api.setProjectId(id)
+  }
+
   const signout = async () => {
     try {
       const rawApiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4040'
@@ -74,6 +90,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       })
       setUser(null)
       setOrganizations([])
+      setActiveOrgId(null)
+      localStorage.removeItem('stillup_active_project')
       window.location.href = '/auth/signin'
     } catch (error) {
       console.error('Failed to sign out:', error)
@@ -104,12 +122,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Sync the active project ID to the API client so all requests include it
   useEffect(() => {
-    if (organizations.length > 0) {
-      api.setProjectId(organizations[0].id)
+    if (activeOrganization) {
+      api.setProjectId(activeOrganization.id)
     } else {
       api.setProjectId(null)
     }
-  }, [organizations])
+  }, [activeOrganization])
 
   return (
     <AuthContext.Provider
@@ -117,6 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         organizations,
         activeOrganization,
+        setActiveOrganization,
         isLoading,
         isAuthenticated: !!user,
         signin,

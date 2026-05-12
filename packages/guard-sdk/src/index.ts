@@ -140,11 +140,51 @@ export class ReplayGuard {
     const { action, cachedResult } = await this.verify(type, target, inputs);
 
     if (action === 'SKIP') {
-      console.log(`[ReplayGuard] Skipping dangerous side effect (${type}): ${target}`);
+      console.log(`[ReplayGuard] Replaying cached result for (${type}): ${target}`);
       return cachedResult as T;
     }
 
-    return await operation();
+    try {
+      const result = await operation();
+      
+      // Phase 2: Report successful result back for future replays
+      await this.reportResult(type, target, inputs, result);
+      
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Reports the successful result of a side effect to the execution memory.
+   */
+  private async reportResult(type: string, target: string, inputs: any, result: any): Promise<void> {
+    if (!this.context) return;
+
+    const inputHash = hash(inputs);
+    const fingerprint = hash({ type, target, inputHash });
+
+    try {
+      await fetch(`${this.config.baseUrl}/api/guards/verify`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': this.config.apiKey,
+        },
+        body: JSON.stringify({
+          executionId: this.context.executionId,
+          token: this.context.token,
+          fingerprint,
+          type,
+          target,
+          inputHash,
+          metadata: result, // This becomes the cachedResult for next time
+        }),
+      });
+    } catch (e) {
+      console.error('[ReplayGuard] Failed to report result', e);
+    }
   }
 
   /**
@@ -161,6 +201,37 @@ export class ReplayGuard {
    */
   async webhook<T>(target: string, payload: any, operation: () => Promise<T>): Promise<T> {
     return this.wrap('WEBHOOK', target, payload, operation);
+  }
+
+  /**
+   * Captures a snapshot of the current infrastructure state.
+   * Used to detect "State Drift" between job attempts.
+   */
+  async snapshot(key: string, state: any): Promise<void> {
+    if (!this.context) return;
+
+    const inputHash = hash(state);
+    
+    try {
+      await fetch(`${this.config.baseUrl}/api/guards/verify`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': this.config.apiKey,
+        },
+        body: JSON.stringify({
+          executionId: this.context.executionId,
+          token: this.context.token,
+          fingerprint: hash({ type: 'STATE_SNAPSHOT', key, inputHash }),
+          type: 'STATE_SNAPSHOT',
+          target: key,
+          inputHash,
+          metadata: state,
+        }),
+      });
+    } catch (e) {
+      console.error('[ReplayGuard] Failed to record snapshot', e);
+    }
   }
 }
 

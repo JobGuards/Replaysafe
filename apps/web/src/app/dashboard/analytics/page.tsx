@@ -30,13 +30,16 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 
+import { useAuth } from '@/contexts/AuthContext'
+
 export default function Analytics() {
+  const { activeOrganization } = useAuth()
   const timeRanges = ['7d', '30d', '90d', '1y'] as const
   const [selectedRange, setSelectedRange] = React.useState<typeof timeRanges[number]>('7d')
 
   // Fetch real analytics overview with the selected time range
   const { data: overview, isLoading } = useSWR(
-    `/api/analytics/project/overview?range=${selectedRange}`, 
+    activeOrganization ? [`/api/analytics/project/overview?range=${selectedRange}`, activeOrganization.id] : null, 
     () => api.getProjectOverview()
   )
 

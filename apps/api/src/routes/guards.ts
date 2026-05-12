@@ -40,7 +40,7 @@ router.post("/session", apiKeyMiddleware, async (req, res) => {
  */
 router.post("/verify", apiKeyMiddleware, async (req, res) => {
   try {
-    const { executionId, fingerprint, type, target, inputHash, token } = req.body;
+    const { executionId, fingerprint, type, target, inputHash, token, metadata, scope } = req.body;
 
     if (!executionId || !fingerprint) {
       return res.status(400).json({ error: "executionId and fingerprint are required" });
@@ -59,7 +59,9 @@ router.post("/verify", apiKeyMiddleware, async (req, res) => {
       fingerprint,
       type || "GENERIC",
       target || "unknown",
-      inputHash || ""
+      inputHash || "",
+      metadata,
+      scope
     );
 
     res.json(result);
