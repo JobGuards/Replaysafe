@@ -103,6 +103,11 @@ router.get('/project/overview', authMiddleware, projectAccessMiddleware(), async
           where: { active: true },
           select: { type: true, description: true, confidence: true },
         },
+        heartbeats: {
+          take: 50,
+          orderBy: { receivedAt: 'desc' },
+          select: { type: true, receivedAt: true }
+        }
       },
     })
 

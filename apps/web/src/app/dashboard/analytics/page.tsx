@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useMemo } from 'react'
+import Link from 'next/link'
 import useSWR from 'swr'
 import { api } from '@/lib/api'
 import { Button } from '@/components/ui/button'
@@ -18,6 +19,7 @@ import {
 } from 'lucide-react'
 import { HealthScoreBadge } from '@/components/analytics/HealthScoreBadge'
 import { HeartbeatPulse } from '@/components/analytics/HeartbeatPulse'
+
 import {
   AreaChart,
   Area,
@@ -148,14 +150,21 @@ export default function Analytics() {
                   </div>
                 </div>
 
-                <HeartbeatPulse pulses={[]} /> {/* We'd need another endpoint or data for real pulses */}
+                <HeartbeatPulse 
+                  pulses={monitor.heartbeats?.map((h: any) => ({
+                    status: h.type === 'SUCCESS' ? 'success' : 'error',
+                    receivedAt: h.receivedAt
+                  })) || []} 
+                />
               </div>
 
               {/* Action */}
               <div className="flex-shrink-0">
-                <Button className="rounded-xl font-black uppercase tracking-widest text-[10px] px-6 border-border/10" variant="outline">
-                  View Insights
-                </Button>
+                <Link href={`/dashboard/monitors/${monitor.id}`}>
+                  <Button className="rounded-xl font-black uppercase tracking-widest text-[10px] px-6 border-border/10" variant="outline">
+                    View Insights
+                  </Button>
+                </Link>
               </div>
             </div>
           ))}
