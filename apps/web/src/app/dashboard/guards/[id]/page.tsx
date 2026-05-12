@@ -18,23 +18,33 @@ import {
   XCircle,
   History
 } from 'lucide-react'
+import { api } from '@/lib/api'
+import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { formatDistanceToNow } from 'date-fns'
-
-const fetcher = (url: string) => fetch(url, { credentials: 'include' }).then(res => res.json())
 
 export default function ExecutionDetail() {
   const params = useParams()
   const router = useRouter()
   const id = params.id as string
+  const { activeOrganization } = useAuth()
 
   const { data: execution, error } = useSWR(
-    id ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/guards/${id}` : null,
-    fetcher
+    id && activeOrganization ? `/api/guards/${id}` : null,
+    () => api.getGuardedExecution(id)
   )
 
-  if (error) return <div className="p-12 text-destructive font-bold uppercase tracking-widest italic">Protocol Error: Failed to retrieve memory.</div>
+  if (error) return (
+    <div className="min-h-screen p-12 bg-tech-grid flex flex-col items-center justify-center">
+      <div className="p-8 glass-panel border-destructive/20 text-center max-w-md">
+        <XCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
+        <h2 className="text-xl font-black uppercase tracking-tight text-destructive mb-2">Protocol Error</h2>
+        <p className="text-muted-foreground text-sm mb-6">{error.message || 'Failed to retrieve execution memory.'}</p>
+        <Button variant="outline" onClick={() => router.push('/dashboard/guards')}>Back to Sessions</Button>
+      </div>
+    </div>
+  )
   if (!execution) return <div className="p-12 text-muted-foreground animate-pulse font-black uppercase tracking-widest italic">Synchronizing Memory...</div>
 
   const stats = {
