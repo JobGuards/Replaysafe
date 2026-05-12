@@ -5,21 +5,38 @@ import { signIn } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Mail, Loader2, ArrowRight } from 'lucide-react'
+import { Mail, Lock, Loader2, ArrowRight, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 
 export default function SigninPage() {
   const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError('')
 
     try {
-      await signIn('email', { email, callbackUrl: '/dashboard' })
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4040'
+      const response = await fetch(`${apiBase}/api/auth/signin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+        credentials: 'include'
+      })
+
+      if (response.ok) {
+        window.location.href = '/dashboard'
+      } else {
+        const data = await response.json()
+        setError(data.error || 'Invalid credentials')
+      }
     } catch (error) {
       console.error('Signin error:', error)
+      setError('Connection failed. Please check your internet.')
     } finally {
       setIsLoading(false)
     }
@@ -35,22 +52,50 @@ export default function SigninPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="email" className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">
-            Email Address
-          </Label>
-          <div className="relative group">
-            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground group-focus-within:text-acid-lime transition-colors" />
-            <Input
-              id="email"
-              type="email"
-              placeholder="name@company.com"
-              className="h-14 pl-12 bg-background/50 border-border/20 focus:border-acid-lime/50 rounded-xl transition-all font-medium"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={isLoading}
-            />
+        {error && (
+          <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+            <AlertCircle className="w-4 h-4 text-destructive" />
+            <p className="text-xs font-bold text-destructive italic uppercase tracking-wider">{error}</p>
+          </div>
+        )}
+
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">
+              Email Address
+            </Label>
+            <div className="relative group">
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground group-focus-within:text-acid-lime transition-colors" />
+              <Input
+                id="email"
+                type="email"
+                placeholder="name@company.com"
+                className="h-14 pl-12 bg-background/50 border-border/20 focus:border-acid-lime/50 rounded-xl transition-all font-medium"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                disabled={isLoading}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="password" className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">
+              Password
+            </Label>
+            <div className="relative group">
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground group-focus-within:text-acid-lime transition-colors" />
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                className="h-14 pl-12 bg-background/50 border-border/20 focus:border-acid-lime/50 rounded-xl transition-all font-medium"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                disabled={isLoading}
+              />
+            </div>
           </div>
         </div>
 
@@ -63,7 +108,7 @@ export default function SigninPage() {
             <Loader2 className="w-5 h-5 animate-spin" />
           ) : (
             <>
-              Get Magic Link
+              Sign In
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </>
           )}

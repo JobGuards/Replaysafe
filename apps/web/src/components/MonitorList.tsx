@@ -42,7 +42,7 @@ export function MonitorList() {
           <Activity className="h-10 w-10 text-muted-foreground opacity-20 relative z-10" />
         </div>
         <h3 className="text-3xl font-black uppercase tracking-tighter italic">Infrastructure Offline</h3>
-        <p className="mb-12 text-muted-foreground max-w-sm mt-4 font-medium leading-relaxed">
+        <p className="mb-12 text-muted-foreground  mt-4 font-medium leading-relaxed">
           Your fleet is currently invisible. Deploy your first heartbeat sentinel or secure network tunnel to begin observability.
         </p>
         <Link href="/dashboard/monitors/new">

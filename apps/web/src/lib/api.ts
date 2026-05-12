@@ -1,11 +1,27 @@
 import { MonitorResponse, CreateMonitorInput, UpdateMonitorInput } from '@stillup/shared'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4040/api'
+let API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4040'
+if (!API_BASE_URL.endsWith('/api')) {
+  API_BASE_URL = `${API_BASE_URL}/api`
+}
 
 class ApiClient {
+  private projectId: string | null = null
+
+  setProjectId(id: string | null) {
+    this.projectId = id
+  }
+
+  private buildUrl(endpoint: string): string {
+    const base = `${API_BASE_URL}${endpoint}`
+    if (!this.projectId) return base
+    const separator = base.includes('?') ? '&' : '?'
+    return `${base}${separator}projectId=${this.projectId}`
+  }
+
   private async fetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const url = `${API_BASE_URL}${endpoint}`
-    
+    const url = this.buildUrl(endpoint)
+
     const response = await fetch(url, {
       credentials: 'include',
       ...options,
@@ -16,8 +32,17 @@ class ApiClient {
     })
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'An unknown error occurred' }))
-      throw new Error(error.message || `API error: ${response.status}`)
+      let errorMessage = `API error: ${response.status}`
+      try {
+        const error = await response.json()
+        errorMessage = error.error || error.message || errorMessage
+      } catch {
+        try {
+          const text = await response.text()
+          if (text) errorMessage = text
+        } catch {}
+      }
+      throw new Error(errorMessage)
     }
 
     return response.json()
@@ -59,7 +84,7 @@ class ApiClient {
 
   // Analytics/Activity methods
   async getActivity(projectId: string): Promise<any> {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/analytics/heartbeats/recent?projectId=${projectId}`, {
+    const response = await fetch(`${API_BASE_URL}/analytics/heartbeats/recent?projectId=${projectId}`, {
       credentials: 'include',
     })
     return response.json()
@@ -72,6 +97,14 @@ class ApiClient {
 
   async getGuardedExecution(id: string): Promise<any> {
     return this.fetch<any>(`/guards/${id}`)
+  }
+
+  // Project methods
+  async upgradePlan(projectId: string, plan: string): Promise<any> {
+    return this.fetch(`/projects/plan`, {
+      method: 'POST',
+      body: JSON.stringify({ projectId, plan }),
+    })
   }
 }
 

@@ -8,13 +8,25 @@ import { Activity, Plus, Lock, ShieldAlert, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { MonitorList } from '@/components/MonitorList'
+import { useAuth } from '@/contexts/AuthContext'
 
 const fetcher = () => api.getMonitors()
 const incidentsFetcher = () => api.getIncidents()
 
 export default function DashboardPage() {
-  const { data: monitors } = useSWR('/monitors', fetcher, { refreshInterval: 10000 })
-  const { data: incidents } = useSWR('/incidents', incidentsFetcher, { refreshInterval: 15000 })
+  const { activeOrganization } = useAuth()
+  
+  const { data: monitors } = useSWR(
+    activeOrganization ? `/monitors?projectId=${activeOrganization.id}` : null, 
+    fetcher, 
+    { refreshInterval: 10000 }
+  )
+  
+  const { data: incidents } = useSWR(
+    activeOrganization ? `/incidents?projectId=${activeOrganization.id}` : null, 
+    incidentsFetcher, 
+    { refreshInterval: 15000 }
+  )
 
   const totalMonitors = monitors?.length ?? 0
   const tunnelMonitors = monitors?.filter((m: any) => m.type === 'TUNNEL').length ?? 0

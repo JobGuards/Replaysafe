@@ -111,6 +111,7 @@ router.post('/signup', async (req: Request, res: Response): Promise<void> => {
       project: {
         id: result.project.id,
         name: result.project.name,
+        plan: result.project.plan,
       },
     })
   } catch (error) {
@@ -199,6 +200,7 @@ router.post('/signin', async (req: Request, res: Response): Promise<void> => {
         id: m.project.id,
         name: m.project.name,
         role: m.role,
+        plan: m.project.plan,
       })),
     })
   } catch (error) {
@@ -274,6 +276,7 @@ router.get(
           id: m.project.id,
           name: m.project.name,
           role: m.role,
+          plan: m.project.plan,
         })),
       })
     } catch (error) {

@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import Link from 'next/link'
 import { Logo } from '@/components/Logo'
 import { Check, Shield, Zap, Globe, Cpu, Lock, ShieldAlert } from 'lucide-react'
 import { ModeToggle } from '@/components/ModeToggle'
@@ -121,15 +122,24 @@ export default function PricingPage() {
                 ))}
               </div>
 
-              <Button
-                className={`w-full h-16 rounded-[2rem] font-black uppercase tracking-[0.2em] text-[10px] transition-all duration-500 transform active:scale-95 ${
-                  plan.highlight
-                    ? 'bg-acid-lime text-primary-foreground hover:shadow-2xl hover:shadow-acid-lime/40'
-                    : 'bg-foreground text-background hover:opacity-90'
-                }`}
+              <Link 
+                href={
+                  plan.name === 'Base Sentinel' ? '/auth/signup' : 
+                  plan.name === 'Pro Infrastructure' ? '/payment?plan=pro' : 
+                  'mailto:sales@stillup.io'
+                }
+                className="w-full"
               >
-                {plan.cta}
-              </Button>
+                <Button
+                  className={`w-full h-16 rounded-[2rem] font-black uppercase tracking-[0.2em] text-[10px] transition-all duration-500 transform active:scale-95 ${
+                    plan.highlight
+                      ? 'bg-acid-lime text-primary-foreground hover:shadow-2xl hover:shadow-acid-lime/40'
+                      : 'bg-foreground text-background hover:opacity-90'
+                  }`}
+                >
+                  {plan.cta}
+                </Button>
+              </Link>
             </div>
           ))}
         </div>

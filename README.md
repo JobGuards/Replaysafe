@@ -1,7 +1,7 @@
 <div align="center">
   <img src="https://raw.githubusercontent.com/stillup/brand/main/logo.png" alt="StillUp Logo" width="200" />
   <h1>STILLUP</h1>
-  <p><strong>The High-Fidelity Infrastructure Sentinel & Job Reliability Platform</strong></p>
+  <p><strong>The Safety Layer for Autonomous Systems & AI Agents</strong></p>
   
   [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-acidlime.svg)](LICENSE)
   [![Version](https://img.shields.io/badge/version-1.0.0--alpha-blue.svg)]()
@@ -10,18 +10,19 @@
 
 ---
 
-## ⚡ The Monitor That Thinks
+## ⚡ Reliability for the AI Era
 
-StillUp is more than an uptime checker. It's a security-hardened **Reliability Platform** that combines **Infrastructure Safety** (Secure Tunnels, Crons, Backups) with **Job Safety** (ReplayGuard™). Built for engineers who demand exactly-once semantics, real-time observability, and a premium visual experience.
+StillUp is the world's first **Replay-Safe Infrastructure** platform. While traditional monitors tell you when something is down, StillUp ensures that **retrying failed systems is always safe.** 
 
-### ✨ Key Features
+Built specifically for the reliability problems created by autonomous agents and complex background jobs, StillUp provides the "Safety Primitives" needed to prevent duplicate side effects, redundant charges, and cascading infrastructure failures.
 
-- 🛡️ **ReplayGuard™ (Safe Retries)**: The first safety layer for background jobs. Prevent duplicate side effects (double payments, double emails) during job retries with cryptographic fingerprinting.
-- 🛰️ **Secure Tunnel Monitoring**: Real-time handshake tracking and latency metrics for encrypted networks (WireGuard, SSH). Detect silent failures before they break your access.
-- 🧠 **Cryptographic Memory**: We track every side effect, handshake, and heartbeat. Identify trends in network degradation and past resolution patterns.
-- 💻 **Global CLI**: A powerful Node-based CLI for heartbeat ingestion, tunnel monitoring, and job guarding from any terminal or CI/CD pipeline.
-- 🔐 **Hardened Security Vault**: Enterprise-grade RBAC, Audit Logging, and AES-256-GCM secret encryption at rest.
-- 🎨 **Sentinel Hub UI**: A premium, glassmorphic command center with a dynamic 'Control Center' grid and acid-lime aesthetics.
+### ✨ The "Sharp Wedge" Features
+
+- 🛡️ **ReplayGuard™ (Exactly-Once Execution)**: The first safety layer for AI Agents and background jobs. Prevent duplicate side effects (double payments, double emails, redundant API calls) during retries with cryptographic fingerprinting.
+- 🛰️ **Infrastructure Memory**: StillUp tracks every side effect, handshake, and heartbeat. It provides a "Decision Engine" for your jobs: *Has this already happened? Should I skip it?*
+- 🤖 **AI Agent Retry Protection**: Dedicated SDK wrappers to protect high-cost LLM generations and agentic actions from non-deterministic failures.
+- 🛰️ **Secure Tunnel Telemetry**: Real-time handshake tracking and latency metrics for encrypted networks (WireGuard, SSH). Detect "Ghost Connections" before they break your autonomous access.
+- 🎨 **Sentinel Hub UI**: A premium, glassmorphic command center to visualize your "Execution Memory" and infrastructure health.
 
 ## 💻 StillUp CLI
 

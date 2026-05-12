@@ -4,7 +4,7 @@ import React from "react"
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Logo } from "@/components/Logo"
@@ -15,8 +15,35 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
+  const { user, activeOrganization, isLoading, signout } = useAuth()
+  const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const pathname = usePathname()
+
+  // 🛡️ Authentication Guard
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push('/auth/signin')
+    }
+  }, [user, isLoading, router])
+
+  if (isLoading) {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center bg-background bg-tech-grid">
+        <div className="relative">
+          <div className="w-16 h-16 border-2 border-acid-lime/20 border-t-acid-lime rounded-full animate-spin" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Activity className="w-6 h-6 text-acid-lime animate-pulse" />
+          </div>
+        </div>
+        <p className="mt-8 text-[10px] font-black uppercase tracking-[0.4em] text-acid-lime italic animate-pulse">
+          Synchronizing_Sentinel_Memory...
+        </p>
+      </div>
+    )
+  }
+
+  if (!user) return null
 
   return (
     <div className="h-screen flex flex-col bg-background bg-tech-grid overflow-hidden">
@@ -44,6 +71,7 @@ export default function DashboardLayout({
               </button>
             </Link>
             <button
+              onClick={signout}
               className="p-2 hover:bg-secondary/50 rounded-lg transition text-muted-foreground hover:text-foreground"
               title="Sign out"
             >
@@ -69,6 +97,22 @@ export default function DashboardLayout({
             <div className="border-t border-border/5 my-8" />
             <SidebarLink href="/dashboard/settings" icon={<Settings className="w-4 h-4" />} label="Settings" active={pathname?.startsWith('/dashboard/settings')} />
           </nav>
+
+          <div className="mt-auto p-4 mx-8 mb-8 glass-panel border-acid-lime/10 rounded-2xl space-y-3">
+             <div className="flex justify-between items-center">
+                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground italic">Sentinel_Tier</span>
+                <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${
+                  activeOrganization?.plan === 'PRO' ? 'bg-acid-lime text-[#0f1a14]' : 'bg-muted text-muted-foreground'
+                }`}>
+                  {activeOrganization?.plan || 'FREE'}
+                </span>
+             </div>
+             {activeOrganization?.plan !== 'PRO' && (
+               <Link href="/pricing" className="block w-full py-2 bg-acid-lime/10 border border-acid-lime/20 rounded-xl text-center text-acid-lime text-[10px] font-black uppercase tracking-widest hover:bg-acid-lime/20 transition-all">
+                  Upgrade Now
+               </Link>
+             )}
+          </div>
         </aside>
 
         {/* Main Content */}

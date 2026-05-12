@@ -76,7 +76,7 @@ export default function LandingPage() {
               The first Reliability Platform for Crons, Secure Tunnels, and <b>Safe Background Jobs</b>. We monitor health, detect silent failures, and prevent duplicate side effects.
             </p>
             <div className="flex flex-col items-center gap-md mt-10">
-              <Link href="/dashboard" className="bg-acid-lime text-primary-foreground px-xl py-sm rounded-lg font-black uppercase tracking-widest text-sm shadow-[0_0_20px_rgba(var(--theme-lime-rgb),0.3)] hover:shadow-[0_0_40px_rgba(var(--theme-lime-rgb),0.6)] transition-all duration-500 flex items-center gap-xs transform hover:-translate-y-1">
+              <Link href="/auth/signup" className="bg-acid-lime text-primary-foreground px-xl py-sm rounded-lg font-black uppercase tracking-widest text-sm shadow-[0_0_20px_rgba(var(--theme-lime-rgb),0.3)] hover:shadow-[0_0_40px_rgba(var(--theme-lime-rgb),0.6)] transition-all duration-500 flex items-center gap-xs transform hover:-translate-y-1">
                 Deploy Sentinel <ArrowRight className="w-4 h-4" />
               </Link>
               {/* Copy Command Section - Fixed Visibility */}

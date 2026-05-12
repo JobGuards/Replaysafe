@@ -13,14 +13,23 @@ import useSWR from 'swr'
 import { api } from "@/lib/api"
 
 export default function Settings() {
-  const [fullName, setFullName] = useState('John Doe')
-  const [email, setEmail] = useState('john@example.com')
+  const { user } = useAuth()
+  const [fullName, setFullName] = useState(user?.fullName || '')
+  const [email, setEmail] = useState(user?.email || '')
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
   const [error, setError] = useState('')
+
+  // Sync state if user data loads later
+  useEffect(() => {
+    if (user) {
+      setFullName(user.fullName)
+      setEmail(user.email)
+    }
+  }, [user])
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

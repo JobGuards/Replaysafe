@@ -32,7 +32,9 @@ export function projectAccessMiddleware(requiredRole: 'OWNER' | 'ADMIN' | 'MEMBE
       }
 
       // Project ID can be in params, query, or body
-      const projectId = req.params.projectId || req.query.projectId || req.body.projectId
+      const projectId = (req.params?.projectId as string) || 
+                       (req.query?.projectId as string) || 
+                       (req.body?.projectId as string)
 
       if (!projectId || typeof projectId !== 'string') {
         res.status(400).json({ error: 'Project ID is required' })
