@@ -33,11 +33,7 @@ export default function Analytics() {
   const selectedRange = '30d'
 
   // Fetch real analytics overview
-  const { data: overview, isLoading } = useSWR('/api/analytics/project/overview', () => 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/analytics/project/overview?projectId=default`, {
-      credentials: 'include'
-    }).then(res => res.json())
-  )
+  const { data: overview, isLoading } = useSWR('/api/analytics/project/overview', () => api.getProjectOverview())
 
   const monitors = overview?.monitors || []
   

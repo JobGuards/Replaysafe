@@ -14,7 +14,7 @@ class ApiClient {
 
   private buildUrl(endpoint: string): string {
     const base = `${API_BASE_URL}${endpoint}`
-    if (!this.projectId) return base
+    if (!this.projectId || base.includes('projectId=')) return base
     const separator = base.includes('?') ? '&' : '?'
     return `${base}${separator}projectId=${this.projectId}`
   }
@@ -82,12 +82,28 @@ class ApiClient {
     return this.fetch<any[]>('/incidents')
   }
 
-  // Analytics/Activity methods
-  async getActivity(projectId: string): Promise<any> {
-    const response = await fetch(`${API_BASE_URL}/analytics/heartbeats/recent?projectId=${projectId}`, {
-      credentials: 'include',
+  async resolveIncident(id: string, data: { resolutionNotes: string, resolutionCategory: string }): Promise<any> {
+    return this.fetch(`/analytics/incidents/${id}/resolve`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
     })
-    return response.json()
+  }
+
+  // Analytics/Activity methods
+  async getActivity(): Promise<any> {
+    return this.fetch('/analytics/heartbeats/recent')
+  }
+
+  async getMonitorAnalytics(monitorId: string): Promise<any> {
+    return this.fetch(`/analytics/${monitorId}`)
+  }
+
+  async getMonitorHistory(monitorId: string): Promise<any> {
+    return this.fetch(`/analytics/${monitorId}/history`)
+  }
+
+  async getProjectOverview(): Promise<any> {
+    return this.fetch(`/analytics/project/overview`)
   }
 
   // ReplayGuard methods
@@ -104,6 +120,24 @@ class ApiClient {
     return this.fetch(`/projects/plan`, {
       method: 'POST',
       body: JSON.stringify({ projectId, plan }),
+    })
+  }
+
+  // API Key methods
+  async getApiKeys(): Promise<any[]> {
+    return this.fetch<any[]>('/api-keys')
+  }
+
+  async createApiKey(name: string): Promise<any> {
+    return this.fetch<any>('/api-keys', {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+    })
+  }
+
+  async deleteApiKey(id: string): Promise<void> {
+    return this.fetch<void>(`/api-keys/${id}`, {
+      method: 'DELETE',
     })
   }
 }

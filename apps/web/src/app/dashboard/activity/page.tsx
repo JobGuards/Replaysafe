@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import useSWR from 'swr'
 import { api } from '@/lib/api'
+import { useAuth } from '@/contexts/AuthContext'
 import { formatDistanceToNow } from 'date-fns'
 import { Button } from '@/components/ui/button'
 import {
@@ -24,17 +25,19 @@ interface ActivityEvent {
 }
 
 export default function Activity() {
+  const { activeOrganization } = useAuth()
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'success' | 'failure' | 'timeout' | 'alert'>('all')
   const [dateRange, setDateRange] = useState<'today' | 'week' | 'month'>('week')
 
-  // In a real app we'd get projectId from context/params
-  const projectId = 'default-project' 
+  const projectId = activeOrganization?.id
 
-  const { data, error, isLoading } = useSWR(
-    `/activity/${projectId}`, 
-    () => api.getActivity(projectId),
+  const { data, error, isLoading: isSWRLoading } = useSWR(
+    projectId ? `/activity/${projectId}` : null, 
+    () => api.getActivity(),
     { refreshInterval: 10000 }
   )
+
+  const isLoading = isSWRLoading || !projectId
 
   const rawHeartbeats = data?.heartbeats || []
   
@@ -75,6 +78,33 @@ export default function Activity() {
     alert: { label: 'Alert', color: 'bg-amber-500/20 text-amber-500 border border-amber-500/30' }
   }
 
+  const handleExport = () => {
+    if (filteredActivities.length === 0) return
+
+    const headers = ['Monitor', 'Status', 'Message', 'Timestamp', 'Duration']
+    const csvRows = [
+      headers.join(','),
+      ...filteredActivities.map(a => [
+        `"${a.monitorName}"`,
+        `"${a.type.toUpperCase()}"`,
+        `"${a.message.replace(/"/g, '""')}"`,
+        `"${a.timestamp}"`,
+        `"${a.duration || '-'}"`
+      ].join(','))
+    ]
+
+    const csvContent = csvRows.join('\n')
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.setAttribute('href', url)
+    link.setAttribute('download', `stillup-activity-${new Date().toISOString().split('T')[0]}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   return (
     <div className="flex flex-col gap-6">
       {/* Page Header */}
@@ -83,7 +113,7 @@ export default function Activity() {
           <h1 className="text-3xl font-bold tracking-tight">Activity Log</h1>
           <p className="text-muted-foreground">View real-time history of all monitor check-ins.</p>
         </div>
-        <Button variant="outline" className="gap-2">
+        <Button variant="outline" className="gap-2" onClick={handleExport} disabled={filteredActivities.length === 0}>
           <Download className="w-4 h-4" />
           Export
         </Button>

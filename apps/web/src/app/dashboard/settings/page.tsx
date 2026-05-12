@@ -2,7 +2,7 @@
 
 import React from "react"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,6 +11,7 @@ import { Save, Loader2, Check, AlertCircle, Key, Plus, Trash2, Copy, ShieldCheck
 import { toast } from "sonner"
 import useSWR from 'swr'
 import { api } from "@/lib/api"
+import { useAuth } from '@/contexts/AuthContext'
 
 export default function Settings() {
   const { user } = useAuth()
@@ -82,9 +83,7 @@ export default function Settings() {
   }
 
   // API Keys Logic
-  const { data: apiKeys, mutate: mutateKeys } = useSWR('/api-keys', () => 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/api-keys`, { credentials: 'include' }).then(r => r.json())
-  )
+  const { data: apiKeys, mutate: mutateKeys } = useSWR('/api-keys', () => api.getApiKeys())
   const [newKeyName, setNewKeyName] = useState('')
   const [isCreatingKey, setIsCreatingKey] = useState(false)
 
@@ -93,14 +92,7 @@ export default function Settings() {
     if (!newKeyName) return
     setIsCreatingKey(true)
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/api-keys`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newKeyName }),
-        credentials: 'include'
-      })
-      if (!res.ok) throw new Error('Failed to create key')
-      const newKey = await res.json()
+      const newKey = await api.createApiKey(newKeyName)
       toast.success('API Key created successfully')
       setNewKeyName('')
       mutateKeys()
@@ -117,11 +109,7 @@ export default function Settings() {
   const handleDeleteKey = async (id: string) => {
     if (!confirm('Are you sure you want to revoke this API key? Systems using this key will lose access.')) return
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/api-keys/${id}`, {
-        method: 'DELETE',
-        credentials: 'include'
-      })
-      if (!res.ok) throw new Error('Failed to delete key')
+      await api.deleteApiKey(id)
       toast.success('API Key revoked')
       mutateKeys()
     } catch (err) {

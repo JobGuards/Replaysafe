@@ -127,7 +127,7 @@ export function createApp() {
 
 export function startServer() {
   const app = createApp();
-  const port = process.env.PORT || 4000;
+  const port = process.env.PORT || 4040;
   app.listen(port, () =>
     console.log(`StillUp API running on port ${port}`)
   );

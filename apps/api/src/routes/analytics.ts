@@ -11,7 +11,7 @@ const router = Router()
  * GET /api/analytics/:monitorId
  * Returns 30-day daily summaries, detected patterns, and current health score.
  */
-router.get('/:monitorId', monitorAccessMiddleware(), async (req: any, res: any) => {
+router.get('/:monitorId', authMiddleware, monitorAccessMiddleware(), async (req: any, res: any) => {
   try {
     const { monitorId } = req.params
     const thirtyDaysAgo = subDays(startOfDay(new Date()), 30)
@@ -45,7 +45,7 @@ router.get('/:monitorId', monitorAccessMiddleware(), async (req: any, res: any) 
  * GET /api/analytics/:monitorId/pulse
  * Returns last 24 hours of heartbeats for pulse grid visualization
  */
-router.get('/:monitorId/pulse', monitorAccessMiddleware(), async (req: any, res: any) => {
+router.get('/:monitorId/pulse', authMiddleware, monitorAccessMiddleware(), async (req: any, res: any) => {
   try {
     const { monitorId } = req.params
     const twentyFourHoursAgo = subHours(new Date(), 24)
@@ -75,7 +75,7 @@ router.get('/:monitorId/pulse', monitorAccessMiddleware(), async (req: any, res:
  * GET /api/analytics/project/overview
  * Overall project-level analytics: all monitors, their health scores and summaries.
  */
-router.get('/project/overview', projectAccessMiddleware(), async (req: any, res: any) => {
+router.get('/project/overview', authMiddleware, projectAccessMiddleware(), async (req: any, res: any) => {
   try {
     const { projectId } = req.query as { projectId: string }
     const sevenDaysAgo = subDays(new Date(), 7)
@@ -111,7 +111,7 @@ router.get('/project/overview', projectAccessMiddleware(), async (req: any, res:
  * GET /api/analytics/:monitorId/history
  * Returns incident history with resolution notes for Execution Memory (PR #42).
  */
-router.get('/:monitorId/history', monitorAccessMiddleware(), async (req: any, res: any) => {
+router.get('/:monitorId/history', authMiddleware, monitorAccessMiddleware(), async (req: any, res: any) => {
   try {
     const { monitorId } = req.params
     const incidents = await (prisma as any).incident.findMany({
@@ -159,7 +159,7 @@ router.patch('/incidents/:id/resolve', authMiddleware, async (req: any, res: any
  * GET /api/analytics/heartbeats
  * Returns the most recent 100 heartbeats across all monitors for the activity log.
  */
-router.get('/heartbeats/recent', projectAccessMiddleware(), async (req: any, res: any) => {
+router.get('/heartbeats/recent', authMiddleware, projectAccessMiddleware(), async (req: any, res: any) => {
   try {
     const { projectId } = req.query as { projectId: string }
 

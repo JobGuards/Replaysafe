@@ -1,4 +1,4 @@
-import cronParser from 'cron-parser'
+import { CronExpressionParser } from 'cron-parser'
 
 /**
  * Calculates the next expected date for a heartbeat based on the schedule.
@@ -10,10 +10,10 @@ export function getNextExpectedDate(
 ): Date {
   if (scheduleType === 'CRON') {
     try {
-      const interval = (cronParser as any).parseExpression(schedule, { tz: timezone })
+      const interval = CronExpressionParser.parse(schedule, { tz: timezone })
       return interval.next().toDate()
-    } catch (err) {
-      throw new Error(`Invalid cron expression: ${schedule}`)
+    } catch (err: any) {
+      throw new Error(`Invalid cron expression: ${schedule}. Error: ${err.message}`)
     }
   }
 

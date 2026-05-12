@@ -28,12 +28,8 @@ import { IncidentTimeline } from '@/components/analytics/IncidentTimeline'
 
 // Helper component for the History tab
 function MonitorHistoryPanel({ monitorId, monitorName }: { monitorId: string, monitorName: string }) {
-  const { data: analytics } = useSWR(`/analytics/${monitorId}`, () => 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/analytics/${monitorId}`, { credentials: 'include' }).then(r => r.json())
-  )
-  const { data: history, mutate: mutateHistory } = useSWR(`/analytics/${monitorId}/history`, () => 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/analytics/${monitorId}/history`, { credentials: 'include' }).then(r => r.json())
-  )
+  const { data: analytics } = useSWR(`/analytics/${monitorId}`, () => api.getMonitorAnalytics(monitorId))
+  const { data: history, mutate: mutateHistory } = useSWR(`/analytics/${monitorId}/history`, () => api.getMonitorHistory(monitorId))
 
   return (
     <div className="space-y-6">
@@ -78,7 +74,7 @@ export default function MonitorDetailPage() {
 
   const copyHeartbeatUrl = () => {
     if (monitor) {
-      const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/hb/${monitor.heartbeatToken}`
+      const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4040'}/hb/${monitor.heartbeatToken}`
       navigator.clipboard.writeText(url)
       toast.success('Heartbeat URL copied to clipboard!')
     }
@@ -119,7 +115,7 @@ export default function MonitorDetailPage() {
     )
   }
 
-  const heartbeatUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/hb/${monitor.heartbeatToken}`
+  const heartbeatUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4040'}/hb/${monitor.heartbeatToken}`
 
   return (
     <div className="flex flex-col gap-6">

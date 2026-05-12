@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import { api } from '@/lib/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -75,14 +76,7 @@ function IncidentCard({ incident, onResolved }: { incident: Incident; onResolved
   const saveResolution = async () => {
     setSaving(true)
     try {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
-      const res = await fetch(`${apiBase}/api/analytics/incidents/${incident.id}/resolve`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ resolutionNotes: notes, resolutionCategory: category }),
-      })
-      if (!res.ok) throw new Error('Failed to save')
+      await api.resolveIncident(incident.id, { resolutionNotes: notes, resolutionCategory: category })
       toast.success('Resolution notes saved')
       onResolved?.()
     } catch {

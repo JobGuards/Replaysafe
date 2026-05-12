@@ -10,7 +10,7 @@ export default function PublicStatusPage() {
   const { slug } = useParams()
   
   const { data: project, error, isLoading } = useSWR(`/api/public/status/${slug}`, () => 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/public/status/${slug}`).then(res => {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4040'}/api/public/status/${slug}`).then(res => {
       if (!res.ok) throw new Error('Not Found')
       return res.json()
     })
