@@ -70,13 +70,13 @@ export default function LandingPage() {
           <section className="text-center flex flex-col items-center gap-lg max-w-4xl mx-auto mt-8">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-acid-lime/20 bg-acid-lime/5 backdrop-blur text-xs font-code-md text-acid-lime mb-4 shadow-[0_0_15px_rgba(var(--theme-lime-rgb),0.1)]">
               <span className="w-2 h-2 rounded-full bg-acid-lime animate-pulse"></span>
-              <span className="tracking-[0.2em] uppercase text-[10px] font-black italic">Sentinel_Protocol: Active</span>
+              <span className="tracking-[0.2em] uppercase text-[10px] font-black italic">ReplayGuard™: Exactly-Once Active</span>
             </div>
             <h1 className="text-headline-xl font-headline-xl text-foreground uppercase tracking-tight">
-              The <span className="glow-lime font-black">Open Source</span> <br/> Reliability Platform.
+              Exactly-Once Execution.<br/> <span className="glow-lime font-black">For AI Agents.</span>
             </h1>
             <p className="text-body-lg font-body-lg text-muted-foreground max-w-2xl mt-2">
-              Deep observability for Crons, Secure Tunnels, and <b>Safe Background Jobs</b>. Free to self-host, secure by default, and built for modern infrastructure.
+              StillUp prevents duplicate side effects in AI agents, background jobs, and webhooks. <b>Retry anything safely</b> - no double charges, no corrupt state, no data loss.
             </p>
             <div className="flex flex-col items-center gap-md mt-10">
               <Link href="/auth/signup" className="bg-acid-lime text-primary-foreground px-xl py-sm rounded-lg font-black uppercase tracking-widest text-sm shadow-[0_0_20px_rgba(var(--theme-lime-rgb),0.3)] hover:shadow-[0_0_40px_rgba(var(--theme-lime-rgb),0.6)] transition-all duration-500 flex items-center gap-xs transform hover:-translate-y-1">
@@ -174,51 +174,7 @@ export default function LandingPage() {
             </div>
           </section>
 
-          {/* Infrastructure Safety Section */}
-          <section className="w-full py-24 relative overflow-hidden">
-            <div className="text-center mb-20">
-              <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-acid-lime mb-4 italic">Next-Gen Observability</h2>
-              <h3 className="text-4xl md:text-5xl font-black uppercase tracking-tight">Meet the <span className="glow-lime">Sentinel</span>.</h3>
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/40 mt-4 italic">Infrastructure Safety Suite</p>
-              <p className="text-muted-foreground mt-8 max-w-2xl mx-auto text-lg leading-relaxed">
-                Standard monitoring tells you if a service is running. StillUp Sentinel provides deep, high-fidelity safety for your global encrypted networks.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-6xl mx-auto px-6">
-              <div className="glass-panel p-10 rounded-[2.5rem] border-border/10 bg-card/30 backdrop-blur-xl group hover:border-acid-lime/30 transition-all duration-500">
-                <div className="w-14 h-14 rounded-2xl bg-acid-lime/10 flex items-center justify-center border border-acid-lime/20 mb-8 group-hover:scale-110 transition-transform">
-                  <ShieldAlert className="text-acid-lime w-7 h-7" />
-                </div>
-                <h4 className="text-xl font-black uppercase tracking-tight italic mb-4">Silent Failure Detection</h4>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Most VPNs and Tunnels fail silently—the process stays UP while data is stuck. Sentinel detects handshake stagnation and latency spikes before they break your access.
-                </p>
-              </div>
-
-              <div className="glass-panel p-10 rounded-[2.5rem] border-border/10 bg-card/30 backdrop-blur-xl group hover:border-acid-lime/30 transition-all duration-500">
-                <div className="w-14 h-14 rounded-2xl bg-acid-lime/10 flex items-center justify-center border border-acid-lime/20 mb-8 group-hover:scale-110 transition-transform">
-                  <Lock className="text-acid-lime w-7 h-7" />
-                </div>
-                <h4 className="text-xl font-black uppercase tracking-tight italic mb-4">Credential & Key Safety</h4>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Stale keys and expiring certificates are the #1 cause of sudden infrastructure lockout. We track key age and certificate validity, alerting you weeks before expiry.
-                </p>
-              </div>
-
-              <div className="glass-panel p-10 rounded-[2.5rem] border-border/10 bg-card/30 backdrop-blur-xl group hover:border-acid-lime/30 transition-all duration-500">
-                <div className="w-14 h-14 rounded-2xl bg-acid-lime/10 flex items-center justify-center border border-acid-lime/20 mb-8 group-hover:scale-110 transition-transform">
-                  <Activity className="text-acid-lime w-7 h-7" />
-                </div>
-                <h4 className="text-xl font-black uppercase tracking-tight italic mb-4">Network Pulse Analytics</h4>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  See the heartbeat of your secure network. High-fidelity latency tracking and handshake metrics give you a "Single Pane of Glass" view into your global infrastructure health.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* ReplayGuard Deep Dive */}
+          {/* ReplayGuard Deep Dive — PRIMARY SECTION */}
           <section className="w-full py-24 relative">
             <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
               <div className="space-y-10">
@@ -325,43 +281,64 @@ export default function LandingPage() {
             </div>
           </section>
 
-          {/* Feature Grid */}
-          <section className="grid grid-cols-1 md:grid-cols-3 gap-md w-full mt-xl">
-            {[
-              { icon: <Heart className="w-5 h-5" />, title: 'Heartbeat Sentinel.', desc: 'Zero-config monitoring for Crons and Backups. Pulse metrics from any script with our global CLI.' },
-              { icon: <ShieldCheck className="w-5 h-5" />, title: 'ReplayGuard™ Safety.', desc: 'The first "Exactly-Once" engine for background jobs. Prevent double payments and emails during retries.' },
-              { icon: <Zap className="w-5 h-5" />, title: 'Sentinel Alerts.', desc: 'Deep-link alerts via Slack or Discord that take you directly to the root cause of a silent tunnel failure.' }
-            ].map((f, i) => (
-              <div 
-                key={i}
-                className={`glass-panel rounded-xl p-lg flex flex-col gap-sm hover:micro-border-lime transition-all cursor-pointer ${activeFeature === i ? 'micro-border-lime' : 'border border-outline-variant/20'}`}
-                onClick={() => setActiveFeature(i)}
-              >
-                
-                <div className="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center border border-outline-variant/30 mb-sm">
-                  <span className={`${activeFeature === i ? 'text-acid-lime' : 'text-foreground'}`}>{f.icon}</span>
+          {/* Sentinel / Infrastructure Telemetry — SUPPORTING SECTION */}
+          <section className="w-full py-24 relative overflow-hidden">
+            <div className="text-center mb-20">
+              <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-acid-lime mb-4 italic">Visibility for the Replay Engine</h2>
+              <h3 className="text-4xl md:text-5xl font-black uppercase tracking-tight">Infrastructure <span className="glow-lime">Telemetry</span>.</h3>
+              <p className="text-muted-foreground mt-8 max-w-2xl mx-auto text-lg leading-relaxed">
+                Know when the infrastructure your agents depend on starts to degrade — before a retry turns into a disaster.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-6xl mx-auto px-6">
+              <div className="glass-panel p-10 rounded-[2.5rem] border-border/10 bg-card/30 backdrop-blur-xl group hover:border-acid-lime/30 transition-all duration-500">
+                <div className="w-14 h-14 rounded-2xl bg-acid-lime/10 flex items-center justify-center border border-acid-lime/20 mb-8 group-hover:scale-110 transition-transform">
+                  <Heart className="text-acid-lime w-7 h-7" />
                 </div>
-                <h3 className="text-headline-md font-headline-md text-foreground">{f.title}</h3>
-                <p className="text-body-md font-body-md text-muted-foreground">{f.desc}</p>
+                <h4 className="text-xl font-black uppercase tracking-tight italic mb-4">Heartbeat Monitoring</h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Zero-config cron and job monitoring. If your background job stops reporting, StillUp fires an alert before any agent retries into a broken state.
+                </p>
               </div>
-            ))}
+
+              <div className="glass-panel p-10 rounded-[2.5rem] border-border/10 bg-card/30 backdrop-blur-xl group hover:border-acid-lime/30 transition-all duration-500">
+                <div className="w-14 h-14 rounded-2xl bg-acid-lime/10 flex items-center justify-center border border-acid-lime/20 mb-8 group-hover:scale-110 transition-transform">
+                  <ShieldAlert className="text-acid-lime w-7 h-7" />
+                </div>
+                <h4 className="text-xl font-black uppercase tracking-tight italic mb-4">Silent Tunnel Detection</h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  WireGuard and SSH tunnels fail silently - the process stays UP while data stops flowing. Sentinel detects stale handshakes and latency spikes before they break autonomous access.
+                </p>
+              </div>
+
+              <div className="glass-panel p-10 rounded-[2.5rem] border-border/10 bg-card/30 backdrop-blur-xl group hover:border-acid-lime/30 transition-all duration-500">
+                <div className="w-14 h-14 rounded-2xl bg-acid-lime/10 flex items-center justify-center border border-acid-lime/20 mb-8 group-hover:scale-110 transition-transform">
+                  <Zap className="text-acid-lime w-7 h-7" />
+                </div>
+                <h4 className="text-xl font-black uppercase tracking-tight italic mb-4">Failure Pattern Intelligence</h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  StillUp tracks recurring failure windows, health score trends, and cascade incidents - giving agents and engineers actionable context, not just raw alerts.
+                </p>
+              </div>
+            </div>
           </section>
         </main>
 
         <section className="w-full max-w-7xl mx-auto px-margin py-xl flex flex-col items-center gap-lg">
-          <h2 className="text-headline-lg font-headline-lg text-foreground text-center">Loved by DevOps Engineers</h2>
+          <h2 className="text-headline-lg font-headline-lg text-foreground text-center">Trusted by Engineers Building Autonomous Systems</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-md w-full">
             <div className="glass-panel rounded-xl p-lg flex flex-col justify-between gap-md border border-border/20 hover:border-acid-lime/30 transition-all">
-              <p className="text-body-lg font-body-lg text-foreground italic">“StillUp caught a silent backup failure that would have cost us weeks of data. The memory feature is a game changer.”</p>
-              <div className="text-label-sm text-muted-foreground">— Lead SRE @ TechCorp</div>
+              <p className="text-body-lg font-body-lg text-foreground italic">"ReplayGuard saved us from charging 200 customers twice during a retry storm. It intercepted the duplicate payment before it hit Stripe."</p>
+              <div className="text-label-sm text-muted-foreground">- Lead Engineer @ FinTech Startup</div>
             </div>
             <div className="glass-panel rounded-xl p-lg flex flex-col justify-between gap-md border border-border/20 hover:border-acid-lime/30 transition-all">
-              <p className="text-body-lg font-body-lg text-foreground italic">“Finally, a monitoring tool that doesn't just scream at me, but actually helps me understand why things are failing.”</p>
-              <div className="text-label-sm text-muted-foreground">— Senior Backend Engineer</div>
+              <p className="text-body-lg font-body-lg text-foreground italic">"Our AI agents were silently retrying failed LLM calls and corrupting downstream state. StillUp's execution memory stopped that completely."</p>
+              <div className="text-label-sm text-muted-foreground">- Senior AI Infrastructure Engineer</div>
             </div>
             <div className="glass-panel rounded-xl p-lg flex flex-col justify-between gap-md border border-border/20 hover:border-acid-lime/30 transition-all">
-              <p className="text-body-lg font-body-lg text-foreground italic">“The zero-agent approach makes it so easy to deploy. We had 50 crons monitored in less than 10 minutes.”</p>
-              <div className="text-label-sm text-muted-foreground">— Infrastructure Lead</div>
+              <p className="text-body-lg font-body-lg text-foreground italic">"The exactly-once guarantee is something we were hand-rolling with Redis locks. StillUp just solved it. We ripped out 400 lines of custom code."</p>
+              <div className="text-label-sm text-muted-foreground">- Infrastructure Lead @ B2B SaaS</div>
             </div>
           </div>
         </section>

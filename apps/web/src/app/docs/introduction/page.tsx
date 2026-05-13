@@ -13,41 +13,41 @@ export default function IntroDoc() {
     >
       <div className="space-y-16">
         <p className="text-xl leading-relaxed text-foreground/80">
-          StillUp is the industry-leading **Infrastructure Sentinel**—a high-fidelity monitoring platform designed for Crons, Backups, and Secure Network Tunnels.
+          StillUp is the industry's first **Replay-Safe Execution Layer** for AI agents, background jobs, and autonomous systems.
         </p>
 
         <section className="glass-panel border border-border/10 rounded-[3rem] p-12 bg-acid-lime/[0.02]">
-          <h3 className="text-2xl font-black uppercase tracking-tight mb-8 text-foreground italic">Why Sentinel?</h3>
+          <h3 className="text-2xl font-black uppercase tracking-tight mb-8 text-foreground italic">Why StillUp?</h3>
           <p className="mb-10 leading-relaxed text-muted-foreground">
-            StillUp solves the **"Silent Failure"** problem. Services that are technically UP but functionally degraded—like a stale VPN tunnel or a hanging cron—are detected instantly by our Sentinel engine.
+            StillUp solves the **"Dangerous Retry"** problem. When an AI agent or background job fails and retries, it often re-executes actions that already succeeded. StillUp provides exactly-once semantics to prevent double payments, duplicate emails, and corrupted state.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <FeatureItem icon={<CheckCircle2 className="w-5 h-5" />} title="Tunnel Handshake Tracking" />
-            <FeatureItem icon={<Shield className="w-5 h-5" />} title="Key Expiry Sentinel" />
-            <FeatureItem icon={<Search className="w-5 h-5" />} title="Silent Failure Detection" />
-            <FeatureItem icon={<Zap className="w-5 h-5" />} title="Real-time Pulse Analytics" />
+            <FeatureItem icon={<CheckCircle2 className="w-5 h-5" />} title="Exactly-Once Execution" />
+            <FeatureItem icon={<Shield className="w-5 h-5" />} title="Idempotent Side Effects" />
+            <FeatureItem icon={<Search className="w-5 h-5" />} title="Execution Memory" />
+            <FeatureItem icon={<Zap className="w-5 h-5" />} title="Agent Retry Safety" />
           </div>
         </section>
 
         <section className="space-y-12">
-          <h2 className="text-4xl font-black uppercase tracking-tight text-foreground italic">The Three Sentinels</h2>
+          <h2 className="text-4xl font-black uppercase tracking-tight text-foreground italic">Core Primitives</h2>
           <div className="grid gap-16">
             <div className="group">
-              <h4 className="font-black uppercase tracking-[0.3em] text-[10px] mb-4 text-acid-lime group-hover:translate-x-2 transition-transform italic">01. Heartbeat Sentinel</h4>
+              <h4 className="font-black uppercase tracking-[0.3em] text-[10px] mb-4 text-acid-lime group-hover:translate-x-2 transition-transform italic">01. ReplayGuard™</h4>
               <p className="leading-relaxed text-muted-foreground text-lg">
-                The standard for Crons and Backups. We monitor the regularity of your jobs and detect patterns of failure before they become outages.
+                The core safety engine. We track side effects using cryptographic fingerprints. If a job retries, StillUp intercepts duplicate actions and replays the original successful result.
               </p>
             </div>
             <div className="group">
-              <h4 className="font-black uppercase tracking-[0.3em] text-[10px] mb-4 text-acid-lime group-hover:translate-x-2 transition-transform italic">02. Infrastructure Sentinel</h4>
+              <h4 className="font-black uppercase tracking-[0.3em] text-[10px] mb-4 text-acid-lime group-hover:translate-x-2 transition-transform italic">02. Execution Memory</h4>
               <p className="leading-relaxed text-muted-foreground text-lg">
-                Specifically for **WireGuard, SSH, and VPNs**. We monitor handshake age and network latency without ever intercepting your private traffic.
+                StillUp remembers every side effect and state change your systems make. It acts as a shared brain, ensuring idempotency even for third-party APIs that don't support it natively.
               </p>
             </div>
             <div className="group">
-              <h4 className="font-black uppercase tracking-[0.3em] text-[10px] mb-4 text-acid-lime group-hover:translate-x-2 transition-transform italic">03. Security Sentinel</h4>
+              <h4 className="font-black uppercase tracking-[0.3em] text-[10px] mb-4 text-acid-lime group-hover:translate-x-2 transition-transform italic">03. Infrastructure Telemetry</h4>
               <p className="leading-relaxed text-muted-foreground text-lg">
-                Protecting your access. We track key rotations, certificate validity, and identify suspicious infrastructure shifts in real-time.
+                Visibility for the replay engine. We monitor the health of the underlying services your agents depend on (Crons, VPN Tunnels, Webhooks) before a retry turns into a disaster.
               </p>
             </div>
           </div>
