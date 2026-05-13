@@ -31,11 +31,12 @@ StillUp provides the "Safety Primitives" that prevent autonomous agents and back
 
 ---
 
-## 🔵 Phase 3: Operational Memory & Rollbacks (Upcoming)
+## 🟢 Phase 3: Operational Memory & Rollbacks (COMPLETED)
 *Moving from "Don't Repeat" to "Know How to Revert".*
 
-- [ ] **Rollback-Aware Execution**: Integrated logic to trigger cleanup/undo actions if a job fails mid-run.
-- [ ] **Operational Memory Graph**: Visualization of how different jobs and side effects are connected.
+- [x] **Rollback-Aware Execution**: Integrated logic to trigger cleanup/undo actions if a job fails mid-run (`guard.compensate()`).
+- [x] **Webhook Hub**: Centralized visibility for outbound communications and side-effect deduplication.
+- [x] **Safety ROI Dashboard**: Visual analytics for "Dangerous Retries" blocked and financial savings.
 - [/] **Tunnelight Handshake Audits**: Deep telemetry for WireGuard/VPN tunnels to detect "Ghost Connections."
 - [ ] **Secret Rotation Sentinels**: Automatic alerts for expiring certificates and stale keys detected in job telemetry.
 - [ ] **Jitter & Network Degradation**: Pattern detection for unstable pipes before they fully disconnect.
@@ -62,6 +63,6 @@ StillUp provides the "Safety Primitives" that prevent autonomous agents and back
 | ReplayGuard SDK | Safety Primitive | ✅ COMPLETED |
 | AI Agent Retry Protection | Agent Safety | ✅ COMPLETED |
 | Webhook Safety | Agent Safety | ✅ COMPLETED |
-| Rollback Engine | Infrastructure Memory | 📅 UPCOMING |
-| Operational Memory Graph | Infrastructure Memory | 📅 UPCOMING |
+| Rollback Engine | Infrastructure Memory | ✅ COMPLETED |
+| Operational Memory | Infrastructure Memory | ✅ COMPLETED |
 | Tunnelight Engine | Telemetry | 🚧 IN PROGRESS |
