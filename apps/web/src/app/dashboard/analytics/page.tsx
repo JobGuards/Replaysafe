@@ -16,7 +16,8 @@ import {
   ArrowDownRight,
   Activity,
   Zap,
-  Shield
+  Shield,
+  Clock
 } from 'lucide-react'
 import { HealthScoreBadge } from '@/components/analytics/HealthScoreBadge'
 import { HeartbeatPulse } from '@/components/analytics/HeartbeatPulse'
@@ -46,7 +47,7 @@ export default function Analytics() {
 
   const monitors = overview?.monitors || []
   const projectTrend = overview?.projectTrend || []
-  const safetyStats = overview?.safetyStats || { preventedDuplicates: 0, estimatedDollarsSaved: 0, retrySuccessRate: 0 }
+  const safetyStats = overview?.safetyStats || { preventedDuplicates: 0, estimatedDollarsSaved: 0, retrySuccessRate: 0, estimatedMinutesSaved: 0 }
   const deduplicationTrend = overview?.deduplicationTrend || []
   
   const stats = useMemo(() => {
@@ -134,25 +135,25 @@ export default function Analytics() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <MetricCard 
-            title="Duplicates Blocked" 
+            title="Dangerous Retries Blocked" 
             value={safetyStats.preventedDuplicates.toString()} 
             trend="Idempotent" 
             positive 
-            icon={<CheckCircle className="w-4 h-4" />} 
+            icon={<Shield className="w-4 h-4" />} 
           />
           <MetricCard 
-            title="Estimated Savings" 
+            title="Operational Savings" 
             value={`$${safetyStats.estimatedDollarsSaved.toLocaleString()}`} 
             trend="Blocked ROI" 
             positive 
             icon={<TrendingUp className="w-4 h-4" />} 
           />
           <MetricCard 
-            title="Retry Success Rate" 
-            value={`${safetyStats.retrySuccessRate}%`} 
-            trend="Recovery" 
+            title="Eng Time Saved" 
+            value={`${Math.round(safetyStats.estimatedMinutesSaved / 6) / 10}h`} 
+            trend="Automatic" 
             positive 
-            icon={<Activity className="w-4 h-4" />} 
+            icon={<Clock className="w-4 h-4" />} 
           />
         </div>
       </div>
@@ -249,7 +250,7 @@ export default function Analytics() {
         <div className="glass-panel border border-border/10 rounded-3xl p-8 shadow-xl">
           <h2 className="text-xl font-black text-foreground mb-8 uppercase tracking-tight flex items-center gap-2">
             <Shield className="w-5 h-5 text-acid-lime" />
-            Dangerous Retries Blocked
+            Dangerous Retries Prevented
           </h2>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">

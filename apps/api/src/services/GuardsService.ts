@@ -247,16 +247,20 @@ export class GuardsService {
       },
     });
 
+    let triggeredRollbacks: any[] = [];
     if (status === "FAILED" && shouldRollback) {
-      await this.triggerRollbacks(executionId);
+      triggeredRollbacks = await this.triggerRollbacks(executionId);
     }
 
-    return execution;
+    return {
+      ...execution,
+      rollbacks: triggeredRollbacks
+    };
   }
 
   /**
    * Triggers all registered rollbacks for an execution.
-   * In production, this might be offloaded to a background queue.
+   * Returns the list of rollbacks that were triggered.
    */
   static async triggerRollbacks(executionId: string) {
     const rollbacks = await prisma.guardRollback.findMany({
@@ -289,6 +293,7 @@ export class GuardsService {
         });
       }
     }
+    return rollbacks;
   }
 
   /**

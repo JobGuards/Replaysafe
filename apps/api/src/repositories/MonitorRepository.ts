@@ -40,6 +40,10 @@ export class MonitorRepository {
         heartbeats: {
           take: 1,
           orderBy: { receivedAt: 'desc' },
+        },
+        failurePatterns: {
+          where: { active: true },
+          orderBy: { lastSeenAt: 'desc' },
         }
       }
     })

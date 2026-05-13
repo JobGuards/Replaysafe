@@ -1,6 +1,6 @@
 # @stillup/guard-sdk
 
-ReplayGuard™ is the exactly-once execution engine for AI agents and background jobs.
+ReplayGuard™ is the exactly-once execution engine for AI agents and background jobs. Prevent dangerous retries, detect state drift, and handle automated rollbacks.
 
 ## Installation
 
@@ -16,18 +16,33 @@ import { withReplayGuard } from '@stillup/guard-sdk';
 const config = {
   apiKey: process.env.STILLUP_API_KEY,
   monitorId: 'your-monitor-id',
+  debug: true
 };
 
-async function processOrder(orderId: string) {
-  await withReplayGuard(config, async (guard) => {
-    // This action will ONLY run once, even if the job retries
-    const charge = await guard.wrap('PAYMENT', 'stripe-charge', { orderId }, async () => {
-      return await stripe.charges.create({ ... });
-    });
+await withReplayGuard(config, async (guard) => {
+  // 1. Guard an idempotent side effect
+  const charge = await guard.wrap('STRIPE_CHARGE', 'customer_123', { amount: 5000 }, async () => {
+    return await stripe.charges.create({ ... });
+  });
 
-    console.log('Charge successful:', charge.id);
-  }, orderId);
-}
+  // 2. Register a compensation action for automatic rollback
+  await guard.compensate('STRIPE_CHARGE', 'customer_123', { amount: 5000 }, {
+    type: 'STRIPE_REFUND',
+    target: charge.id,
+    payload: { reason: 'Job failed' }
+  });
+
+  // If this code fails, the rollback hook below will be triggered
+  throw new Error("Job crashed!");
+}, {
+  // 3. Handle rollbacks locally
+  onRollback: async (rollback) => {
+    console.log(`Executing local cleanup: ${rollback.type}`);
+    if (rollback.type === 'STRIPE_REFUND') {
+      await stripe.refunds.create({ charge: rollback.target });
+    }
+  }
+});
 ```
 
 ## 🚀 Production Safety Features
@@ -45,34 +60,19 @@ const guard = new ReplayGuard({
 });
 ```
 
-### 2. Rollback-Aware Workflows
-Register compensation logic that runs automatically if your job fails.
+### 2. State Drift Detection (Phase 2)
+Capture snapshots of infrastructure state to detect unexpected changes between job attempts.
 
 ```typescript
-await withReplayGuard(config, async (guard) => {
-  const payment = await guard.wrap('PAYMENT', 'stripe-charge', inputs, async () => {
-    return await stripe.charges.create(...);
-  });
-
-  // If the job fails after this point, StillUp will trigger this refund
-  await guard.compensate('PAYMENT', 'stripe-charge', inputs, {
-    type: 'HTTP_DELETE',
-    target: `https://api.stripe.com/v1/refunds/${payment.id}`,
-    payload: { reason: 'Job failure compensation' }
-  });
-
-  await doNextStep(); // If this throws, the refund above is triggered
-});
+await guard.snapshot('k8s-deployment', currentDeploymentState);
 ```
 
 ### 3. Project-Wide Deduplication
 Prevent duplicate side effects across different monitors or workers in the same project.
 
 ```typescript
-await guard.verify('AI_ACTION', 'llm-summarize', inputs, { 
-  scope: 'PROJECT' 
-});
+await guard.verify('AI_ACTION', 'llm-summarize', inputs, 'PROJECT');
 ```
 
 ## 📈 Replay Intelligence
-Every "SKIPPED" action is tracked in the **StillUp Dashboard**, calculating your **Safety ROI** (Prevented double-charges and engineering time saved).
+Every "SKIPPED" action is tracked in the **StillUp Dashboard**, calculating your **Safety ROI** (Prevented double-charges and engineering hours saved).

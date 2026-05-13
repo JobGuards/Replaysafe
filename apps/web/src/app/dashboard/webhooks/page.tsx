@@ -35,9 +35,39 @@ export default function WebhookHub() {
 
   return (
     <div className="flex flex-col gap-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div>
-        <h1 className="text-4xl font-black tracking-tighter text-foreground uppercase">Webhook Hub</h1>
-        <p className="text-muted-foreground text-lg mt-1">Global visibility for outbound communication and idempotency</p>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+        <div>
+          <h1 className="text-4xl font-black tracking-tighter text-foreground uppercase">Webhook Hub</h1>
+          <p className="text-muted-foreground text-lg mt-1">Global visibility for outbound communication and idempotency</p>
+        </div>
+      </div>
+
+      {/* Webhook Stats Summary */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="glass-panel border border-border/10 rounded-2xl p-6 flex flex-col gap-1">
+          <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Total Requests</span>
+          <span className="text-2xl font-black text-foreground">{webhooks?.length || 0}</span>
+        </div>
+        <div className="glass-panel border border-border/10 rounded-2xl p-6 flex flex-col gap-1">
+          <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Delivered</span>
+          <span className="text-2xl font-black text-acid-lime">
+            {webhooks?.filter((h: any) => h.status === 'COMPLETED').length || 0}
+          </span>
+        </div>
+        <div className="glass-panel border border-border/10 rounded-2xl p-6 flex flex-col gap-1">
+          <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Deduplicated</span>
+          <span className="text-2xl font-black text-amber-500">
+            {webhooks?.filter((h: any) => h.status === 'SKIPPED').length || 0}
+          </span>
+        </div>
+        <div className="glass-panel border border-border/10 rounded-2xl p-6 flex flex-col gap-1">
+          <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Safety Rate</span>
+          <span className="text-2xl font-black text-blue-400">
+            {webhooks?.length > 0 
+              ? Math.round((webhooks.filter((h: any) => h.status === 'SKIPPED').length / webhooks.length) * 100) 
+              : 0}%
+          </span>
+        </div>
       </div>
 
       <div className="glass-panel border border-border/10 rounded-3xl overflow-hidden">

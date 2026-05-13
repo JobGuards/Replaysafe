@@ -22,6 +22,11 @@ export interface ReplayContext {
 export type GuardAction = 'EXECUTE' | 'SKIP';
 export type GuardScope = 'MONITOR' | 'PROJECT';
 
+export interface GuardOptions {
+  externalId?: string;
+  onRollback?: (rollback: any) => Promise<void> | void;
+}
+
 export interface VerifyResponse {
   action: GuardAction;
   cachedResult?: any;
@@ -144,11 +149,11 @@ export class ReplayGuard {
   /**
    * Finalizes the guarded execution.
    */
-  async complete(status: 'SUCCESS' | 'FAILED', shouldRollback: boolean = false) {
+  async complete(status: 'SUCCESS' | 'FAILED', shouldRollback: boolean = false): Promise<any> {
     if (!this.context) return;
 
     try {
-      await fetch(`${this.config.baseUrl}/api/guards/execution/${this.context.executionId}`, {
+      const res = await fetch(`${this.config.baseUrl}/api/guards/execution/${this.context.executionId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -160,6 +165,10 @@ export class ReplayGuard {
           shouldRollback
         }),
       });
+
+      if (res.ok) {
+        return await res.json();
+      }
     } catch (e: any) {
       if (this.config.debug) console.error('[ReplayGuard] Failed to complete session', e.message);
     } finally {
@@ -358,15 +367,17 @@ export class ReplayGuard {
 export async function withReplayGuard<T>(
   config: GuardConfig,
   job: (guard: ReplayGuard) => Promise<T>,
-  externalId?: string
+  options?: string | GuardOptions
 ): Promise<T> {
   const guard = new ReplayGuard(config);
   
+  const opt: GuardOptions = typeof options === 'string' 
+    ? { externalId: options } 
+    : options || {};
+
   try {
-    await guard.start(externalId);
+    await guard.start(opt.externalId);
   } catch (error) {
-    // If start fails and policy is CLOSED, it will throw from start()
-    // and be caught by the caller.
     throw error;
   }
 
@@ -376,7 +387,15 @@ export async function withReplayGuard<T>(
     return result;
   } catch (error) {
     // Automatically trigger rollback on failure
-    await guard.complete('FAILED', true);
+    const completion = await guard.complete('FAILED', true);
+    
+    if (completion?.rollbacks && opt.onRollback) {
+      if (config.debug) console.log(`[ReplayGuard] Executing ${completion.rollbacks.length} rollback hooks`);
+      for (const rb of completion.rollbacks) {
+        await opt.onRollback(rb);
+      }
+    }
+    
     throw error;
   }
 }

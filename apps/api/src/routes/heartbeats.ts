@@ -93,6 +93,7 @@ const handleHeartbeat = async (req: any, res: any) => {
 
     // Async: update health score and run pattern detection (non-blocking)
     setImmediate(() => {
+
       healthScoreService.calculateAndUpdate(monitor.id).catch(err => {
         console.error('[Heartbeat] Health score update failed:', err);
       })

@@ -129,8 +129,8 @@ router.patch("/execution/:id", apiKeyMiddleware, async (req, res) => {
       }
     }
 
-    await GuardsService.completeExecution(id, status, shouldRollback);
-    res.json({ success: true });
+    const result = await GuardsService.completeExecution(id, status, shouldRollback);
+    res.json(result);
   } catch (error) {
     console.error("[Guards] Completion error:", error);
     res.status(500).json({ error: "Failed to complete execution" });
