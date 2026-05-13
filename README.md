@@ -21,7 +21,9 @@ Built specifically for the reliability problems created by autonomous agents and
 - 🛡️ **ReplayGuard™ (Exactly-Once Execution)**: The first safety layer for AI Agents and background jobs. Prevent duplicate side effects (double payments, double emails, redundant API calls) during retries with cryptographic fingerprinting.
 - 🛰️ **Infrastructure Memory**: StillUp tracks every side effect, handshake, and heartbeat. It provides a "Decision Engine" for your jobs: *Has this already happened? Should I skip it?*
 - 🤖 **AI Agent Retry Protection**: Dedicated SDK wrappers to protect high-cost LLM generations and agentic actions from non-deterministic failures.
-- 🛰️ **Secure Tunnel Telemetry**: Real-time handshake tracking and latency metrics for encrypted networks (WireGuard, SSH). Detect "Ghost Connections" before they break your autonomous access.
+- 🛠️ **Automated Rollbacks**: Register compensation hooks (`onRollback`) that trigger automatically when jobs fail, ensuring state consistency across complex autonomous runs.
+- 💹 **Safety ROI Dashboard**: Visualize the value of blocked dangerous retries, estimated engineer hours saved, and real-time project health scores.
+- 🌐 **Webhook Hub**: Centralized visibility for all outbound communications, ensuring idempotency and security for your integration layer.
 - 🎨 **Sentinel Hub UI**: A premium, glassmorphic command center to visualize your "Execution Memory" and infrastructure health.
 
 ## 💻 StillUp CLI
