@@ -1,5 +1,6 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/stillup/brand/main/logo.png" alt="StillUp Logo" width="200" />
+<img width="150" height="160" alt="silluplogo" src="https://github.com/user-attachments/assets/7bf8e426-9649-4df6-a4c3-2269ebae02b1" />
+
   <h1>STILLUP</h1>
   <p><strong>The Safety Layer for Autonomous Systems & AI Agents</strong></p>
   
