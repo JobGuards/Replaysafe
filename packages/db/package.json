@@ -1,6 +1,7 @@
 {
   "name": "@stillup/db",
   "version": "1.0.0",
+  "private": true,
   "description": "",
   "type": "module",
   "main": "src/index.ts",
