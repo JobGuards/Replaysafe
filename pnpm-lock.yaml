@@ -374,6 +374,9 @@ importers:
         specifier: ^3.0.0
         version: 3.0.0
     devDependencies:
+      '@types/node':
+        specifier: ^22.7.5
+        version: 22.19.15
       '@types/object-hash':
         specifier: ^3.0.6
         version: 3.0.6
@@ -390,6 +393,9 @@ importers:
         specifier: 3.25.76
         version: 3.25.76
     devDependencies:
+      '@types/node':
+        specifier: ^22.7.5
+        version: 22.19.15
       typescript:
         specifier: ^5.0.0
         version: 5.9.3
@@ -7203,7 +7209,7 @@ snapshots:
   '@types/body-parser@1.19.6':
     dependencies:
       '@types/connect': 3.4.38
-      '@types/node': 22.19.15
+      '@types/node': 25.7.0
 
   '@types/chai@5.2.3':
     dependencies:
@@ -7212,7 +7218,7 @@ snapshots:
 
   '@types/connect@3.4.38':
     dependencies:
-      '@types/node': 22.19.15
+      '@types/node': 25.7.0
 
   '@types/cookie-parser@1.4.10(@types/express@5.0.6)':
     dependencies:
@@ -7264,7 +7270,7 @@ snapshots:
 
   '@types/express-serve-static-core@5.1.1':
     dependencies:
-      '@types/node': 22.19.15
+      '@types/node': 25.7.0
       '@types/qs': 6.15.0
       '@types/range-parser': 1.2.7
       '@types/send': 1.2.1
@@ -7290,7 +7296,7 @@ snapshots:
 
   '@types/mysql@2.15.27':
     dependencies:
-      '@types/node': 22.19.15
+      '@types/node': 25.7.0
 
   '@types/node@12.20.55': {}
 
@@ -7314,7 +7320,7 @@ snapshots:
 
   '@types/pg@8.15.6':
     dependencies:
-      '@types/node': 22.19.15
+      '@types/node': 25.7.0
       pg-protocol: 1.13.0
       pg-types: 2.2.0
 
@@ -7336,18 +7342,18 @@ snapshots:
 
   '@types/send@1.2.1':
     dependencies:
-      '@types/node': 22.19.15
+      '@types/node': 25.7.0
 
   '@types/serve-static@2.2.0':
     dependencies:
       '@types/http-errors': 2.0.5
-      '@types/node': 22.19.15
+      '@types/node': 25.7.0
 
   '@types/superagent@8.1.9':
     dependencies:
       '@types/cookiejar': 2.1.5
       '@types/methods': 1.1.4
-      '@types/node': 22.19.15
+      '@types/node': 25.7.0
       form-data: 4.0.5
 
   '@types/supertest@7.2.0':
@@ -7357,7 +7363,7 @@ snapshots:
 
   '@types/tedious@4.0.14':
     dependencies:
-      '@types/node': 22.19.15
+      '@types/node': 25.7.0
 
   '@types/uuid@11.0.0':
     dependencies:
