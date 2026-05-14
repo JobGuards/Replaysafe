@@ -3,6 +3,16 @@ import request from 'supertest'
 import { createApp } from '../../src/server.ts'
 import { apiKeyMiddleware } from '../../src/middleware/auth.ts'
 import { prisma } from '@stillup/db'
+import { Role } from '@prisma/client'
+
+vi.mock('@stillup/db', () => ({
+  prisma: {
+    apiKey: {
+      findUnique: vi.fn(),
+      update: vi.fn().mockReturnValue({ catch: vi.fn() }),
+    }
+  }
+}))
 
 // Test app with the middleware
 const app = createApp()
@@ -21,6 +31,8 @@ describe('apiKeyMiddleware', () => {
   })
 
   it('should return 403 if API key is invalid', async () => {
+    vi.mocked(prisma.apiKey.findUnique).mockResolvedValue(null)
+    
     const response = await request(app)
       .get('/test-api-key')
       .set('X-API-Key', INVALID_KEY)
@@ -29,39 +41,38 @@ describe('apiKeyMiddleware', () => {
   })
 
   it('should attach projectId to request if API key is valid', async () => {
+    vi.mocked(prisma.apiKey.findUnique).mockResolvedValue({
+      id: 'key_id_123',
+      projectId: 'proj_id_123',
+    } as any)
+    
     const response = await request(app)
       .get('/test-api-key')
       .set('X-API-Key', VALID_KEY)
     
     expect(response.status).toBe(200)
-    expect(response.body.projectId).toBeDefined()
+    expect(response.body.projectId).toBe('proj_id_123')
   })
 
   it('should update lastUsed timestamp', async () => {
-    // Get current lastUsed
-    const keyBefore = await prisma.apiKey.findUnique({
-      where: { key: VALID_KEY }
-    })
+    const mockDate = new Date('2026-05-14T10:00:00Z')
+    vi.mocked(prisma.apiKey.findUnique).mockResolvedValue({
+      id: 'key_id_123',
+      projectId: 'proj_id_123',
+    } as any)
     
-    const lastUsedBefore = keyBefore?.lastUsed
-
-    // Wait a short bit to ensure timestamp changes
-    await new Promise(resolve => setTimeout(resolve, 100))
-
     await request(app)
       .get('/test-api-key')
       .set('X-API-Key', VALID_KEY)
 
-    // Wait for the async update to finish (small delay as it's fire-and-forget in middleware)
-    await new Promise(resolve => setTimeout(resolve, 500))
+    // Wait for the async update to be called
+    await new Promise(resolve => setTimeout(resolve, 100))
 
-    const keyAfter = await prisma.apiKey.findUnique({
-      where: { key: VALID_KEY }
-    })
-
-    expect(keyAfter?.lastUsed).toBeDefined()
-    if (lastUsedBefore) {
-      expect(keyAfter!.lastUsed!.getTime()).toBeGreaterThan(lastUsedBefore.getTime())
-    }
+    expect(prisma.apiKey.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'key_id_123' },
+      data: expect.objectContaining({
+        lastUsed: expect.any(Date)
+      })
+    }))
   })
 })
