@@ -5,7 +5,6 @@
 
 StillUp provides the "Safety Primitives" that prevent autonomous agents and background jobs from causing destructive side effects during retries or failures.
 
-
 ---
 
 ## 🟢 Phase 1: The Safety Foundation (Completed)
