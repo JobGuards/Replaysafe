@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { prisma } from '@stillup/db'
 import { authMiddleware, projectAccessMiddleware } from '../middleware/auth.js'
-import { crypto } from '../utils/crypto.js' // Assuming a crypto util exists for secure keys
+import { randomBytes } from 'node:crypto'
 
 const router = Router()
 
@@ -43,7 +43,7 @@ router.post('/', authMiddleware, projectAccessMiddleware('ADMIN'), async (req: a
 
     // Generate a secure key
     // Prefix with 'su_' for easy identification (StillUp)
-    const key = `su_${require('crypto').randomBytes(24).toString('hex')}`
+    const key = `su_${randomBytes(24).toString('hex')}`
 
     const apiKey = await prisma.apiKey.create({
       data: {

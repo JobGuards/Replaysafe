@@ -136,7 +136,7 @@ router.delete('/:id', authMiddleware, projectAccessMiddleware('ADMIN'), async (r
       projectId: project!.id,
       action: 'ALERT_CHANNEL_DELETE',
       resourceType: 'ALERT_CHANNEL',
-      resourceId: req.params.id,
+      resourceId: req.params.id as string,
     })
 
     res.json({ message: 'Channel deleted successfully' })

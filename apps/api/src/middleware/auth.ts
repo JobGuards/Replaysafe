@@ -330,7 +330,7 @@ export async function apiKeyMiddleware(
     }
 
     // Attach project to request
-    req.project = { id: keyData.projectId }
+    req.project = { id: keyData.projectId, role: 'OWNER' }
 
     // Update lastUsed timestamp asynchronously (no need to wait for it)
     prisma.apiKey

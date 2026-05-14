@@ -46,7 +46,7 @@ export class HealthScoreService {
     // 3. Jitter (Standard Deviation of latency)
     const jitter = latencies.length > 1
       ? Math.sqrt(
-          latencies.map(x => Math.pow(x - avgLatency, 2)).reduce((a, b) => a + b) / latencies.length
+          latencies.map((x: number) => Math.pow(x - avgLatency, 2)).reduce((a: number, b: number) => a + b) / latencies.length
         )
       : 0
 

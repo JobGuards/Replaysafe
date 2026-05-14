@@ -114,7 +114,7 @@ router.post("/rollback/register", apiKeyMiddleware, async (req, res) => {
  */
 router.patch("/execution/:id", apiKeyMiddleware, async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { status, token, shouldRollback } = req.body;
 
     if (!status || !["SUCCESS", "FAILED"].includes(status)) {
@@ -195,7 +195,7 @@ router.get("/:id", unifiedAuth, projectAccessMiddleware("MEMBER"), async (req, r
     const { project } = req;
     if (!project) return res.status(401).json({ error: "Project context missing" });
 
-    const execution = await GuardsService.getExecutionDetails(req.params.id, project.id);
+    const execution = await GuardsService.getExecutionDetails(req.params.id as string, project.id);
     if (!execution) return res.status(404).json({ error: "Execution not found" });
 
     res.json(execution);
