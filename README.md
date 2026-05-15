@@ -87,7 +87,7 @@ Explore our full documentation suite in the [`/docs`](./docs) directory:
 - [Introduction](./docs/introduction.md)
 - [Architecture & Security](./docs/architecture.md)
 - [API Reference](./docs/api-reference.md)
-- [Deployment Guide](./docs/deployment.md)
+- [Deployment Guide](./docs/self-hosted-guide.md)
 
 ## 🤝 Contributing
 
