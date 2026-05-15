@@ -166,6 +166,14 @@ class ApiClient {
   }
 
   // Public methods
+  async createProject(name: string) {
+    const response: any = await this.fetch('/projects', {
+      method: 'POST',
+      body: JSON.stringify({ name })
+    })
+    return response.project
+  }
+
   async submitInterest(data: { email: string; name?: string; source?: string }): Promise<any> {
     return this.fetch('/public/interest', {
       method: 'POST',

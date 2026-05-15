@@ -36,3 +36,5 @@ Thumbs.db
 /scripts/
 .turbo/
 scratch/
+
+apps/test-backend/

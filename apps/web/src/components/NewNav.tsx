@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Logo } from "./Logo";
+import { ProjectSwitcher } from "./ProjectSwitcher";
 import { ModeToggle } from "./ModeToggle";
 import { User } from "lucide-react";
 
@@ -33,6 +34,8 @@ export function NewNav({ userEmail }: Props) {
       </nav>
 
       <div className="flex items-center gap-2 pr-2 relative">
+        {/* <ProjectSwitcher /> */}
+        <div className="h-6 w-[1px] bg-border/10 mx-1" />
         <ModeToggle />
         {userEmail ? (
           <div className="relative">

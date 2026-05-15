@@ -8,6 +8,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Logo } from "@/components/Logo"
+import { ProjectSwitcher } from "@/components/ProjectSwitcher"
 import { Menu, X, LogOut, Settings, Home, BarChart3, Clock, Loader2, ShieldCheck, Activity, AlertTriangle, Globe } from 'lucide-react'
 
 export default function DashboardLayout({
@@ -56,23 +57,22 @@ export default function DashboardLayout({
       {/* Top Navigation */}
       <header className="glass-panel h-16 shrink-0 z-50 border-b border-border/10 backdrop-blur-xl">
         <div className="flex items-center justify-between h-full px-6 max-w-[1600px] mx-auto">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden p-2 hover:bg-secondary/50 rounded-lg transition text-foreground"
-              aria-label="Toggle sidebar"
-            >
-              {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
-            <Logo />
+          <div className="flex items-center gap-8">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="lg:hidden p-2 hover:bg-secondary/50 rounded-lg transition text-foreground"
+                aria-label="Toggle sidebar"
+              >
+                {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </button>
+              <Logo />
+            </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard/settings">
-              <button className="p-2 hover:bg-secondary/50 rounded-lg transition text-muted-foreground hover:text-foreground">
-                <Settings className="w-5 h-5" />
-              </button>
-            </Link>
+          <div className="flex items-center gap-2">
+            <ProjectSwitcher />
+            <div className="h-6 w-[1px] bg-border/10 mx-2" />
             <button
               onClick={signout}
               className="p-2 hover:bg-secondary/50 rounded-lg transition text-muted-foreground hover:text-foreground"

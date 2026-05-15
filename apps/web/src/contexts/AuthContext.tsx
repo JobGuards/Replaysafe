@@ -1,6 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { mutate } from 'swr'
 import { api } from '@/lib/api'
 
 interface User {
@@ -78,6 +79,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setActiveOrgId(id)
     localStorage.setItem('stillup_active_project', id)
     api.setProjectId(id)
+    // Trigger global revalidation of all SWR hooks
+    mutate(() => true, undefined, { revalidate: true })
   }
 
   const signout = async () => {
