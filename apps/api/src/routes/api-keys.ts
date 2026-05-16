@@ -16,16 +16,20 @@ router.get('/', authMiddleware, projectAccessMiddleware('MEMBER'), async (req: a
       select: {
         id: true,
         name: true,
-        key: true, // In production, usually we only show the last 4 chars
+        key: true,
         lastUsed: true,
         createdAt: true,
       },
       orderBy: { createdAt: 'desc' },
     })
 
-    // Mask keys for security, except for the first time they are created?
-    // For now, let's show them but advise users to keep them secret.
-    res.json(keys)
+    // Mask keys for security
+    const maskedKeys = keys.map(k => ({
+      ...k,
+      key: `su_****${k.key.slice(-4)}`
+    }))
+
+    res.json(maskedKeys)
   } catch (error) {
     console.error('List API keys error:', error)
     res.status(500).json({ error: 'Internal server error' })

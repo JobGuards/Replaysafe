@@ -16,7 +16,7 @@ import stripeRoutes from "./routes/stripe.js";
 import guardRoutes from "./routes/guards.js";
 import apiKeyRoutes from "./routes/api-keys.js";
 import projectRoutes from "./routes/projects.js";
-import { apiRateLimiter, authRateLimiter } from "./middleware/rateLimit.js";
+import { apiRateLimiter, authRateLimiter, heartbeatRateLimiter } from "./middleware/rateLimit.js";
 import { authMiddleware, projectAccessMiddleware } from "./middleware/auth.js";
 import { prisma } from "@stillup/db";
 import { auditService } from "./services/AuditService.js";
@@ -61,7 +61,7 @@ export function createApp() {
   app.use("/api/monitors", monitorRoutes);
 
   // 9. Heartbeat ingestion (simplified URL for easier integration)
-  app.use("/hb", heartbeatRoutes);
+  app.use("/hb", heartbeatRateLimiter, heartbeatRoutes);
 
   // 10. Analytics routes
   app.use("/api/analytics", analyticsRoutes);
