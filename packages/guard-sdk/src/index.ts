@@ -359,6 +359,119 @@ export class ReplayGuard {
       console.error('[ReplayGuard] Failed to record snapshot', e);
     }
   }
+
+  // ─────────────────────────────────────────────────────────────────
+  // Framework Adapters — Drop-in safety proxy for any orchestrator.
+  // Each adapter is a semantically-named thin wrapper over `wrap()`.
+  // The safety engine underneath is identical — only the intent is named.
+  // ─────────────────────────────────────────────────────────────────
+
+  /**
+   * LangGraph adapter — wraps a LangGraph node's side-effecting tool call
+   * with exactly-once semantics.
+   *
+   * @example
+   * // In a LangGraph node:
+   * const result = await guard.langGraph(
+   *   'send_email_node',
+   *   { to: user.email, template: 'welcome' },
+   *   () => sendEmail(user.email, 'Welcome!')
+   * );
+   */
+  async langGraph<T>(
+    nodeId: string,
+    inputs: any,
+    operation: () => Promise<T>,
+    scope: GuardScope = 'MONITOR'
+  ): Promise<T> {
+    return this.wrap('LANGGRAPH_NODE', nodeId, inputs, operation, scope);
+  }
+
+  /**
+   * Inngest adapter — wraps an Inngest function step with exactly-once semantics.
+   * Use inside `step.run()` for steps that have non-idempotent external side effects.
+   *
+   * @example
+   * // In an Inngest function:
+   * createFunction({ id: 'onboarding' }, { event: 'user.created' }, async ({ event, step }) => {
+   *   await step.run('send-welcome-email', () =>
+   *     guard.inngest('send-welcome-email', { userId: event.data.userId },
+   *       () => sendEmail(event.data.email, 'Welcome!')
+   *     )
+   *   );
+   * });
+   */
+  async inngest<T>(
+    functionId: string,
+    inputs: any,
+    operation: () => Promise<T>,
+    scope: GuardScope = 'MONITOR'
+  ): Promise<T> {
+    return this.wrap('INNGEST_STEP', functionId, inputs, operation, scope);
+  }
+
+  /**
+   * n8n adapter — wraps an n8n workflow node's outbound operation with
+   * exactly-once semantics, preventing duplicate API calls during n8n retries.
+   *
+   * @example
+   * // In an n8n Code node:
+   * const result = await guard.n8n(
+   *   'hubspot-contact-create',
+   *   { email: $input.item.json.email },
+   *   () => $http.post('https://api.hubspot.com/crm/v3/objects/contacts', payload)
+   * );
+   */
+  async n8n<T>(
+    nodeName: string,
+    inputs: any,
+    operation: () => Promise<T>,
+    scope: GuardScope = 'MONITOR'
+  ): Promise<T> {
+    return this.wrap('N8N_NODE', nodeName, inputs, operation, scope);
+  }
+
+  /**
+   * Apache Airflow adapter — wraps an Airflow task's side-effecting operation
+   * with exactly-once semantics, safe for use inside PythonOperator callbacks
+   * via the JS/TS bridge or in TypeScript-based DAG runners.
+   *
+   * @example
+   * const result = await guard.airflow(
+   *   'my_dag.send_report_task',
+   *   { runId: context.run_id, reportDate: '2025-01-01' },
+   *   () => generateAndEmailReport(reportDate)
+   * );
+   */
+  async airflow<T>(
+    taskId: string,
+    inputs: any,
+    operation: () => Promise<T>,
+    scope: GuardScope = 'MONITOR'
+  ): Promise<T> {
+    return this.wrap('AIRFLOW_TASK', taskId, inputs, operation, scope);
+  }
+
+  /**
+   * CrewAI adapter — wraps a CrewAI tool execution with exactly-once semantics,
+   * preventing duplicate tool calls when agents are restarted or re-routed.
+   *
+   * @example
+   * // In a CrewAI custom tool:
+   * const result = await guard.crewai(
+   *   'web_search_tool',
+   *   { query: 'latest AI safety research', agentId: agent.id },
+   *   () => performWebSearch(query)
+   * );
+   */
+  async crewai<T>(
+    toolName: string,
+    inputs: any,
+    operation: () => Promise<T>,
+    scope: GuardScope = 'MONITOR'
+  ): Promise<T> {
+    return this.wrap('CREWAI_TOOL', toolName, inputs, operation, scope);
+  }
 }
 
 /**

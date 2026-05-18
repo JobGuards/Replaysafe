@@ -1,6 +1,6 @@
 {
   "name": "@stillup/guard-sdk",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "ReplayGuard SDK for StillUp",
   "type": "module",
   "main": "./dist/index.cjs",

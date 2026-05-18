@@ -1,5 +1,6 @@
-// packages/db/src/index.ts
+import pkg from "@prisma/client";
 export * from "@prisma/client";
-import { PrismaClient } from "@prisma/client";
 
+const { PrismaClient } = pkg;
 export const prisma = new PrismaClient();
+

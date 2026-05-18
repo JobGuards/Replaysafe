@@ -48,7 +48,7 @@ export default function LandingPage() {
     { q: "How does it monitor Tunnels?", a: "We track handshake age and latency for WireGuard, SSH, and OpenVPN. If your tunnel degrades or keys go stale, we detect it without intercepting traffic." },
     { q: "Can I report failures explicitly?", a: "Yes! You can use our CLI or SDK to report failures, measure latency, and guard side effects with exactly-once semantics." },
     { q: "What is 'Execution Memory'?", a: "StillUp remembers past failures and successful side effects. We help you find patterns and ensure that retrying a job never charges a customer twice." },
-    { q: "Does it work with my existing tools?", a: "StillUp works anywhere curl works. We also integrate with Slack, Discord, and PagerDuty for alerting." },
+    { q: "Does it work with my existing orchestration framework?", a: "Yes — ReplayGuard™ ships with named adapters for LangGraph, LangChain, Inngest, n8n, CrewAI, and Airflow. Each is a drop-in wrapper over the same safety engine. No framework lock-in, no rewrites. If you use raw Python or a custom runner, the HTTP API works anywhere." },
   ];
 
   return (
@@ -74,12 +74,12 @@ export default function LandingPage() {
                 <span className="tracking-[0.2em] uppercase text-[10px] font-black italic">Exactly-Once Active</span>
               </div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 backdrop-blur text-xs font-code-md text-muted-foreground">
-                <span className="tracking-[0.2em] uppercase text-[10px] font-black italic">100% Self-Hostable & Privacy-First</span>
+                <span className="tracking-[0.2em] uppercase text-[10px] font-black italic">Works With Any Framework</span>
               </div>
             </div>
             <h1 className="text-headline-xl font-headline-xl text-foreground uppercase tracking-tight">
-              Sovereign <span className="glow-lime font-black">Reliability.</span><br/> 
-              <span className="text-foreground/40 font-black italic">For Agents & Homelabs.</span>
+              The <span className="glow-lime font-black">Airbag</span><br/>
+              <span className="text-foreground/40 font-black italic">For Any Orchestration Stack.</span>
             </h1>
             <p className="text-body-lg font-body-lg text-muted-foreground max-w-2xl mt-2">
               StillUp is the safety layer for non-deterministic systems. Prevent duplicate side effects, secure your local infrastructure, and ensure 100% data sovereignty.
@@ -88,15 +88,15 @@ export default function LandingPage() {
               <Link href="/auth/signup" className="bg-acid-lime text-primary-foreground px-xl py-sm rounded-lg font-black uppercase tracking-widest text-sm shadow-[0_0_20px_rgba(var(--theme-lime-rgb),0.3)] hover:shadow-[0_0_40px_rgba(var(--theme-lime-rgb),0.6)] transition-all duration-500 flex items-center gap-xs transform hover:-translate-y-1">
                 Deploy Sentinel <ArrowRight className="w-4 h-4" />
               </Link>
-              {/* Copy Command Section - Fixed Visibility */}
+              {/* Copy Command Section */}
               <div className="bg-zinc-950 rounded-xl p-1 mt-4 flex items-center shadow-2xl border border-white/10 group overflow-hidden">
                 <div className="px-md py-sm font-code-md text-sm md:text-base flex items-center gap-sm">
                   <span className="text-acid-lime font-bold select-none">❯</span>
                   <span className="text-zinc-100 font-medium selection:bg-acid-lime/30">{START_COMMAND}</span>
                 </div>
-                <button 
-                  onClick={copyStart} 
-                  className="bg-zinc-900 rounded-lg ml-2 px-3 py-2 flex items-center justify-center text-zinc-400 hover:text-acid-lime hover:bg-zinc-800 transition-all border border-white/5 mr-1" 
+                <button
+                  onClick={copyStart}
+                  className="bg-zinc-900 rounded-lg ml-2 px-3 py-2 flex items-center justify-center text-zinc-400 hover:text-acid-lime hover:bg-zinc-800 transition-all border border-white/5 mr-1"
                   title="Copy to clipboard"
                 >
                   {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
@@ -283,6 +283,74 @@ export default function LandingPage() {
                     </p>
                   </div>
                 </div>
+              </div>
+            </div>
+          </section>
+
+          <section  className="w-full py-24 relative overflow-hidden">
+             {/* Works With — Framework Compatibility Strip */}
+            <div className="mt-16 w-full mx-auto">
+              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground/50 mb-6 italic text-center">Drop-in safety proxy for</p>
+              <div className="flex flex-wrap justify-center items-center gap-3">
+                {[
+                  { name: 'LangGraph', color: '#1a73e8', icon: '⬡', href: '/docs/integrations/langgraph' },
+                  { name: 'LangChain', color: '#38bdf8', icon: '🦜', href: '/docs/integrations/langgraph' },
+                  { name: 'Inngest', color: '#e8821a', icon: '⚡', href: '/docs/integrations/inngest' },
+                  { name: 'n8n', color: '#ea4b71', icon: '◆', href: '/docs/integrations/n8n' },
+                  { name: 'CrewAI', color: '#00b894', icon: '⬡', href: '/docs/integrations/crewai' },
+                  { name: 'Airflow', color: '#017cee', icon: '◈', href: '/docs/integrations/langgraph' },
+                  { name: 'Raw Python', color: '#4a9eff', icon: '⬟', href: '/docs/integrations/crewai' },
+                ].map((fw) => (
+                  <Link
+                    key={fw.name}
+                    href={fw.href}
+                    className="group flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/[0.03] hover:border-acid-lime/30 hover:bg-acid-lime/5 transition-all duration-300 cursor-pointer"
+                  >
+                    <span className="text-sm" style={{ color: fw.color }}>{fw.icon}</span>
+                    <span className="text-xs font-bold text-muted-foreground group-hover:text-foreground transition-colors uppercase tracking-wider">{fw.name}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            {/* Code Comparison: Before / After */}
+            <div className="mt-12 w-full max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-14 text-left">
+              {/* Before */}
+              <div className="rounded-2xl border border-destructive/20 bg-destructive/5 overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-2 border-b border-destructive/10 bg-destructive/10">
+                  <span className="w-2 h-2 rounded-full bg-destructive"></span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-destructive/70">Without ReplayGuard™</span>
+                </div>
+                <pre className="text-xs font-mono text-muted-foreground p-4 overflow-x-auto leading-relaxed"><code>{`// LangGraph node — UNSAFE on retry
+async function chargeNode(state) {
+  // ⚠️ On retry: charges TWICE
+  const charge = await stripe
+    .charges.create({
+      amount: state.amount,
+      customer: state.customerId,
+    });
+  return { chargeId: charge.id };
+}`}</code></pre>
+              </div>
+              {/* After */}
+              <div className="rounded-2xl border border-acid-lime/20 bg-acid-lime/5 overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-2 border-b border-acid-lime/10 bg-acid-lime/10">
+                  <span className="w-2 h-2 rounded-full bg-acid-lime animate-pulse"></span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-acid-lime/70">With ReplayGuard™</span>
+                </div>
+                <pre className="text-xs font-mono text-muted-foreground p-4 overflow-x-auto leading-relaxed"><code>{`// LangGraph node — SAFE on retry
+async function chargeNode(state, guard) {
+  // ✅ On retry: replays cached result
+  const charge = await guard.langGraph(
+    'stripe-charge',
+    { amount: state.amount },
+    () => stripe.charges.create({
+      amount: state.amount,
+      customer: state.customerId,
+    })
+  );
+  return { chargeId: charge.id };
+}`}</code></pre>
               </div>
             </div>
           </section>
