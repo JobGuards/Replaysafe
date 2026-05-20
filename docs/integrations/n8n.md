@@ -2,7 +2,7 @@
 
 n8n makes it easy to build powerful automation workflows, but when a workflow errors and you re-run it (or n8n retries a node automatically), every HTTP Request node, webhook call, and external API action fires again — potentially creating duplicate records, charges, or notifications.
 
-**StillUp solves this with `guard.n8n()`** — a drop-in wrapper for your n8n Code nodes that makes any external call exactly-once safe.
+**StillUp solves this with `guard.n8n()`** — a drop-in wrapper for your n8n Code nodes that makes any external call replay-safe: the side effect executes at most once per unique input set, even if n8n re-runs the node.
 
 ---
 

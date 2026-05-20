@@ -1,8 +1,8 @@
-# StillUp + LangGraph: Exactly-Once Safety for Agent Nodes
+# StillUp + LangGraph: Replay-Safe Retries for Agent Nodes
 
 LangGraph is powerful for building stateful, multi-step AI agents — but when a node fails and the graph retries, every side effect in that node (API calls, database writes, emails) re-executes from scratch. This causes duplicate charges, phantom records, and corrupted downstream state.
 
-**StillUp acts as the airbag.** Wrap any side-effecting tool call inside a LangGraph node with `guard.langGraph()` and it will be guaranteed to execute exactly once — even across retries.
+**StillUp acts as the airbag.** Wrap any side-effecting tool call inside a LangGraph node with `guard.langGraph()` and it will be deduplicated — even across retries, the external side effect executes at most once per unique input set.
 
 ---
 
@@ -52,7 +52,7 @@ export async function chargeNode(
   state: OnboardingState,
   guard: ReplayGuard
 ) {
-  // ✅ This charge will NEVER be duplicated during retries
+  // ✅ This charge will NOT be duplicated during retries (replay-safe deduplication)
   const charge = await guard.langGraph(
     'charge_customer_node',
     { customerId: state.customerId, amount: state.planAmount },
@@ -112,6 +112,8 @@ If the graph run is marked as failed, StillUp will fire the compensation webhook
 2. **Memory Check**: On retry, before executing the operation, StillUp checks if this fingerprint was already executed successfully in a previous attempt.
 3. **Skip or Execute**: If a successful result exists → **SKIP** and replay the cached result. If not → **EXECUTE** and record the result.
 4. **Zero LangGraph Changes**: You don't modify your graph structure. Just wrap the dangerous calls.
+
+> **Distributed Systems Note**: ReplayGuard is a replay-safety proxy, not a distributed transaction coordinator. Safety guarantees apply within the fingerprint scope and storage window. Under `OPEN` fail policy, if StillUp is unreachable, execution proceeds without deduplication.
 
 ---
 

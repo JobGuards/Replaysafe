@@ -449,7 +449,7 @@ function PaymentContent() {
                 </div>
 
                 <div className="space-y-4 pt-4">
-                  <Benefit icon={<ShieldCheck />} label="Exactly-Once Guaranteed" />
+                  <Benefit icon={<ShieldCheck />} label="Replay-Safe Execution" />
                   <Benefit icon={<Zap />} label="Real-time Tunnel Telemetry" />
                   <Benefit icon={<Cpu />} label="Pattern Recognition Engine" />
                 </div>

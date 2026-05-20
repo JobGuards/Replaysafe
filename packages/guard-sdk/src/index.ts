@@ -1,11 +1,49 @@
 import hash from 'object-hash';
 
+/**
+ * Safe default fields to strip from inputs before fingerprinting.
+ * These are transient values that change on each request but do NOT
+ * alter the semantic meaning of the operation (timestamps, trace IDs, nonces).
+ * Override via `ignoreKeys`, or disable entirely via `disableDefaultIgnoreKeys`.
+ */
+const DEFAULT_IGNORE_KEYS = new Set<string>([
+  'timestamp', 'createdAt', 'updatedAt',
+  'requestId', 'traceId', 'nonce',
+  'idempotencyKey', 'x-request-id',
+]);
+
 export interface GuardConfig {
   apiKey: string;
   monitorId: string;
   baseUrl?: string;
   failPolicy?: 'OPEN' | 'CLOSED';
   debug?: boolean;
+  /**
+   * Additional input keys to strip from fingerprint hashing beyond the safe defaults.
+   * Safe defaults: timestamp, createdAt, updatedAt, requestId, traceId, nonce.
+   *
+   * ⚠️  Never add semantic business fields here (amount, currency, orderId, recipient).
+   *     Stripping those would allow genuinely different operations to share a fingerprint.
+   */
+  ignoreKeys?: string[];
+  /**
+   * Strict mode — disables all safe-default ignore-keys.
+   * Only the keys listed in `ignoreKeys` will be stripped (or none, if ignoreKeys is empty).
+   * Use when you need full deterministic control over every fingerprint input.
+   */
+  disableDefaultIgnoreKeys?: boolean;
+  /**
+   * Network resilience config for SDK → StillUp API communication.
+   * Production-grade defaults apply automatically — only override for tuning.
+   */
+  network?: {
+    /** Abort timeout per request in ms. Default: 3000 */
+    timeoutMs?: number;
+    /** Max internal retries before failPolicy is applied. Default: 3 */
+    maxRetries?: number;
+    /** Base delay ms for exponential backoff between retries. Default: 200 */
+    baseDelayMs?: number;
+  };
 }
 
 export interface ReplayContext {
@@ -43,6 +81,12 @@ export class ReplayGuard {
       failPolicy: 'OPEN',
       debug: false,
       ...config,
+      network: {
+        timeoutMs: 3000,
+        maxRetries: 3,
+        baseDelayMs: 200,
+        ...config.network,
+      },
     };
   }
 
@@ -51,7 +95,7 @@ export class ReplayGuard {
    */
   async start(externalId?: string): Promise<ReplayContext | null> {
     try {
-      const res = await fetch(`${this.config.baseUrl}/api/guards/session`, {
+      const res = await this._fetchWithRetry(`${this.config.baseUrl}/api/guards/session`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -95,7 +139,7 @@ export class ReplayGuard {
       return { action: 'EXECUTE' };
     }
 
-    const inputHash = hash(inputs);
+    const inputHash = this._buildInputHash(inputs);
     const fingerprint = hash({ type, target, inputHash });
 
     // 1. Check local cache (Process-level deduplication)
@@ -105,7 +149,7 @@ export class ReplayGuard {
     }
 
     try {
-      const res = await fetch(`${this.config.baseUrl}/api/guards/verify`, {
+      const res = await this._fetchWithRetry(`${this.config.baseUrl}/api/guards/verify`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -153,7 +197,7 @@ export class ReplayGuard {
     if (!this.context) return;
 
     try {
-      const res = await fetch(`${this.config.baseUrl}/api/guards/execution/${this.context.executionId}`, {
+      const res = await this._fetchWithRetry(`${this.config.baseUrl}/api/guards/execution/${this.context.executionId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -232,7 +276,7 @@ export class ReplayGuard {
       const result = await operation();
       
       // Update local cache immediately
-      const inputHash = hash(inputs);
+      const inputHash = this._buildInputHash(inputs);
       const fingerprint = hash({ type, target, inputHash });
       this.localCache.set(fingerprint, result);
 
@@ -244,20 +288,100 @@ export class ReplayGuard {
     }
   }
 
+  // ─────────────────────────────────────────────────────────────────
+  // Internal Utilities
+  // ─────────────────────────────────────────────────────────────────
+
+  /**
+   * Builds a deterministic input hash by stripping transient fields that change
+   * between retries but don't alter the semantic meaning of the operation.
+   *
+   * Safe-default ignore-keys (timestamps, trace IDs, nonces) are stripped automatically
+   * unless `disableDefaultIgnoreKeys: true` is set. Add custom fields via `ignoreKeys`.
+   *
+   * Debug mode logs which fields were stripped so you can audit fingerprint behavior.
+   */
+  private _buildInputHash(inputs: any): string {
+    if (typeof inputs !== 'object' || inputs === null || Array.isArray(inputs)) {
+      return hash(inputs);
+    }
+
+    const ignoreSet: Set<string> = this.config.disableDefaultIgnoreKeys
+      ? new Set(this.config.ignoreKeys ?? [])
+      : new Set([...DEFAULT_IGNORE_KEYS, ...(this.config.ignoreKeys ?? [])]);
+
+    const normalized = Object.fromEntries(
+      Object.entries(inputs).filter(([k]) => !ignoreSet.has(k))
+    );
+
+    if (this.config.debug) {
+      const stripped = Object.keys(inputs).filter(k => ignoreSet.has(k));
+      if (stripped.length > 0) {
+        console.debug(`[ReplayGuard] Stripped transient fields from fingerprint: [${stripped.join(', ')}]`);
+      }
+    }
+
+    return hash(normalized);
+  }
+
+  /**
+   * Wraps a fetch call with a configurable AbortSignal timeout.
+   * Prevents the SDK from hanging indefinitely when the StillUp API is slow or unresponsive.
+   */
+  private async _fetchWithTimeout(url: string, options: RequestInit): Promise<Response> {
+    const timeoutMs = this.config.network?.timeoutMs ?? 3000;
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetch(url, { ...options, signal: controller.signal });
+    } finally {
+      clearTimeout(id);
+    }
+  }
+
+  /**
+   * Wraps `_fetchWithTimeout` with exponential backoff + full jitter retries.
+   * Absorbs transient network faults before escalating to the configured failPolicy.
+   *
+   * Default: 3 retries, 200ms base delay, jitter capped at 1600ms.
+   * Transient faults that resolve within ~4s will never surface to your job.
+   */
+  private async _fetchWithRetry(url: string, options: RequestInit): Promise<Response> {
+    const maxRetries = this.config.network?.maxRetries ?? 3;
+    const baseDelayMs = this.config.network?.baseDelayMs ?? 200;
+    let lastError: Error | undefined;
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        return await this._fetchWithTimeout(url, options);
+      } catch (err: any) {
+        lastError = err;
+        if (attempt < maxRetries) {
+          const cap = baseDelayMs * Math.pow(2, attempt);
+          const jitter = Math.random() * Math.min(cap, 1600);
+          if (this.config.debug) {
+            console.debug(`[ReplayGuard] SDK retry ${attempt + 1}/${maxRetries} in ${Math.round(jitter)}ms — ${err.message}`);
+          }
+          await new Promise(r => setTimeout(r, jitter));
+        }
+      }
+    }
+    throw lastError;
+  }
+
   /**
    * Reports the successful result of a side effect to the execution memory.
    */
   private async reportResult(type: string, target: string, inputs: any, result: any): Promise<void> {
     if (!this.context) return;
 
-    const inputHash = hash(inputs);
+    const inputHash = this._buildInputHash(inputs);
     const fingerprint = hash({ type, target, inputHash });
 
     // Update local cache
     this.localCache.set(fingerprint, result);
 
     try {
-      await fetch(`${this.config.baseUrl}/api/guards/verify`, {
+      await this._fetchWithRetry(`${this.config.baseUrl}/api/guards/verify`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -306,11 +430,11 @@ export class ReplayGuard {
   ): Promise<void> {
     if (!this.context) return;
 
-    const inputHash = hash(inputs);
+    const inputHash = this._buildInputHash(inputs);
     const fingerprint = hash({ type, target, inputHash });
 
     try {
-      await fetch(`${this.config.baseUrl}/api/guards/rollback/register`, {
+      await this._fetchWithRetry(`${this.config.baseUrl}/api/guards/rollback/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -339,7 +463,7 @@ export class ReplayGuard {
     const inputHash = hash(state);
     
     try {
-      await fetch(`${this.config.baseUrl}/api/guards/verify`, {
+      await this._fetchWithRetry(`${this.config.baseUrl}/api/guards/verify`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -368,7 +492,8 @@ export class ReplayGuard {
 
   /**
    * LangGraph adapter — wraps a LangGraph node's side-effecting tool call
-   * with exactly-once semantics.
+   * with replay-safe deduplication — side effects execute at most once per unique
+   * input set, regardless of how many times the node is retried.
    *
    * @example
    * // In a LangGraph node:
@@ -388,7 +513,7 @@ export class ReplayGuard {
   }
 
   /**
-   * Inngest adapter — wraps an Inngest function step with exactly-once semantics.
+   * Inngest adapter — wraps an Inngest function step with replay-safe deduplication.
    * Use inside `step.run()` for steps that have non-idempotent external side effects.
    *
    * @example
@@ -412,7 +537,7 @@ export class ReplayGuard {
 
   /**
    * n8n adapter — wraps an n8n workflow node's outbound operation with
-   * exactly-once semantics, preventing duplicate API calls during n8n retries.
+   * replay-safe deduplication, preventing duplicate API calls during n8n retries.
    *
    * @example
    * // In an n8n Code node:
@@ -433,7 +558,7 @@ export class ReplayGuard {
 
   /**
    * Apache Airflow adapter — wraps an Airflow task's side-effecting operation
-   * with exactly-once semantics, safe for use inside PythonOperator callbacks
+   * with replay-safe deduplication, safe for use inside PythonOperator callbacks
    * via the JS/TS bridge or in TypeScript-based DAG runners.
    *
    * @example
@@ -453,7 +578,7 @@ export class ReplayGuard {
   }
 
   /**
-   * CrewAI adapter — wraps a CrewAI tool execution with exactly-once semantics,
+   * CrewAI adapter — wraps a CrewAI tool execution with replay-safe deduplication,
    * preventing duplicate tool calls when agents are restarted or re-routed.
    *
    * @example

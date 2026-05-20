@@ -54,3 +54,35 @@ All state-changing actions are recorded for security and compliance.
 4. **Self-Healing**: If auto-healing is configured, `SelfHealingService` triggers the `autoReplay` webhook, passing last execution context (externalId, attempt count).
 5. **Circuit Breaking**: If attempts reach $\ge 5$, `GuardsService` trips circuit-breaker, creates `STREAK` FailurePattern, sends emergency alerts, and locks execution for a 60-minute cooldown window.
 6. **Intelligence**: `HealthScoreService` processes recent history -> Updates dashboard pulse and health scores.
+
+---
+
+## Distributed System Trade-offs
+
+Designing a safety layer for external applications requires conscious trade-offs between **availability** and **consistency**. StillUp is optimized to be "safe-by-default," prioritizing visibility and loop prevention while offering clear controls for strict requirements.
+
+### 1. Fail Policies: OPEN vs. CLOSED
+If the StillUp API is unreachable (due to network failure, server outage, or rate limits), the SDK applies the configured `failPolicy`:
+
+| Policy | Primary Focus | Behavior on API Failure | Ideal Use Case |
+| :--- | :--- | :--- | :--- |
+| **`OPEN`** *(Default)* | Availability | Bypasses checks and runs the guarded operation. Logs a warning. | Non-critical actions (e.g., sending notification emails, updating analytics). |
+| **`CLOSED`** | Consistency | Blocks execution of the guarded operation and throws an error. | Critical operations where duplicate executions are catastrophic (e.g., payments, user creations). |
+
+### 2. Hybrid Input Fingerprinting
+Traditional idempotency keys are either fully manual (prone to developer error) or fully automated (prone to hash mismatches from timestamp drift). StillUp uses a hybrid approach:
+- **Safe Defaults**: The SDK automatically strips transient fields (`timestamp`, `createdAt`, `requestId`, `traceId`, etc.) before hashing the payload inputs.
+- **Developer Controls**: Developers can explicitly declare extra ignore-keys using `ignoreKeys`, or disable all safe defaults using `disableDefaultIgnoreKeys` for strict deterministic hashing.
+
+### 3. In-Memory TTL Cache vs. Postgres Durability
+To protect the Postgres database from being overloaded during a retry storm:
+- **The Hot Path**: Every `guard.start()` call checks the in-memory `LoopDetectionCache` first to count attempts and check circuit breaker status.
+- **Cache Eviction**: Entries are kept in memory for 5 minutes and automatically evicted.
+- **Durability Fallback**: If the API process restarts, the cache is cleared. On the next execution, StillUp falls back to Postgres to query the execution history, re-hydrating the in-memory cache. This ensures Postgres remains the source of truth without sacrificing high-load performance.
+
+### 4. Self-Healing Jitter (Thundering Herd Mitigation)
+When multiple services go down simultaneously, they often recover at the same time. If self-healing fired replays immediately, it would cause a **thundering herd**, hammering downstream nodes.
+StillUp mitigates this by:
+- **Randomized Jitter**: Injecting a randomized delay (5s to 30s) before executing any auto-replay webhook.
+- **Minimum Cooldown**: Enforcing a rate-limit window (default: 60s) per monitor to prevent spamming multiple replays for the same flapping monitor.
+

@@ -1,6 +1,6 @@
 # @stillup/guard-sdk
 
-ReplayGuard™ is the exactly-once execution engine for AI agents and background jobs. Prevent dangerous retries, detect state drift, and handle automated rollbacks.
+ReplayGuard is the replay-safe execution layer for AI agents and background jobs. Prevent dangerous duplicate side effects during retries, detect state drift, and handle automated rollbacks.
 
 ## Installation
 

@@ -1,8 +1,8 @@
-# StillUp + CrewAI: Exactly-Once Tool Execution for AI Agents
+# StillUp + CrewAI: Replay-Safe Tool Execution for AI Agents
 
 CrewAI is great for orchestrating multi-agent workflows — but when an agent hits an error and the crew restarts, every tool call fires again. If an agent called a payment API, created a database record, or sent a notification, those actions duplicate.
 
-**StillUp's `guard.crewai()` adapter** wraps any CrewAI tool execution with exactly-once semantics, acting as a safety proxy between your agents and their external side effects.
+**StillUp's `guard.crewai()` adapter** wraps any CrewAI tool execution with replay-safe deduplication, acting as a safety proxy between your agents and their external side effects.
 
 ---
 
@@ -118,7 +118,7 @@ STILLUP_API_KEY = os.environ['STILLUP_API_KEY']
 STILLUP_URL = os.environ.get('STILLUP_API_URL', 'http://localhost:4040')
 
 def guarded_tool_call(tool_name: str, inputs: dict, run_id: str, actual_fn):
-    """Wraps any tool call with StillUp exactly-once semantics."""
+    """Wraps any tool call with StillUp replay-safe deduplication."""
     
     # Start a session
     session = requests.post(f'{STILLUP_URL}/api/guards/session', 
@@ -155,7 +155,7 @@ from crewai_tools import BaseTool
 
 class SafeSearchTool(BaseTool):
     name: str = "Safe Web Search"
-    description: str = "Searches the web with exactly-once guarantee"
+    description: str = "Searches the web with replay-safe deduplication"
 
     def _run(self, query: str, run_id: str = 'default') -> str:
         return guarded_tool_call(

@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { alertService } from "./AlertService.js";
+import { LoopDetectionCache } from "../lib/LoopDetectionCache.js";
 
 const prisma = new PrismaClient();
 
@@ -21,24 +22,39 @@ export class GuardsService {
       throw new Error("Unauthorized: Monitor does not belong to this project");
     }
 
-    // 1. Check if the circuit breaker is already tripped (active STREAK pattern within 60 min cooldown)
+    const cacheKey = externalId ?? '__no_external_id__';
+
+    // 1. Fast-path: Check in-memory circuit breaker before touching the DB.
+    //    If the breaker is hot, we fail immediately without a query.
+    const breakerState = LoopDetectionCache.isBroken(monitorId, cacheKey);
+    if (breakerState.broken) {
+      throw new Error(
+        `Circuit Breaker Tripped: Excessive retries detected for this monitor. ` +
+        `Cooldown active for another ${Math.ceil(breakerState.cooldownRemainingMs / 60000)} minute(s). ` +
+        `New executions are temporarily blocked to prevent infinite loops.`
+      );
+    }
+
+    // 2. Also check the DB for an active STREAK pattern (survives process restarts).
     const activeStreak = await prisma.failurePattern.findFirst({
-      where: {
-        monitorId,
-        type: 'STREAK',
-        active: true
-      }
+      where: { monitorId, type: 'STREAK', active: true }
     });
 
     if (activeStreak) {
       const lastSeen = new Date(activeStreak.lastSeenAt || activeStreak.createdAt);
       const minutesSinceStreak = (Date.now() - lastSeen.getTime()) / 60000;
-      const cooldownMinutes = 60; // 1 hour cooldown default
-      
+      const cooldownMinutes = 60;
+
       if (minutesSinceStreak < cooldownMinutes) {
-        throw new Error(`Circuit Breaker Tripped: Excessive recursive retries detected for this monitor. New executions are temporarily blocked to prevent infinite loops. Cooldown active for another ${Math.ceil(cooldownMinutes - minutesSinceStreak)} minutes.`);
+        // Warm the in-memory cache so future calls skip the DB query.
+        LoopDetectionCache.tripBreaker(monitorId, cacheKey, (cooldownMinutes - minutesSinceStreak) * 60000);
+        throw new Error(
+          `Circuit Breaker Tripped: Excessive recursive retries detected for this monitor. ` +
+          `New executions are temporarily blocked to prevent infinite loops. ` +
+          `Cooldown active for another ${Math.ceil(cooldownMinutes - minutesSinceStreak)} minute(s).`
+        );
       } else {
-        // Cooldown passed, auto-deactivate the streak pattern
+        // Cooldown elapsed — deactivate in DB and clear in-memory state.
         await prisma.failurePattern.update({
           where: { id: activeStreak.id },
           data: { active: false }
@@ -46,19 +62,31 @@ export class GuardsService {
       }
     }
 
-    let attempt = 1;
-    if (externalId) {
+    // 3. Determine attempt count. Cache-first; hydrate from DB on miss.
+    const cached = LoopDetectionCache.get(monitorId, cacheKey);
+    let attempt: number;
+
+    if (cached) {
+      attempt = cached.attempt + 1;
+    } else if (externalId) {
+      // Cache miss (first call or process restart) — query DB once to hydrate.
       const lastExecution = await prisma.guardExecution.findFirst({
         where: { externalId, monitorId },
         orderBy: { attempt: "desc" },
       });
-      if (lastExecution) {
-        attempt = lastExecution.attempt + 1;
-      }
+      attempt = (lastExecution?.attempt ?? 0) + 1;
+    } else {
+      attempt = 1;
     }
 
-    // 2. Real-time STREAK detection (trip circuit breaker if attempt >= 5)
-    if (attempt >= 5) {
+    // 4. Read retry budget from monitor config — default 5 if not configured.
+    const retryBudget: number = (monitor.retryPolicy as any)?.maxAttempts ?? 5;
+
+    // 5. Trip circuit breaker if budget exhausted.
+    if (attempt >= retryBudget) {
+      const cooldownMs = 60 * 60 * 1000; // 1 hour
+      LoopDetectionCache.tripBreaker(monitorId, cacheKey, cooldownMs);
+
       const existingStreak = await prisma.failurePattern.findFirst({
         where: { monitorId, type: 'STREAK', active: true }
       });
@@ -68,20 +96,19 @@ export class GuardsService {
           data: {
             monitorId,
             type: 'STREAK',
-            description: `Monitor "${monitor.name}" is experiencing excessive retries (Attempt #${attempt}). Potential recursive failure detected.`,
+            description: `Monitor "${monitor.name}" is experiencing excessive retries (Attempt #${attempt}/${retryBudget}). Potential recursive failure detected.`,
             confidence: 0.9,
-            metadata: { attempt, externalId },
+            metadata: { attempt, retryBudget, externalId },
             active: true,
             lastSeenAt: new Date()
           }
         });
 
-        // Trigger the Emergency Alert immediately
         await alertService.sendEmergencyAlert(
           projectId,
           monitorId,
           'RETRY_LOOP_DETECTED',
-          `🚨 EMERGENCY: Infinite Retry Loop Blocked!\n\nMonitor "${monitor.name}" was caught in an active retry loop at Attempt #${attempt} for Job ID "${externalId}".\n\nStillUp has automatically tripped the circuit breaker and blocked all new executions for this monitor to protect downstream infrastructure.`
+          `🚨 EMERGENCY: Infinite Retry Loop Blocked!\n\nMonitor "${monitor.name}" hit retry budget (Attempt #${attempt}/${retryBudget}) for Job ID "${externalId}".\n\nStillUp has automatically tripped the circuit breaker and blocked new executions for this monitor to protect downstream infrastructure.`
         ).catch(err => console.error("Failed to send emergency alert:", err));
       } else {
         await prisma.failurePattern.update({
@@ -90,8 +117,14 @@ export class GuardsService {
         });
       }
 
-      throw new Error(`Circuit Breaker Tripped: Excessive recursive retries detected (Attempt #${attempt}). Executions for this monitor are temporarily blocked to prevent infinite loops.`);
+      throw new Error(
+        `Circuit Breaker Tripped: Excessive recursive retries detected (Attempt #${attempt}/${retryBudget}). ` +
+        `Executions for this monitor are temporarily blocked to prevent infinite loops.`
+      );
     }
+
+    // 6. Update attempt count in cache before creating the DB record.
+    LoopDetectionCache.setAttempt(monitorId, cacheKey, attempt);
 
     const execution = await prisma.guardExecution.create({
       data: {

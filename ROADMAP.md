@@ -8,11 +8,11 @@ StillUp provides the "Safety Primitives" that prevent autonomous agents and back
 ---
 
 ## 🟢 Phase 1: The Safety Foundation (Completed)
-*The core engine for exactly-once execution and reliability.*
+*The core engine for replay-safe execution and side-effect deduplication.*
 
 - [x] **ReplayGuard™ Core Engine**: Decision engine to determine `EXECUTE` vs `SKIP` for side effects.
 - [x] **Action Fingerprinting**: Deterministic hashing of job inputs, targets, and types.
-- [x] **Exactly-Once Semantics**: Prevents duplicate Stripe charges, double emails, and redundant DB writes.
+- [x] **Replay-Safe Deduplication**: Prevents duplicate Stripe charges, double emails, and redundant DB writes using cryptographic execution fingerprinting.
 - [x] **ReplayGuard SDK (@stillup/guard-sdk)**: TypeScript SDK for wrapping fetch, AI calls, and generic functions.
 - [x] **Execution Tracing (Visual Timeline)**: High-fidelity audit trail showing "Skipped" vs "Executed" operations.
 - [x] **Heartbeat Sentinel**: Base infrastructure for monitoring "Silent Failures" in background jobs.
@@ -69,7 +69,7 @@ StillUp provides the "Safety Primitives" that prevent autonomous agents and back
 
 | Feature | Category | Status |
 | :--- | :--- | :--- |
-| Exactly-once execution | Safety Primitive | ✅ COMPLETED |
+| Replay-safe execution | Safety Primitive | ✅ COMPLETED |
 | Action Fingerprinting | Safety Primitive | ✅ COMPLETED |
 | Execution Tracing | Safety Primitive | ✅ COMPLETED |
 | ReplayGuard SDK | Safety Primitive | ✅ COMPLETED |

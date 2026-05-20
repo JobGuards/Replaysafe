@@ -24,7 +24,7 @@ export default function ReplayGuardDoc() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <FeatureItem icon={<Repeat className="w-5 h-5" />} title="Idempotency Enforcement" />
             <FeatureItem icon={<ShieldAlert className="w-5 h-5" />} title="Rollback-Aware Workflows" />
-            <FeatureItem icon={<Zap className="w-5 h-5" />} title="Exactly-Once Semantics" />
+            <FeatureItem icon={<Zap className="w-5 h-5" />} title="Replay-Safe Deduplication" />
             <FeatureItem icon={<ShieldCheck className="w-5 h-5" />} title="Safety ROI Tracking" />
           </div>
         </section>

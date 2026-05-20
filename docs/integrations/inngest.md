@@ -1,10 +1,10 @@
-# StillUp + Inngest: Exactly-Once Safety for Event-Driven Functions
+# StillUp + Inngest: Replay-Safe Side Effects for Event-Driven Functions
 
 Inngest provides durable, event-driven function execution with automatic retries and `step.run()` — but `step.run()` only deduplicates Inngest's own internal state, not the external side effects you make inside those steps.
 
 If your Inngest step charges a customer via Stripe, sends an email, or calls an external API and then crashes mid-execution, the step will be retried and that external call fires again.
 
-**StillUp fills that gap.** Wrap external side effects inside your Inngest steps with `guard.inngest()` for exactly-once execution.
+**StillUp fills that gap.** Wrap external side effects inside your Inngest steps with `guard.inngest()` for replay-safe deduplication — the external API call executes at most once per unique input set, regardless of how many times Inngest retries the step.
 
 ---
 
@@ -28,7 +28,7 @@ export const onUserCreated = inngest.createFunction(
   async ({ event, step }) => {
 
     await step.run('setup-stripe-customer', async () => {
-      // ✅ Even if Inngest retries this step, the customer is only created once
+      // ✅ Even if Inngest retries this step, the customer is created at most once per unique input set
       return withReplayGuard(
         {
           apiKey: process.env.STILLUP_API_KEY!,

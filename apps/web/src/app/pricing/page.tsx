@@ -33,7 +33,7 @@ export default function PricingPage() {
       features: [
         'Up to 50 Managed Monitors',
         'Global Edge Distribution',
-        'Exactly-Once Semantics',
+        'Replay-Safe Retries',
         '30 Second High-Res Checks',
         '90 Day Managed Retention',
         'Slack & Discord Integrations',

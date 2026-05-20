@@ -71,7 +71,7 @@ export default function PublicStatusPage() {
             </div>
             <div className="text-[10px] font-black uppercase tracking-[0.3em] text-acid-lime mb-4">Retry Safety</div>
             <div className="text-5xl font-black text-foreground mb-2">{project.stats.retrySafety}%</div>
-            <p className="text-xs text-muted-foreground font-medium">Exactly-once execution guarantee across all autonomous retries.</p>
+            <p className="text-xs text-muted-foreground font-medium">Replay-safe execution and side-effect deduplication across all autonomous retries.</p>
           </div>
 
           <div className="glass-panel border border-border/10 rounded-[2.5rem] p-8 bg-foreground/[0.02] relative overflow-hidden group">

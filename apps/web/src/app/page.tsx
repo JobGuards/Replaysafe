@@ -46,7 +46,7 @@ export default function LandingPage() {
     { q: "What is StillUp?", a: "StillUp is a reliability platform that combines heartbeat monitoring for infrastructure with ReplayGuard for background job safety. We ensure your backups run and your job retries are idempotent." },
     { q: "What is ReplayGuard?", a: "ReplayGuard makes retrying failed jobs safe. It tracks side effects (payments, emails) using cryptographic fingerprints to prevent duplicate execution during retries." },
     { q: "How does it monitor Tunnels?", a: "We track handshake age and latency for WireGuard, SSH, and OpenVPN. If your tunnel degrades or keys go stale, we detect it without intercepting traffic." },
-    { q: "Can I report failures explicitly?", a: "Yes! You can use our CLI or SDK to report failures, measure latency, and guard side effects with exactly-once semantics." },
+    { q: "Can I report failures explicitly?", a: "Yes! You can use our CLI or SDK to report failures, measure latency, and guard side effects with replay-safe deduplication — preventing duplicate actions even across aggressive retries." },
     { q: "What is 'Execution Memory'?", a: "StillUp remembers past failures and successful side effects. We help you find patterns and ensure that retrying a job never charges a customer twice." },
     { q: "Does it work with my existing orchestration framework?", a: "Yes — ReplayGuard™ ships with named adapters for LangGraph, LangChain, Inngest, n8n, CrewAI, and Airflow. Each is a drop-in wrapper over the same safety engine. No framework lock-in, no rewrites. If you use raw Python or a custom runner, the HTTP API works anywhere." },
   ];
@@ -71,7 +71,7 @@ export default function LandingPage() {
             <div className="flex flex-col md:flex-row items-center gap-3 mb-4">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-acid-lime/20 bg-acid-lime/5 backdrop-blur text-xs font-code-md text-acid-lime shadow-[0_0_15px_rgba(var(--theme-lime-rgb),0.1)]">
                 <span className="w-2 h-2 rounded-full bg-acid-lime animate-pulse"></span>
-                <span className="tracking-[0.2em] uppercase text-[10px] font-black italic">Exactly-Once Active</span>
+                <span className="tracking-[0.2em] uppercase text-[10px] font-black italic">Replay-Safe Active</span>
               </div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 backdrop-blur text-xs font-code-md text-muted-foreground">
                 <span className="tracking-[0.2em] uppercase text-[10px] font-black italic">Works With Any Framework</span>
@@ -185,7 +185,7 @@ export default function LandingPage() {
             <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
               <div className="space-y-10">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-acid-lime/20 bg-acid-lime/5 backdrop-blur text-[10px] font-black italic text-acid-lime uppercase tracking-widest">
-                  Exactly-Once Semantics
+                  Replay-Safe Execution
                 </div>
                 <h3 className="text-5xl md:text-6xl font-black uppercase tracking-tighter leading-none italic">
                   Execution <br/> <span className="glow-lime">Memory</span>.
@@ -411,7 +411,7 @@ async function chargeNode(state, guard) {
               <div className="text-label-sm text-muted-foreground">- Senior AI Infrastructure Engineer</div>
             </div>
             <div className="glass-panel rounded-xl p-lg flex flex-col justify-between gap-md border border-border/20 hover:border-acid-lime/30 transition-all">
-              <p className="text-body-lg font-body-lg text-foreground italic">"The exactly-once guarantee is something we were hand-rolling with Redis locks. StillUp just solved it. We ripped out 400 lines of custom code."</p>
+              <p className="text-body-lg font-body-lg text-foreground italic">"The duplicate side-effect problem is something we were hand-rolling with Redis locks. StillUp's replay-safe layer just solved it. We ripped out 400 lines of custom code."</p>
               <div className="text-label-sm text-muted-foreground">- Infrastructure Lead @ B2B SaaS</div>
             </div>
           </div>
