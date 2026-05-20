@@ -6,7 +6,6 @@
   
   [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-acidlime.svg)](LICENSE)
   [![Version](https://img.shields.io/badge/version-1.0.0--alpha-blue.svg)]()
-  [![Status](https://img.shields.io/badge/status-production--ready-green.svg)]()
 </div>
 
 ---
