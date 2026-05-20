@@ -28,14 +28,15 @@ function PaymentContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [plan, setPlan] = useState<'starter' | 'pro' | 'enterprise'>('pro')
+  const dashboardUrl = process.env.NEXT_PUBLIC_DASHBOARD_URL || ""
 
   // 🛡️ Authentication Guard for Payment
   useEffect(() => {
     if (!isLoading && !user) {
       const currentPlan = searchParams.get('plan') || 'pro'
-      router.push(`/auth/signup?redirect=/payment?plan=${currentPlan}`)
+      window.location.href = `${dashboardUrl}/auth/signup?redirect=${encodeURIComponent(window.location.href)}`
     }
-  }, [user, isLoading, router, searchParams])
+  }, [user, isLoading, dashboardUrl, searchParams])
 
   useEffect(() => {
     const requestedPlan = searchParams.get('plan')
@@ -61,6 +62,16 @@ function PaymentContent() {
   const [city, setCity] = useState('')
   const [zipCode, setZipCode] = useState('')
   const [country, setCountry] = useState('US')
+
+  // Redirect to dashboard after success
+  useEffect(() => {
+    if (success) {
+      const timer = setTimeout(() => {
+        window.location.href = `${dashboardUrl}/dashboard`
+      }, 5000)
+      return () => clearTimeout(timer)
+    }
+  }, [success, dashboardUrl])
 
   const plans = {
     starter: { name: 'Base Sentinel', price: 0, description: 'Up to 5 monitors' },
@@ -169,7 +180,7 @@ function PaymentContent() {
             </div>
             <div className="pt-4">
               <Button asChild className="w-3/3 h-15 bg-acid-lime text-[#0f1a14] rounded-2xl font-black uppercase tracking-[0.2em] hover:opacity-90 transition-all shadow-[0_0_40px_rgba(var(--theme-lime-rgb),0.3)] hover:scale-[1.02] active:scale-[0.98] text-xs">
-                <Link href="/dashboard">Access Command Center</Link>
+                <a href={`${dashboardUrl}/dashboard`}>Access Command Center</a>
               </Button>
             </div>
             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/30 italic">
@@ -471,7 +482,7 @@ function Benefit({ icon, label }: { icon: React.ReactNode, label: string }) {
   return (
     <div className="flex items-center gap-3 group">
       <div className="w-8 h-8 rounded-xl bg-acid-lime/10 flex items-center justify-center border border-acid-lime/20 group-hover:bg-acid-lime group-hover:border-acid-lime transition-all duration-300">
-        {React.cloneElement(icon as React.ReactElement, { className: 'w-4 h-4 text-acid-lime group-hover:text-[#0f1a14]' })}
+        {React.cloneElement(icon as React.ReactElement<any>, { className: 'w-4 h-4 text-acid-lime group-hover:text-[#0f1a14]' })}
       </div>
       <span className="text-[10px] font-black uppercase tracking-widest text-foreground/70 group-hover:text-foreground transition-colors italic">{label}</span>
     </div>

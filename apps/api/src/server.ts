@@ -39,9 +39,20 @@ export function createApp() {
   app.use(requestLogger);
 
   // 3. CORS configuration - allow credentials for httpOnly cookies
+  // Supports multiple origins: dashboard + landing page (separate deployments)
+  const allowedOrigins = [
+    process.env.FRONTEND_URL || "http://localhost:3000",
+    process.env.LANDING_URL  || "http://localhost:3001",
+  ].filter(Boolean);
+
   app.use(
     cors({
-      origin: process.env.FRONTEND_URL || "http://localhost:3000",
+      origin: (origin, callback) => {
+        // Allow requests with no origin (curl, mobile, server-to-server)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin)) return callback(null, true);
+        callback(new Error(`CORS: origin '${origin}' is not allowed`));
+      },
       credentials: true,
     })
   );

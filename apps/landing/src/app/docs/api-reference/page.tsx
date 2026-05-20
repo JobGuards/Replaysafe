@@ -23,7 +23,7 @@ export default function APIReferenceDoc() {
           </p>
           <div className="p-6 bg-card rounded-2xl border border-border/10 space-y-2">
             <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Example Curl</p>
-            <code className="text-xs font-mono text-foreground block">curl -H "X-API-Key: YOUR_API_KEY" https://api.stillup.io/v1/...</code>
+            <code className="text-xs font-mono text-foreground block">{`curl -H "X-API-Key: YOUR_API_KEY" ${(process.env.NEXT_PUBLIC_API_URL || 'https://api.your-domain.com').replace(/\/api$/, '')}/api/v1/...`}</code>
           </div>
         </section>
 

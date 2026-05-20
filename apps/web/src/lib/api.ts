@@ -158,6 +158,14 @@ class ApiClient {
       method: 'DELETE',
     })
   }
+
+  // Waitlist/Interest methods
+  async submitInterest(data: { email: string; source: string }): Promise<any> {
+    return this.fetch<any>('/public/interest', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    })
+  }
 }
 
 export const api = new ApiClient()

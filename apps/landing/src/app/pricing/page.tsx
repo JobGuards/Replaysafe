@@ -152,21 +152,21 @@ export default function PricingPage() {
           </div>
           <h2 className="text-3xl font-black uppercase tracking-tight italic">Focused on Open Source.</h2>
           <p className="text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-            StillUp is currently focused on empowering the developer community through our <b>OSS Version</b>. 
-            While we plan to offer managed Cloud plans in the future, our expansion into global infrastructure and specialized Cloud support will be 
-            <b> 100% driven by community demand</b>. 
+            StillUp is currently focused on empowering the developer community through our <b>OSS Version</b>.
+            While we plan to offer managed Cloud plans in the future, our expansion into global infrastructure and specialized Cloud support will be
+            <b> 100% driven by community demand</b>.
           </p>
-          
+
           <div className="mx-auto pt-4">
             <InterestForm />
           </div>
 
           <div className="flex flex-wrap justify-center gap-4 pt-4">
-             <Link href="https://github.com/StillUp/StillUp/discussions">
-               <Button variant="outline" className="rounded-full border-border/20 text-xs font-bold uppercase tracking-widest px-8">
-                 Join the Discussion
-               </Button>
-             </Link>
+            <Link href="https://github.com/JobGuards/StillUp/issues">
+              <Button variant="outline" className="rounded-full border-border/20 text-xs font-bold uppercase tracking-widest px-8">
+                Join the Discussion
+              </Button>
+            </Link>
           </div>
         </div>
 

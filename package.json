@@ -5,7 +5,7 @@
   "type": "module",
   "description": "",
   "scripts": {
-    "dev": "concurrently \"pnpm --filter api dev\" \"pnpm --filter web dev\"",
+    "dev": "concurrently \"pnpm --filter api dev\" \"pnpm --filter web dev\" \"pnpm --filter landing dev\"",
     "build": "pnpm -r build",
     "test": "pnpm -r test",
     "lint": "pnpm -r run --if-present check-lint",

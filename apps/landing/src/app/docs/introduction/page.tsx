@@ -62,7 +62,7 @@ export default function IntroDoc() {
             <div className="absolute top-0 left-0 w-1 h-full bg-acid-lime/20"></div>
             <code className="text-sm font-mono text-acid-lime block mb-4 selection:bg-acid-lime/30">
               # Monitoring a heartbeat<br/>
-              curl -fsS https://stillup.io/hb/your-token
+              curl -fsS {`${(process.env.NEXT_PUBLIC_API_URL || 'https://api.your-domain.com').replace(/\/api$/, '')}/hb/your-token`}
             </code>
             <code className="text-sm font-mono text-foreground/40 block selection:bg-acid-lime/30">
               # Monitoring a tunnel (Tunnelight Engine)<br/>

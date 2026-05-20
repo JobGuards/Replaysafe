@@ -8,12 +8,18 @@ import Link from 'next/link'
 import { HeartbeatMonitorCard } from './monitors/HeartbeatMonitorCard'
 import { TunnelStatusCard } from './monitors/TunnelStatusCard'
 
+import { useAuth } from '@/contexts/AuthContext'
+
 const fetcher = () => api.getMonitors()
 
 export function MonitorList() {
-  const { data: monitors, error, isLoading } = useSWR('/monitors', fetcher, {
-    refreshInterval: 10000,
-  })
+  const { activeOrganization } = useAuth()
+
+  const { data: monitors, error, isLoading } = useSWR(
+    activeOrganization ? `/monitors?projectId=${activeOrganization.id}` : null,
+    fetcher,
+    { refreshInterval: 10000 }
+  )
 
   if (isLoading) {
     return (
