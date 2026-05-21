@@ -2,7 +2,7 @@
 <img width="150" height="160" alt="stilluplogo" src="https://github.com/user-attachments/assets/7bf8e426-9649-4df6-a4c3-2269ebae02b1" />
 
   <h1>STILLUP</h1>
-  <p><strong>The Replay-Safe Safety Layer for Background Jobs & AI Agents</strong></p>
+  <p><strong>Replay-safe retries for async jobs and AI-agent workflows.</strong></p>
   
   [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-acidlime.svg)](LICENSE)
   [![Version](https://img.shields.io/badge/version-1.0.0--alpha-blue.svg)]()
@@ -10,11 +10,9 @@
 
 ---
 
-## 🛡️ Sovereign Reliability for Distributed Systems
+StillUp is a **lightweight, privacy-first safety layer** that prevents duplicate side effects (like double charges, duplicate emails, and redundant API calls) during job retries and non-deterministic agent workflows.
 
-StillUp is a **lightweight, privacy-first Safety Layer** that prevents duplicate side effects (like double charges, duplicate emails, and redundant API calls) during job retries and non-deterministic agent workflows.
-
-### 🔴 The Problem: Retry Amplification
+## 🔴 The Pain: Retry Amplification
 When background jobs, queues, or AI agents fail mid-execution and retry:
 1. **Duplicate Processing**: A job crashes *after* charging a customer card but *before* updating the database. On retry, it charges the card again.
 2. **Cascading Load / Hammering**: Upstream retries hit downstream databases aggressively, causing cascading failures and resource exhaustion.
@@ -22,8 +20,15 @@ When background jobs, queues, or AI agents fail mid-execution and retry:
 
 ---
 
-### 🟢 The Solution: Replay-Safe Deduplication
-StillUp wraps your non-idempotent side effects with **ReplayGuard™**. It cryptographic-fingerprints your operations, caches successful executions, and automatically returns the original result on subsequent retries.
+## 🟢 The Primitive: ReplayGuard
+StillUp wraps your non-idempotent side effects with **ReplayGuard™**. It creates deterministic execution fingerprints of your operations, caches successful executions, and automatically returns the original result on subsequent retries.
+
+### Guarantees
+- **Replay-safe retries**
+- **Deduplication**
+- **Stable execution fingerprints**
+
+### Example: Stripe Double-Charge Prevention
 
 ```typescript
 import { withReplayGuard } from '@stillup/guard-sdk';
@@ -60,7 +65,7 @@ await withReplayGuard(config, async (guard) => {
 
 ---
 
-## ⚡ Key Production-Grade Primitives
+## ⚡ Advanced Features
 
 StillUp is designed specifically for high-load reliability engineering:
 
@@ -84,24 +89,7 @@ StillUp provides zero-boilerplate wrappers for the most popular workflow and AI 
 
 ---
 
-## 💻 StillUp CLI (Local-First)
-
-Control and monitor your local infrastructure:
-
-```bash
-# Point to your local instance
-stillup login --url http://localhost:3000 --key YOUR_KEY
-
-# Pulse a heartbeat (Cron/Job Monitoring)
-stillup hb your-monitor-token
-
-# Monitor a WireGuard/VPN Tunnel (Tunnelight Engine)
-stillup tunnel monitor your-tunnel-token --target 10.0.0.1
-```
-
----
-
-## 🚀 Sovereign Quick Start (Docker)
+## 🚀 Quick Start (Docker)
 
 The fastest way to deploy StillUp locally:
 
@@ -112,7 +100,7 @@ git clone https://github.com/StillUp/StillUp.git && cd StillUp
 # 2. Launch the stack
 docker-compose up -d
 ```
-Visit `http://localhost:3000` to access the glassmorphic **Sentinel Hub** dashboard.
+Visit `http://localhost:3000` to access the dashboard.
 
 ---
 
@@ -129,5 +117,4 @@ StillUp is open-source software licensed under the [AGPL-3.0 License](LICENSE).
 
 <div align="center">
   <p>Built with ❤️ by the StillUp Team</p>
-  <p><i>"Because sleeping well starts with knowing everything is still up."</i></p>
 </div>
