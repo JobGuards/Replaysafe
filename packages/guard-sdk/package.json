@@ -1,7 +1,7 @@
 {
-  "name": "@stillup/guard-sdk",
+  "name": "@replaysafe/guard-sdk",
   "version": "1.1.0",
-  "description": "ReplayGuard SDK for StillUp",
+  "description": "ReplayGuard SDK for Replaysafe",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",

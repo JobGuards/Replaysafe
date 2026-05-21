@@ -2,9 +2,9 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import request from 'supertest'
 import { createApp } from '../../src/server.ts'
 import { apiKeyMiddleware } from '../../src/middleware/auth.ts'
-import { prisma } from '@stillup/db'
+import { prisma } from '@replaysafe/db'
 
-vi.mock('@stillup/db', () => ({
+vi.mock('@replaysafe/db', () => ({
   prisma: {
     apiKey: {
       findUnique: vi.fn(),

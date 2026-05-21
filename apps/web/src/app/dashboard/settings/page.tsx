@@ -310,7 +310,7 @@ export default function Settings() {
               <h2 className="text-xl font-black text-foreground uppercase tracking-tight flex items-center gap-3">
                 <Key className="w-5 h-5 text-acid-lime" /> API Keys
               </h2>
-              <p className="text-xs text-muted-foreground mt-1 font-medium">Use these keys to authenticate with the StillUp CLI and ReplayGuard SDK.</p>
+              <p className="text-xs text-muted-foreground mt-1 font-medium">Use these keys to authenticate with the Replaysafe CLI and ReplayGuard SDK.</p>
             </div>
           </div>
 
@@ -384,7 +384,7 @@ export default function Settings() {
             <h2 className="text-xl font-black text-foreground uppercase tracking-tight flex items-center gap-3">
               <Bell className="w-5 h-5 text-acid-lime" /> Notification Protocol
             </h2>
-            <p className="text-xs text-muted-foreground mt-1 font-medium">Configure where StillUp sends alerts for failure and recovery events.</p>
+            <p className="text-xs text-muted-foreground mt-1 font-medium">Configure where Replaysafe sends alerts for failure and recovery events.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">

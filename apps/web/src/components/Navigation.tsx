@@ -79,7 +79,7 @@ export function Navigation() {
                   <Activity className="size-4" />
                 </div>
                 <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-semibold text-lg">StillUp</span>
+                  <span className="font-semibold text-lg">Replaysafe</span>
                 </div>
               </Link>
             </SidebarMenuButton>

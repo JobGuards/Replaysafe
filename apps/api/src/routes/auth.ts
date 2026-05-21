@@ -1,11 +1,11 @@
 import { Router, Request, Response } from 'express'
-import { prisma } from '@stillup/db'
+import { prisma } from '@replaysafe/db'
 import { hashPassword, comparePassword } from '../utils/password.js'
 import { generateToken } from '../utils/jwt.js'
 import { signupSchema, signinSchema } from '../validators/auth.js'
 import { authMiddleware } from '../middleware/auth.js'
 import { auditService } from '../services/AuditService.js'
-import { ProjectRole } from '@stillup/db'
+import { ProjectRole } from '@replaysafe/db'
 import { z } from 'zod'
 
 const router = Router()

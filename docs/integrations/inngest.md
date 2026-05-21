@@ -1,17 +1,17 @@
-# StillUp + Inngest: Replay-Safe Side Effects for Event-Driven Functions
+# Replaysafe + Inngest: Replay-Safe Side Effects for Event-Driven Functions
 
 Inngest provides durable, event-driven function execution with automatic retries and `step.run()` — but `step.run()` only deduplicates Inngest's own internal state, not the external side effects you make inside those steps.
 
 If your Inngest step charges a customer via Stripe, sends an email, or calls an external API and then crashes mid-execution, the step will be retried and that external call fires again.
 
-**StillUp fills that gap.** Wrap external side effects inside your Inngest steps with `guard.inngest()` for replay-safe deduplication — the external API call executes at most once per unique input set, regardless of how many times Inngest retries the step.
+**Replaysafe fills that gap.** Wrap external side effects inside your Inngest steps with `guard.inngest()` for replay-safe deduplication — the external API call executes at most once per unique input set, regardless of how many times Inngest retries the step.
 
 ---
 
 ## Installation
 
 ```bash
-npm install @stillup/guard-sdk
+npm install @replaysafe/guard-sdk
 ```
 
 ---
@@ -20,7 +20,7 @@ npm install @stillup/guard-sdk
 
 ```typescript
 import { inngest } from './inngest-client';
-import { withReplayGuard } from '@stillup/guard-sdk';
+import { withReplayGuard } from '@replaysafe/guard-sdk';
 
 export const onUserCreated = inngest.createFunction(
   { id: 'user-onboarding', retries: 3 },
@@ -31,9 +31,9 @@ export const onUserCreated = inngest.createFunction(
       // ✅ Even if Inngest retries this step, the customer is created at most once per unique input set
       return withReplayGuard(
         {
-          apiKey: process.env.STILLUP_API_KEY!,
+          apiKey: process.env.REPLAYSAFE_API_KEY!,
           monitorId: 'user-onboarding',
-          baseUrl: process.env.STILLUP_API_URL,
+          baseUrl: process.env.REPLAYSAFE_API_URL,
         },
         async (guard) => {
           const customer = await guard.inngest(
@@ -49,7 +49,7 @@ export const onUserCreated = inngest.createFunction(
 
     await step.run('send-welcome-email', async () => {
       return withReplayGuard(
-        { apiKey: process.env.STILLUP_API_KEY!, monitorId: 'user-onboarding' },
+        { apiKey: process.env.REPLAYSAFE_API_KEY!, monitorId: 'user-onboarding' },
         async (guard) => {
           await guard.inngest(
             'welcome-email',
@@ -82,7 +82,7 @@ export const onUserCreated = inngest.createFunction(
 For fine-grained control within a single step:
 
 ```typescript
-import { ReplayGuard } from '@stillup/guard-sdk';
+import { ReplayGuard } from '@replaysafe/guard-sdk';
 
 export const processPayment = inngest.createFunction(
   { id: 'process-payment' },
@@ -93,7 +93,7 @@ export const processPayment = inngest.createFunction(
     // The externalId ties this to the specific event + step combination.
     const chargeId = await step.run('charge', async () => {
       const guard = new ReplayGuard({
-        apiKey: process.env.STILLUP_API_KEY!,
+        apiKey: process.env.REPLAYSAFE_API_KEY!,
         monitorId: 'payment-flow',
         failPolicy: 'OPEN',
       });
@@ -120,7 +120,7 @@ export const processPayment = inngest.createFunction(
 
     await step.run('notify', async () => {
       const guard = new ReplayGuard({
-        apiKey: process.env.STILLUP_API_KEY!,
+        apiKey: process.env.REPLAYSAFE_API_KEY!,
         monitorId: 'payment-flow',
       });
       await guard.start(`${event.data.paymentId}-notify`);
@@ -142,13 +142,13 @@ export const processPayment = inngest.createFunction(
 
 ---
 
-## StillUp vs. Inngest's Built-In Idempotency
+## Replaysafe vs. Inngest's Built-In Idempotency
 
 | Mechanism | Scope |
 |---|---|
 | `step.run()` | Deduplicates Inngest's *execution state* — not external side effects |
 | Inngest event deduplication key | Prevents the same event from triggering multiple runs |
-| **StillUp `guard.inngest()`** | Deduplicates the actual *external API calls* inside your steps |
+| **Replaysafe `guard.inngest()`** | Deduplicates the actual *external API calls* inside your steps |
 
 These are complementary. Use all three for maximum safety.
 
@@ -158,7 +158,7 @@ These are complementary. Use all three for maximum safety.
 
 ```bash
 docker-compose up -d
-STILLUP_API_URL=http://localhost:4040
+REPLAYSAFE_API_URL=http://localhost:4040
 ```
 
 ---

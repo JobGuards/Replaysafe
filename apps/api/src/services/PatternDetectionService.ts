@@ -1,4 +1,4 @@
-import { prisma } from '@stillup/db'
+import { prisma } from '@replaysafe/db'
 import { subDays, format, startOfHour, subHours, differenceInMinutes } from 'date-fns'
 import { secretSentinelService } from './SecretSentinelService.js'
 

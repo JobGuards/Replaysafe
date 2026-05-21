@@ -1,6 +1,6 @@
 # Integrations
 
-ReplayGuard™ is a **framework-agnostic safety proxy**. Drop it in front of any external side effect — regardless of what orchestration framework you're using.
+ReplayGuard is a **framework-agnostic safety proxy**. Drop it in front of any external side effect — regardless of what orchestration framework you're using.
 
 ## Supported Frameworks
 
@@ -57,7 +57,7 @@ const result = await guard.wrap(
 ## Self-Hosted Quick Start
 
 ```bash
-git clone https://github.com/StillUp/StillUp.git && cd StillUp
+git clone https://github.com/Replaysafe/Replaysafe.git && cd Replaysafe
 docker-compose up -d
 # Visit http://localhost:3000
 ```
@@ -65,5 +65,5 @@ docker-compose up -d
 ## SDK Installation
 
 ```bash
-npm install @stillup/guard-sdk
+npm install @replaysafe/guard-sdk
 ```

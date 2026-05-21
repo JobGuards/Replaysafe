@@ -50,7 +50,7 @@ export default function ReplayGuardDoc() {
           <div className="group relative p-10 bg-foreground/[0.02] rounded-[2.5rem] border border-border/10 hover:border-acid-lime/30 transition-all overflow-hidden">
             <div className="absolute top-0 left-0 w-1 h-full bg-acid-lime/20"></div>
             <code className="text-sm font-mono text-acid-lime block selection:bg-acid-lime/30">
-              pnpm add @stillup/guard-sdk
+              pnpm add @replaysafe/guard-sdk
             </code>
           </div>
         </section>
@@ -67,7 +67,7 @@ export default function ReplayGuardDoc() {
               <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">payment-job.ts</span>
             </div>
             <pre className="p-8 text-sm font-mono text-foreground/80 leading-relaxed overflow-x-auto">
-{`import { withReplayGuard } from '@stillup/guard-sdk'
+{`import { withReplayGuard } from '@replaysafe/guard-sdk'
 
 export const processPayment = async (orderId: string) => {
   return await withReplayGuard(config, async (guard) => {
@@ -88,7 +88,7 @@ export const processPayment = async (orderId: string) => {
         </section>
 
         <section className="space-y-8 pt-16 border-t border-border/5">
-          <h2 className="text-4xl font-black uppercase tracking-tight text-foreground italic">Integration with StillUp</h2>
+          <h2 className="text-4xl font-black uppercase tracking-tight text-foreground italic">Integration with Replaysafe</h2>
           <p className="leading-relaxed text-muted-foreground">
             Once integrated, your job executions will appear in the **Sentinel Hub Dashboard** under "Guarded Replays", where you can audit every side effect and safely trigger retries.
           </p>

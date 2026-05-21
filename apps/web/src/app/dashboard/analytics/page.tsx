@@ -394,7 +394,7 @@ export default function Analytics() {
           <div className="glass-panel border border-border/10 rounded-3xl p-8 shadow-xl">
             <h2 className="text-xl font-black text-foreground mb-8 uppercase tracking-tight flex items-center gap-2">
               <Shield className="w-5 h-5 text-acid-lime" />
-              ReplayGuard™ Effectiveness
+              ReplayGuard Effectiveness
             </h2>
             <div className="h-[350px] w-full">
               <ResponsiveContainer width="100%" height="100%">

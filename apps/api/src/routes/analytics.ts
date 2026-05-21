@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { authMiddleware, projectAccessMiddleware, monitorAccessMiddleware, unifiedAuth } from '../middleware/auth.js'
-import { prisma } from '@stillup/db'
+import { prisma } from '@replaysafe/db'
 import { subDays, startOfDay, subHours } from 'date-fns'
 import { healthScoreService } from '../services/HealthScoreService.js'
 import { patternDetectionService } from '../services/PatternDetectionService.js'

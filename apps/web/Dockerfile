@@ -12,7 +12,7 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
-RUN pnpm --filter @stillup/web... -r build
+RUN pnpm --filter @replaysafe/web... -r build
 
 FROM base AS runtime
 COPY --from=build /usr/src/app /usr/src/app

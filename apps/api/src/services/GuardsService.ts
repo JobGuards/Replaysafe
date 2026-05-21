@@ -108,7 +108,7 @@ export class GuardsService {
           projectId,
           monitorId,
           'RETRY_LOOP_DETECTED',
-          `🚨 EMERGENCY: Infinite Retry Loop Blocked!\n\nMonitor "${monitor.name}" hit retry budget (Attempt #${attempt}/${retryBudget}) for Job ID "${externalId}".\n\nStillUp has automatically tripped the circuit breaker and blocked new executions for this monitor to protect downstream infrastructure.`
+          `🚨 EMERGENCY: Infinite Retry Loop Blocked!\n\nMonitor "${monitor.name}" hit retry budget (Attempt #${attempt}/${retryBudget}) for Job ID "${externalId}".\n\nReplaysafe has automatically tripped the circuit breaker and blocked new executions for this monitor to protect downstream infrastructure.`
         ).catch(err => console.error("Failed to send emergency alert:", err));
       } else {
         await prisma.failurePattern.update({

@@ -1,4 +1,4 @@
-import { prisma } from '@stillup/db'
+import { prisma } from '@replaysafe/db'
 import { subDays } from 'date-fns'
 
 export interface HealthScore {

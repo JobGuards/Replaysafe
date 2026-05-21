@@ -1,4 +1,4 @@
-import { prisma, MonitorStatus } from '@stillup/db'
+import { prisma, MonitorStatus } from '@replaysafe/db'
 import { incidentService } from '../services/IncidentService.js'
 
 let isDbConnected = true

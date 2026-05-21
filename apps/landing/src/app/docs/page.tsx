@@ -20,7 +20,7 @@ export default function DocsPage() {
       title: 'Getting Started',
       icon: <Zap className="w-6 h-6" />,
       items: [
-        { title: 'Introduction', href: '/docs/introduction', description: 'The vision behind StillUp and core monitoring pillars.' },
+        { title: 'Introduction', href: '/docs/introduction', description: 'The vision behind Replaysafe and core monitoring pillars.' },
         { title: 'Quick Start', href: '/docs/introduction#quick-start', description: 'Get your first heartbeat monitor running in 60 seconds.' },
       ]
     },
@@ -44,7 +44,7 @@ export default function DocsPage() {
       title: 'API Reference',
       icon: <Terminal className="w-6 h-6" />,
       items: [
-        { title: 'Heartbeat API', href: '/docs/api-reference', description: 'Payload specs for pushing heartbeats to StillUp.' },
+        { title: 'Heartbeat API', href: '/docs/api-reference', description: 'Payload specs for pushing heartbeats to Replaysafe.' },
         { title: 'Intelligence API', href: '/docs/api-reference#intelligence-api', description: 'Querying health scores and failure patterns.' },
       ]
     }
@@ -66,7 +66,7 @@ export default function DocsPage() {
             Knowledge <span className="text-acid-lime">Base</span>
           </h1>
           <p className="text-muted-foreground text-xl max-w-2xl font-medium">
-            Everything you need to build, scale, and secure your monitoring infrastructure with StillUp.
+            Everything you need to build, scale, and secure your monitoring infrastructure with Replaysafe.
           </p>
         </div>
 

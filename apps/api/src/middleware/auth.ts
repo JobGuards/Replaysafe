@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import { verifyToken } from '../utils/jwt.js'
-import { prisma } from '@stillup/db'
+import { prisma } from '@replaysafe/db'
 
 // Extend Express Request type to include user and project
 declare global {

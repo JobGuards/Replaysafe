@@ -1,4 +1,4 @@
-import { prisma } from '@stillup/db'
+import { prisma } from '@replaysafe/db'
 import { alertService } from './AlertService.js'
 import { selfHealingService } from './SelfHealingService.js'
 

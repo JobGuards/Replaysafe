@@ -24,7 +24,7 @@ export class DiscordAlertProvider implements AlertProvider {
     }
 
     const payload = {
-      username: 'StillUp Alert',
+      username: 'Replaysafe Alert',
       embeds: [
         {
           title: isEmergency 
@@ -55,7 +55,7 @@ export class DiscordAlertProvider implements AlertProvider {
             },
           ],
           footer: {
-            text: `StillUp Monitoring | ID: ${data.monitor.id}`,
+            text: `Replaysafe Monitoring | ID: ${data.monitor.id}`,
           },
           timestamp: new Date().toISOString(),
           url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard`,

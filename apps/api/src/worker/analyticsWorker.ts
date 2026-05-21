@@ -1,4 +1,4 @@
-import { prisma } from '@stillup/db'
+import { prisma } from '@replaysafe/db'
 import { startOfDay, startOfWeek, subDays } from 'date-fns'
 
 import { healthScoreService } from '../services/HealthScoreService.js'

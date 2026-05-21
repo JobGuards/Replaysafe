@@ -179,7 +179,7 @@ export default function PublicStatusPage() {
             <Zap className="w-6 h-6 text-acid-lime" />
           </div>
           <p className="text-muted-foreground text-sm font-medium text-center max-w-md">
-            All monitors are cryptographically verified. StillUp provides <span className="text-foreground font-black italic">Execution Sovereignty</span> for autonomous systems.
+            All monitors are cryptographically verified. Replaysafe provides <span className="text-foreground font-black italic">Execution Sovereignty</span> for autonomous systems.
           </p>
         </div>
       </div>

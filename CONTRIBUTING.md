@@ -1,8 +1,8 @@
-# Contributing to StillUp
+# Contributing to Replaysafe
 
-First off, thank you for considering contributing to StillUp! We are building the safety layer for the sovereign future, and we couldn't do it without the community.
+First off, thank you for considering contributing to Replaysafe! We are building the safety layer for the sovereign future, and we couldn't do it without the community.
 
-StillUp is a **Privacy-First, Local-First** project. Every line of code we write should respect the user's sovereignty and data ownership.
+Replaysafe is a **Privacy-First, Local-First** project. Every line of code we write should respect the user's sovereignty and data ownership.
 
 ## ⚖️ Our Ethos
 - **Privacy by Design**: No telemetry. No hidden tracking.
@@ -14,8 +14,8 @@ StillUp is a **Privacy-First, Local-First** project. Every line of code we write
 1.  **Fork the repository** on GitHub.
 2.  **Clone your fork** locally:
     ```bash
-    git clone https://github.com/your-username/StillUp.git
-    cd StillUp
+    git clone https://github.com/your-username/Replaysafe.git
+    cd Replaysafe
     ```
 3.  **Install dependencies**:
     ```bash
@@ -63,7 +63,7 @@ If you add a new feature, please update the corresponding guide in `/docs` and t
 
 ## 💬 Community
 
-Join our [GitHub Discussions](https://github.com/StillUp/StillUp/discussions) to talk about roadmap items or ask for help.
+Join our [GitHub Discussions](https://github.com/Replaysafe/Replaysafe/discussions) to talk about roadmap items or ask for help.
 
 ---
 *Built with 🖤 for the Sovereign Future.*

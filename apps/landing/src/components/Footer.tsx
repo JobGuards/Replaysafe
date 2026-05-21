@@ -27,14 +27,14 @@ export function Footer() {
         </div>
         <div className="flex flex-col gap-sm">
           <h4 className="font-outfit font-black text-foreground uppercase text-[10px] tracking-[0.2em] mb-2">Connect</h4>
-          <Link href="https://twitter.com/stillup" className="text-body-md text-muted-foreground hover:text-acid-lime transition-colors">Twitter</Link>
-          <Link href="https://github.com/stillup" className="text-body-md text-muted-foreground hover:text-acid-lime transition-colors">GitHub</Link>
-          <Link href="https://discord.gg/stillup" className="text-body-md text-muted-foreground hover:text-acid-lime transition-colors">Discord</Link>
+          <Link href="https://twitter.com/Replaysafe" className="text-body-md text-muted-foreground hover:text-acid-lime transition-colors">Twitter</Link>
+          <Link href="https://github.com/Replaysafe" className="text-body-md text-muted-foreground hover:text-acid-lime transition-colors">GitHub</Link>
+          <Link href="https://discord.gg/Replaysafe" className="text-body-md text-muted-foreground hover:text-acid-lime transition-colors">Discord</Link>
         </div>
       </div>
       <div className="max-w-7xl mx-auto mt-xl pt-lg border-t border-outline-variant/10 text-center md:text-left">
         <p className="text-xs text-on-surface-variant opacity-60">
-          © {new Date().getFullYear()} StillUp Inc. All rights reserved.
+          © {new Date().getFullYear()} Replaysafe Inc. All rights reserved.
         </p>
       </div>
     </footer>

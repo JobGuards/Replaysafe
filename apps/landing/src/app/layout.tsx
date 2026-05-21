@@ -18,7 +18,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'StillUp',
+  title: 'Replaysafe',
   description: 'Replay-Safe execution engine for autonomous agents and resilient background jobs.',
 }
 

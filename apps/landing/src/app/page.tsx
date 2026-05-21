@@ -45,12 +45,12 @@ export default function LandingPage() {
   }
 
   const faqs = [
-    { q: "What is StillUp?", a: "StillUp is a reliability platform that combines heartbeat monitoring for infrastructure with ReplayGuard for background job safety. We ensure your backups run and your job retries are idempotent." },
+    { q: "What is Replaysafe?", a: "Replaysafe is a reliability platform that combines heartbeat monitoring for infrastructure with ReplayGuard for background job safety. We ensure your backups run and your job retries are idempotent." },
     { q: "What is ReplayGuard?", a: "ReplayGuard makes retrying failed jobs safe. It tracks side effects (payments, emails) using cryptographic fingerprints to prevent duplicate execution during retries." },
     { q: "How does it monitor Tunnels?", a: "We track handshake age and latency for WireGuard, SSH, and OpenVPN. If your tunnel degrades or keys go stale, we detect it without intercepting traffic." },
     { q: "Can I report failures explicitly?", a: "Yes! You can use our CLI or SDK to report failures, measure latency, and guard side effects with replay-safe deduplication — preventing duplicate actions even across aggressive retries." },
-    { q: "What is 'Execution Memory'?", a: "StillUp remembers past failures and successful side effects. We help you find patterns and ensure that retrying a job never charges a customer twice." },
-    { q: "Does it work with my existing orchestration framework?", a: "Yes — ReplayGuard™ ships with named adapters for LangGraph, LangChain, Inngest, n8n, CrewAI, and Airflow. Each is a drop-in wrapper over the same safety engine. No framework lock-in, no rewrites. If you use raw Python or a custom runner, the HTTP API works anywhere." },
+    { q: "What is 'Execution Memory'?", a: "Replaysafe remembers past failures and successful side effects. We help you find patterns and ensure that retrying a job never charges a customer twice." },
+    { q: "Does it work with my existing orchestration framework?", a: "Yes — ReplayGuard ships with named adapters for LangGraph, LangChain, Inngest, n8n, CrewAI, and Airflow. Each is a drop-in wrapper over the same safety engine. No framework lock-in, no rewrites. If you use raw Python or a custom runner, the HTTP API works anywhere." },
   ];
 
   return (
@@ -87,7 +87,7 @@ export default function LandingPage() {
             Open Source Safety layer for non-deterministic systems. Prevent duplicate side effects, secure your local infrastructure, and ensure 100% data sovereignty.
           </p>
           <div className="flex flex-col items-center gap-lg mt-15">
-            <a href="https://github.com/JobGuards/StillUp" className="bg-acid-lime text-primary-foreground px-sm py-sm rounded-full font-black uppercase tracking-widest text-sm shadow-[0_0_20px_rgba(var(--theme-lime-rgb),0.3)] hover:shadow-[0_0_40px_rgba(var(--theme-lime-rgb),0.6)] transition-all duration-500 flex items-center gap-xs transform hover:-translate-y-1">
+            <a href="https://github.com/JobGuards/Replaysafe" className="bg-acid-lime text-primary-foreground px-sm py-sm rounded-full font-black uppercase tracking-widest text-sm shadow-[0_0_20px_rgba(var(--theme-lime-rgb),0.3)] hover:shadow-[0_0_40px_rgba(var(--theme-lime-rgb),0.6)] transition-all duration-500 flex items-center gap-xs transform hover:-translate-y-1">
               <Github className="w-8 h-8" />
             </a>
             {/* Copy Command Section */}
@@ -129,7 +129,7 @@ export default function LandingPage() {
                 <div className="w-16 h-16 rounded-xl bg-acid-lime/10 flex items-center justify-center border border-acid-lime/30 group-hover:bg-acid-lime/20 transition-colors">
                   <ShieldCheck className="text-acid-lime w-8 h-8" />
                 </div>
-                <span className="font-black text-foreground text-2xl uppercase tracking-tighter italic">StillUp</span>
+                <span className="font-black text-foreground text-2xl uppercase tracking-tighter italic">Replaysafe</span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 z-10 w-full lg:w-auto">
@@ -214,7 +214,7 @@ export default function LandingPage() {
                   </div>
                   <div>
                     <h4 className="font-black uppercase tracking-tight italic text-sm">Result Replay</h4>
-                    <p className="text-sm text-muted-foreground mt-1">StillUp remembers the outcome of successful steps. On retry, we skip the action and replay the original result.</p>
+                    <p className="text-sm text-muted-foreground mt-1">Replaysafe remembers the outcome of successful steps. On retry, we skip the action and replay the original result.</p>
                   </div>
                 </div>
               </div>
@@ -284,7 +284,7 @@ export default function LandingPage() {
                     <span className="text-[10px] font-black uppercase tracking-widest italic">Sentinel Insight</span>
                   </div>
                   <p className="text-[11px] text-muted-foreground leading-relaxed font-medium">
-                    "StillUp detected a successful payment fingerprint in <span className="text-acid-lime">Attempt_01</span>. Execution halted to prevent double-spend. Replaying cached receipt."
+                    "Replaysafe detected a successful payment fingerprint in <span className="text-acid-lime">Attempt_01</span>. Execution halted to prevent double-spend. Replaying cached receipt."
                   </p>
                 </div>
               </div>
@@ -324,7 +324,7 @@ export default function LandingPage() {
             <div className="rounded-2xl border border-destructive/20 bg-destructive/5 overflow-hidden">
               <div className="flex items-center gap-2 px-4 py-2 border-b border-destructive/10 bg-destructive/10">
                 <span className="w-2 h-2 rounded-full bg-destructive"></span>
-                <span className="text-[10px] font-black uppercase tracking-widest text-destructive/70">Without ReplayGuard™</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-destructive/70">Without ReplayGuard</span>
               </div>
               <pre className="text-xs font-mono text-muted-foreground p-4 overflow-x-auto leading-relaxed"><code>{`// LangGraph node — UNSAFE on retry
 async function chargeNode(state) {
@@ -341,7 +341,7 @@ async function chargeNode(state) {
             <div className="rounded-2xl border border-acid-lime/20 bg-acid-lime/5 overflow-hidden">
               <div className="flex items-center gap-2 px-4 py-2 border-b border-acid-lime/10 bg-acid-lime/10">
                 <span className="w-2 h-2 rounded-full bg-acid-lime animate-pulse"></span>
-                <span className="text-[10px] font-black uppercase tracking-widest text-acid-lime/70">With ReplayGuard™</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-acid-lime/70">With ReplayGuard</span>
               </div>
               <pre className="text-xs font-mono text-muted-foreground p-4 overflow-x-auto leading-relaxed"><code>{`// LangGraph node — SAFE on retry
 async function chargeNode(state, guard) {
@@ -377,7 +377,7 @@ async function chargeNode(state, guard) {
               </div>
               <h4 className="text-xl font-black uppercase tracking-tight italic mb-4">Heartbeat Monitoring</h4>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Zero-config cron and job monitoring. If your background job stops reporting, StillUp fires an alert before any agent retries into a broken state.
+                Zero-config cron and job monitoring. If your background job stops reporting, Replaysafe fires an alert before any agent retries into a broken state.
               </p>
             </div>
 
@@ -397,7 +397,7 @@ async function chargeNode(state, guard) {
               </div>
               <h4 className="text-xl font-black uppercase tracking-tight italic mb-4">Failure Pattern Intelligence</h4>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                StillUp tracks recurring failure windows, health score trends, and cascade incidents - giving agents and engineers actionable context, not just raw alerts.
+                Replaysafe tracks recurring failure windows, health score trends, and cascade incidents - giving agents and engineers actionable context, not just raw alerts.
               </p>
             </div>
           </div>
@@ -412,11 +412,11 @@ async function chargeNode(state, guard) {
             <div className="text-label-sm text-muted-foreground">- Lead Engineer @ FinTech Startup</div>
           </div>
           <div className="glass-panel rounded-xl p-lg flex flex-col justify-between gap-md border border-border/20 hover:border-acid-lime/30 transition-all">
-            <p className="text-body-lg font-body-lg text-foreground italic">"Our AI agents were silently retrying failed LLM calls and corrupting downstream state. StillUp's execution memory stopped that completely."</p>
+            <p className="text-body-lg font-body-lg text-foreground italic">"Our AI agents were silently retrying failed LLM calls and corrupting downstream state. Replaysafe's execution memory stopped that completely."</p>
             <div className="text-label-sm text-muted-foreground">- Senior AI Infrastructure Engineer</div>
           </div>
           <div className="glass-panel rounded-xl p-lg flex flex-col justify-between gap-md border border-border/20 hover:border-acid-lime/30 transition-all">
-            <p className="text-body-lg font-body-lg text-foreground italic">"The duplicate side-effect problem is something we were hand-rolling with Redis locks. StillUp's replay-safe layer just solved it. We ripped out 400 lines of custom code."</p>
+            <p className="text-body-lg font-body-lg text-foreground italic">"The duplicate side-effect problem is something we were hand-rolling with Redis locks. Replaysafe's replay-safe layer just solved it. We ripped out 400 lines of custom code."</p>
             <div className="text-label-sm text-muted-foreground">- Infrastructure Lead @ B2B SaaS</div>
           </div>
         </div>

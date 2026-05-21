@@ -1,4 +1,4 @@
-import { prisma } from '@stillup/db'
+import { prisma } from '@replaysafe/db'
 
 /**
  * PR #43: Smart Incident Grouping Service

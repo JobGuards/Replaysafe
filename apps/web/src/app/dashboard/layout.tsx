@@ -28,7 +28,7 @@ export default function DashboardLayout({
     }
   }, [user, isLoading, router])
 
-  const isCloud = process.env.NEXT_PUBLIC_STILLUP_CLOUD === 'true'
+  const isCloud = process.env.NEXT_PUBLIC_REPLAYSAFE_CLOUD === 'true'
   const isPro = activeOrganization?.plan === 'PRO' && isCloud
 
   if (isLoading) {
@@ -114,7 +114,7 @@ export default function DashboardLayout({
              </div>
              {!isPro && (
                <Link href="/pricing" className="block w-full py-2 bg-foreground text-background rounded-xl text-center text-[10px] font-black uppercase tracking-widest hover:opacity-90 transition-all">
-                  Support StillUp
+                  Support Replaysafe
                </Link>
              )}
           </div>

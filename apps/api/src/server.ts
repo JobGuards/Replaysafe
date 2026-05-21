@@ -20,7 +20,7 @@ import apiKeyRoutes from "./routes/api-keys.js";
 import projectRoutes from "./routes/projects.js";
 import { apiRateLimiter, authRateLimiter, heartbeatRateLimiter } from "./middleware/rateLimit.js";
 import { authMiddleware, projectAccessMiddleware } from "./middleware/auth.js";
-import { prisma } from "@stillup/db";
+import { prisma } from "@replaysafe/db";
 import { auditService } from "./services/AuditService.js";
 import * as Sentry from "@sentry/node";
 
@@ -114,6 +114,6 @@ export function startServer() {
   const app = createApp();
   const port = process.env.PORT || 4040;
   app.listen(port, () =>
-    console.log(`StillUp API running on port ${port}`)
+    console.log(`Replaysafe API running on port ${port}`)
   );
 }

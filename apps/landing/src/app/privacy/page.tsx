@@ -1,8 +1,8 @@
 import React from 'react'
 
 export const metadata = {
-  title: 'Privacy Policy | StillUp',
-  description: 'How we handle your data at StillUp.',
+  title: 'Privacy Policy | Replaysafe',
+  description: 'How we handle your data at Replaysafe.',
 }
 
 export default function PrivacyPage() {
@@ -14,7 +14,7 @@ export default function PrivacyPage() {
         <section>
           <h2 className="text-xl font-bold text-foreground mb-4 uppercase tracking-tight">1. Data Collection</h2>
           <p>
-            StillUp is designed as a local-first monitoring infrastructure. We collect minimal information required to provide our service:
+            Replaysafe is designed as a local-first monitoring infrastructure. We collect minimal information required to provide our service:
           </p>
           <ul className="list-disc ml-6 mt-4 space-y-2">
             <li>Account Information: Email and name for authentication.</li>
@@ -26,7 +26,7 @@ export default function PrivacyPage() {
         <section>
           <h2 className="text-xl font-bold text-foreground mb-4 uppercase tracking-tight">2. Data Storage & Residency</h2>
           <p>
-            Your data is stored in the PostgreSQL database provided via your environment configuration. StillUp does not centrally store your monitor logs unless you are using a managed cloud offering. For self-hosted instances, you maintain full control over your data residency.
+            Your data is stored in the PostgreSQL database provided via your environment configuration. Replaysafe does not centrally store your monitor logs unless you are using a managed cloud offering. For self-hosted instances, you maintain full control over your data residency.
           </p>
         </section>
 

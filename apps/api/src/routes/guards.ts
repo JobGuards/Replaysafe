@@ -2,7 +2,7 @@ import { Router } from "express";
 import { apiKeyMiddleware, unifiedAuth, projectAccessMiddleware } from "../middleware/auth.js";
 import { GuardsService } from "../services/GuardsService.js";
 import { signToken, verifyToken } from "../utils/encryption.js";
-import { prisma } from "@stillup/db";
+import { prisma } from "@replaysafe/db";
 
 const router = Router();
 

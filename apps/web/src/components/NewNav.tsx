@@ -29,7 +29,7 @@ export function NewNav({ userEmail }: Props) {
         <Link className="px-5 py-2 rounded-full text-sm font-bold text-muted-foreground hover:text-foreground hover:bg-foreground/[0.05] transition-all duration-300 tracking-widest uppercase text-[10px]" href={`${landingUrl}/docs`}>
           Docs
         </Link>
-        <Link className="px-5 py-2 rounded-full text-sm font-bold text-muted-foreground hover:text-foreground hover:bg-foreground/[0.05] transition-all duration-300 tracking-widest uppercase text-[10px]" href="https://github.com/StillUp/StillUp/discussions" target="_blank">
+        <Link className="px-5 py-2 rounded-full text-sm font-bold text-muted-foreground hover:text-foreground hover:bg-foreground/[0.05] transition-all duration-300 tracking-widest uppercase text-[10px]" href="https://github.com/Replaysafe/Replaysafe/discussions" target="_blank">
           Community
         </Link>
       </nav>

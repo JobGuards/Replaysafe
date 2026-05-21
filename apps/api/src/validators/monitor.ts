@@ -4,7 +4,7 @@ import {
   ScheduleTypeEnum,
   type CreateMonitorInput,
   type UpdateMonitorInput
-} from '@stillup/shared'
+} from '@replaysafe/shared'
 
 export {
   createMonitorSchema,

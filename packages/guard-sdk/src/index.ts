@@ -33,7 +33,7 @@ export interface GuardConfig {
    */
   disableDefaultIgnoreKeys?: boolean;
   /**
-   * Network resilience config for SDK → StillUp API communication.
+   * Network resilience config for SDK → Replaysafe API communication.
    * Production-grade defaults apply automatically — only override for tuning.
    */
   network?: {
@@ -77,7 +77,7 @@ export class ReplayGuard {
 
   constructor(config: GuardConfig) {
     this.config = {
-      baseUrl: process.env.STILLUP_API_URL || 'http://localhost:4040',
+      baseUrl: process.env.REPLAYSAFE_API_URL || 'http://localhost:4040',
       failPolicy: 'OPEN',
       debug: false,
       ...config,
@@ -326,7 +326,7 @@ export class ReplayGuard {
 
   /**
    * Wraps a fetch call with a configurable AbortSignal timeout.
-   * Prevents the SDK from hanging indefinitely when the StillUp API is slow or unresponsive.
+   * Prevents the SDK from hanging indefinitely when the Replaysafe API is slow or unresponsive.
    */
   private async _fetchWithTimeout(url: string, options: RequestInit): Promise<Response> {
     const timeoutMs = this.config.network?.timeoutMs ?? 3000;

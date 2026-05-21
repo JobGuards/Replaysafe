@@ -45,7 +45,7 @@ export default function SecuritySentinelDoc() {
           <div className="bg-foreground/[0.02] p-8 rounded-[2.5rem] border border-border/10 font-mono text-sm space-y-4">
             <div className="text-acid-lime"># Force a global security audit</div>
             <div className="text-foreground/60">
-              stillup audit --all --policy-strict
+              Replaysafe audit --all --policy-strict
             </div>
           </div>
         </section>

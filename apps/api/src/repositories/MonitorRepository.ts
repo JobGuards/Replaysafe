@@ -1,4 +1,4 @@
-import { prisma } from '@stillup/db'
+import { prisma } from '@replaysafe/db'
 import { CreateMonitorInput, UpdateMonitorInput } from '../validators/monitor.js'
 import crypto from 'crypto'
 

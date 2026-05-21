@@ -1,5 +1,5 @@
 {
-  "name": "stillup",
+  "name": "replaysafe",
   "private": true,
   "version": "1.0.0",
   "type": "module",
@@ -11,8 +11,8 @@
     "lint": "pnpm -r run --if-present check-lint",
     "ci": "pnpm build && pnpm test",
     "release": "pnpm build && changeset publish",
-    "db:generate": "pnpm --filter @stillup/db build",
-    "db:push": "pnpm --filter @stillup/db exec prisma db push"
+    "db:generate": "pnpm --filter @replaysafe/db build",
+    "db:push": "pnpm --filter @replaysafe/db exec prisma db push"
   },
   "keywords": [],
   "author": "pallavi",

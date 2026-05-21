@@ -158,7 +158,7 @@ export default function SettingsPage() {
         <CardHeader>
           <CardTitle>API Access</CardTitle>
           <CardDescription>
-            Manage API keys for programmatically interacting with StillUp.
+            Manage API keys for programmatically interacting with Replaysafe.
           </CardDescription>
         </CardHeader>
         <CardContent>

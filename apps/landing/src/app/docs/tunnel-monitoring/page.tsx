@@ -21,7 +21,7 @@ export default function TunnelMonitoringDoc() {
             <Lock className="text-acid-lime w-6 h-6" /> The Silent Failure Problem
           </h3>
           <p className="leading-relaxed text-muted-foreground mb-8">
-            Network tunnels often fail "silently"—the process remains active, but data flow is obstructed due to stale handshakes or routing loops. StillUp Sentinel monitors the **Pulse** of the tunnel, not just the process status.
+            Network tunnels often fail "silently"—the process remains active, but data flow is obstructed due to stale handshakes or routing loops. Replaysafe Sentinel monitors the **Pulse** of the tunnel, not just the process status.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <FeatureBox 
@@ -45,7 +45,7 @@ export default function TunnelMonitoringDoc() {
           <div className="bg-foreground/[0.02] p-8 rounded-[2.5rem] border border-border/10 font-mono text-sm space-y-4">
             <div className="text-acid-lime"># Example: Monitoring a WireGuard Tunnel</div>
             <div className="text-foreground/60">
-              stillup monitor add \<br/>
+              Replaysafe monitor add \<br/>
               &nbsp;&nbsp;--type tunnel \<br/>
               &nbsp;&nbsp;--name "HQ-Office-VPN" \<br/>
               &nbsp;&nbsp;--endpoint "vpn.hq.example.com:51820" \<br/>

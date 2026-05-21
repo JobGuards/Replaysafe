@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express'
-import { prisma } from '@stillup/db'
+import { prisma } from '@replaysafe/db'
 
 const router = Router()
 

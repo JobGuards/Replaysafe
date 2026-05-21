@@ -22,7 +22,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["@stillup/shared"],
+  transpilePackages: ["@replaysafe/shared"],
   async headers() {
     return [
       {
@@ -34,7 +34,7 @@ const nextConfig: NextConfig = {
 };
 
 export default withSentryConfig(nextConfig, {
-  org: "stillup",
-  project: "stillup-web",
+  org: "replaysafe",
+  project: "replaysafe-web",
   silent: true,
 });

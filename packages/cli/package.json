@@ -1,10 +1,10 @@
 {
-  "name": "@stillup/cli",
+  "name": "@replaysafe/cli",
   "version": "1.0.0",
-  "description": "StillUp Sentinel CLI - The infrastructure safety layer in your terminal.",
+  "description": "Replaysafe Sentinel CLI - The infrastructure safety layer in your terminal.",
   "type": "module",
   "bin": {
-    "stillup": "./dist/index.js"
+    "replaysafe": "./dist/index.js"
   },
   "files": [
     "dist",

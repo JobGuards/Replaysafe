@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { prisma } from '@stillup/db'
+import { prisma } from '@replaysafe/db'
 import { authMiddleware, projectAccessMiddleware } from '../middleware/auth.js'
 import { randomBytes } from 'node:crypto'
 
@@ -26,7 +26,7 @@ router.get('/', authMiddleware, projectAccessMiddleware('MEMBER'), async (req: a
     // Mask keys for security
     const maskedKeys = keys.map(k => ({
       ...k,
-      key: `su_****${k.key.slice(-4)}`
+      key: `rs_****${k.key.slice(-4)}`
     }))
 
     res.json(maskedKeys)
@@ -46,8 +46,8 @@ router.post('/', authMiddleware, projectAccessMiddleware('ADMIN'), async (req: a
     if (!name) return res.status(400).json({ error: 'Name is required' })
 
     // Generate a secure key
-    // Prefix with 'su_' for easy identification (StillUp)
-    const key = `su_${randomBytes(24).toString('hex')}`
+    // Prefix with 'rs_' for easy identification (Replaysafe)
+    const key = `rs_${randomBytes(24).toString('hex')}`
 
     const apiKey = await prisma.apiKey.create({
       data: {

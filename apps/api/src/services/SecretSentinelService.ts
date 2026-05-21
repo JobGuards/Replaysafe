@@ -1,4 +1,4 @@
-import { prisma } from '@stillup/db'
+import { prisma } from '@replaysafe/db'
 import { subDays, isBefore, addDays } from 'date-fns'
 
 function log(msg: string) {

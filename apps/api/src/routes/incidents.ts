@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { prisma } from '@stillup/db';
+import { prisma } from '@replaysafe/db';
 import { authMiddleware } from '../middleware/auth.js';
 
 const router = Router();

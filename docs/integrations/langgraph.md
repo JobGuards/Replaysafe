@@ -1,15 +1,15 @@
-# StillUp + LangGraph: Replay-Safe Retries for Agent Nodes
+# Replaysafe + LangGraph: Replay-Safe Retries for Agent Nodes
 
 LangGraph is powerful for building stateful, multi-step AI agents — but when a node fails and the graph retries, every side effect in that node (API calls, database writes, emails) re-executes from scratch. This causes duplicate charges, phantom records, and corrupted downstream state.
 
-**StillUp acts as the airbag.** Wrap any side-effecting tool call inside a LangGraph node with `guard.langGraph()` and it will be deduplicated — even across retries, the external side effect executes at most once per unique input set.
+**Replaysafe acts as the airbag.** Wrap any side-effecting tool call inside a LangGraph node with `guard.langGraph()` and it will be deduplicated — even across retries, the external side effect executes at most once per unique input set.
 
 ---
 
 ## Installation
 
 ```bash
-npm install @stillup/guard-sdk
+npm install @replaysafe/guard-sdk
 ```
 
 ---
@@ -17,14 +17,14 @@ npm install @stillup/guard-sdk
 ## Quick Start
 
 ```typescript
-import { withReplayGuard } from '@stillup/guard-sdk';
+import { withReplayGuard } from '@replaysafe/guard-sdk';
 
 // Wrap your entire LangGraph graph run
 const result = await withReplayGuard(
   {
-    apiKey: process.env.STILLUP_API_KEY!,
+    apiKey: process.env.REPLAYSAFE_API_KEY!,
     monitorId: 'langgraph-customer-onboarding',
-    baseUrl: process.env.STILLUP_API_URL,
+    baseUrl: process.env.REPLAYSAFE_API_URL,
   },
   async (guard) => {
     // Pass guard through LangGraph's `configurable` — it's the correct channel
@@ -46,7 +46,7 @@ The `guard.langGraph()` adapter is a thin, semantically-named wrapper. Pass it t
 
 ```typescript
 // nodes/chargeNode.ts
-import { ReplayGuard } from '@stillup/guard-sdk';
+import { ReplayGuard } from '@replaysafe/guard-sdk';
 
 export async function chargeNode(
   state: OnboardingState,
@@ -102,18 +102,18 @@ await guard.compensate(
 );
 ```
 
-If the graph run is marked as failed, StillUp will fire the compensation webhook automatically.
+If the graph run is marked as failed, Replaysafe will fire the compensation webhook automatically.
 
 ---
 
 ## How It Works
 
-1. **Fingerprinting**: StillUp hashes the node name + inputs to create a unique fingerprint for this side effect.
-2. **Memory Check**: On retry, before executing the operation, StillUp checks if this fingerprint was already executed successfully in a previous attempt.
+1. **Fingerprinting**: Replaysafe hashes the node name + inputs to create a unique fingerprint for this side effect.
+2. **Memory Check**: On retry, before executing the operation, Replaysafe checks if this fingerprint was already executed successfully in a previous attempt.
 3. **Skip or Execute**: If a successful result exists → **SKIP** and replay the cached result. If not → **EXECUTE** and record the result.
 4. **Zero LangGraph Changes**: You don't modify your graph structure. Just wrap the dangerous calls.
 
-> **Distributed Systems Note**: ReplayGuard is a replay-safety proxy, not a distributed transaction coordinator. Safety guarantees apply within the fingerprint scope and storage window. Under `OPEN` fail policy, if StillUp is unreachable, execution proceeds without deduplication.
+> **Distributed Systems Note**: ReplayGuard is a replay-safety proxy, not a distributed transaction coordinator. Safety guarantees apply within the fingerprint scope and storage window. Under `OPEN` fail policy, if Replaysafe is unreachable, execution proceeds without deduplication.
 
 ---
 
@@ -123,7 +123,7 @@ For end-to-end protection, pass the `guard` instance via LangGraph's `configurab
 
 ```typescript
 import { RunnableConfig } from '@langchain/core/runnables';
-import { ReplayGuard } from '@stillup/guard-sdk';
+import { ReplayGuard } from '@replaysafe/guard-sdk';
 
 // In your node function signature:
 export async function chargeNode(
@@ -152,7 +152,7 @@ await withReplayGuard({ apiKey, monitorId }, async (guard) => {
 
 ## Fail Policies
 
-| Policy | Behavior when StillUp is unreachable |
+| Policy | Behavior when Replaysafe is unreachable |
 |---|---|
 | `OPEN` (default) | Proceeds without safety layer. Side effects execute normally. |
 | `CLOSED` | Throws an error. The graph node fails and LangGraph retries. |
@@ -165,7 +165,7 @@ new ReplayGuard({ apiKey, monitorId, failPolicy: 'CLOSED' });
 
 ## Self-Hosted Setup
 
-Run StillUp locally (zero cloud dependency):
+Run Replaysafe locally (zero cloud dependency):
 
 ```bash
 docker-compose up -d
@@ -174,7 +174,7 @@ docker-compose up -d
 Point the SDK at your local instance:
 
 ```bash
-STILLUP_API_URL=http://localhost:4040
+REPLAYSAFE_API_URL=http://localhost:4040
 ```
 
 ---

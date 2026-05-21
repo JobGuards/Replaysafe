@@ -1,20 +1,20 @@
-# @stillup/guard-sdk
+# @replaysafe/guard-sdk
 
 ReplayGuard is the replay-safe execution layer for AI agents and background jobs. Prevent dangerous duplicate side effects during retries, detect state drift, and handle automated rollbacks.
 
 ## Installation
 
 ```bash
-npm install @stillup/guard-sdk
+npm install @replaysafe/guard-sdk
 ```
 
 ## Basic Usage
 
 ```typescript
-import { withReplayGuard } from '@stillup/guard-sdk';
+import { withReplayGuard } from '@replaysafe/guard-sdk';
 
 const config = {
-  apiKey: process.env.STILLUP_API_KEY,
+  apiKey: process.env.REPLAYSAFE_API_KEY,
   monitorId: 'your-monitor-id',
   debug: true
 };
@@ -48,7 +48,7 @@ await withReplayGuard(config, async (guard) => {
 ## 🚀 Production Safety Features
 
 ### 1. Fail-Safe Policies
-Choose how the SDK behaves if the StillUp API is unreachable.
+Choose how the SDK behaves if the Replaysafe API is unreachable.
 - `OPEN` (Default): Proceed with execution if safety cannot be verified (High availability).
 - `CLOSED`: Block execution if safety cannot be verified (High integrity).
 
@@ -75,4 +75,4 @@ await guard.verify('AI_ACTION', 'llm-summarize', inputs, 'PROJECT');
 ```
 
 ## 📈 Replay Intelligence
-Every "SKIPPED" action is tracked in the **StillUp Dashboard**, calculating your **Safety ROI** (Prevented double-charges and engineering hours saved).
+Every "SKIPPED" action is tracked in the **Replaysafe Dashboard**, calculating your **Safety ROI** (Prevented double-charges and engineering hours saved).

@@ -14,10 +14,10 @@ export class EmailAlertProvider implements AlertProvider {
 
     const isEmergency = type === 'emergency'
     const subject = isEmergency
-      ? `🚨 [StillUp EMERGENCY] Circuit Breaker Tripped on "${monitor.name}"`
+      ? `🚨 [Replaysafe EMERGENCY] Circuit Breaker Tripped on "${monitor.name}"`
       : type === 'creation' 
-        ? `[StillUp] Monitor "${monitor.name}" is DOWN` 
-        : `[StillUp] Monitor "${monitor.name}" is RESOLVED`
+        ? `[Replaysafe] Monitor "${monitor.name}" is DOWN` 
+        : `[Replaysafe] Monitor "${monitor.name}" is RESOLVED`
 
     const body = this.renderTemplate(data)
 
@@ -42,7 +42,7 @@ export class EmailAlertProvider implements AlertProvider {
             ${data.durationText || 'An infinite execution/retry loop was detected.'}
           </div>
           <p style="color: #666; line-height: 1.5;">
-            StillUp has automatically tripped the circuit-breaker and temporarily blocked all new execution sessions for this monitor to protect downstream databases and services.
+            Replaysafe has automatically tripped the circuit-breaker and temporarily blocked all new execution sessions for this monitor to protect downstream databases and services.
           </p>
           <p style="margin-top: 30px;">
             <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard" style="background-color: #ff0055; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;">

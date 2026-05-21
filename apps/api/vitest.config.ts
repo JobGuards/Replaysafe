@@ -7,7 +7,7 @@ export default defineConfig({
     env: {
       // Test-only secrets — never used in production
       JWT_SECRET: 'vitest-test-secret-not-for-production',
-      DATABASE_URL: 'postgresql://test:test@localhost:5432/stillup_test',
+      DATABASE_URL: 'postgresql://test:test@localhost:5432/Replaysafe_test',
       NODE_ENV: 'test',
     },
   },

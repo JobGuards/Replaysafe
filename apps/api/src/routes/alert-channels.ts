@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express'
-import { prisma } from '@stillup/db'
+import { prisma } from '@replaysafe/db'
 import { authMiddleware, projectAccessMiddleware } from '../middleware/auth.js'
 import { encryptJSON, decryptJSON } from '../utils/encryption.js'
 import { auditService } from '../services/AuditService.js'

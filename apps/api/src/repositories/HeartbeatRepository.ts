@@ -1,4 +1,4 @@
-import { prisma, HeartbeatType, MonitorStatus } from '@stillup/db'
+import { prisma, HeartbeatType, MonitorStatus } from '@replaysafe/db'
 
 export class HeartbeatRepository {
   /**

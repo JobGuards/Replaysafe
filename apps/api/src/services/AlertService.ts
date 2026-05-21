@@ -1,4 +1,4 @@
-import { prisma } from '@stillup/db'
+import { prisma } from '@replaysafe/db'
 import { EmailAlertProvider } from './alerts/EmailAlertProvider.js'
 import { WebhookAlertProvider } from './alerts/WebhookAlertProvider.js'
 import { SlackAlertProvider } from './alerts/SlackAlertProvider.js'

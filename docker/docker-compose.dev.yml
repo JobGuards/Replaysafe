@@ -3,13 +3,13 @@ version: "3.8"
 services:
   db:
     image: postgres:15
-    container_name: stillup-db
+    container_name: replaysafe-db
     ports:
       - "5433:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: stillup
+      POSTGRES_DB: replaysafe
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -22,14 +22,14 @@ services:
     build:
       context: ..
       dockerfile: apps/api/Dockerfile
-    container_name: stillup-api
+    container_name: replaysafe-api
     ports:
       - "4040:4000"
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@db:5432/stillup?schema=public
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/replaysafe?schema=public
       PORT: 4000
       JWT_SECRET: super-secret-production-key
-      MASTER_ENCRYPTION_KEY: stillup-encryption-sentinel-key-32chars
+      MASTER_ENCRYPTION_KEY: replaysafe-encryption-sentinel-key-32chars
       FRONTEND_URL: http://localhost:3000
     depends_on:
       db:
@@ -42,7 +42,7 @@ services:
       dockerfile: apps/web/Dockerfile
       args:
         NEXT_PUBLIC_API_URL: http://localhost:4040
-    container_name: stillup-web
+    container_name: replaysafe-web
     ports:
       - "3000:3000"
     environment:

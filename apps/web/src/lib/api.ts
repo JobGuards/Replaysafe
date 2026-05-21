@@ -1,4 +1,4 @@
-import { MonitorResponse, CreateMonitorInput, UpdateMonitorInput } from '@stillup/shared'
+import { MonitorResponse, CreateMonitorInput, UpdateMonitorInput } from '@replaysafe/shared'
 
 let API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4040'
 if (!API_BASE_URL.endsWith('/api')) {

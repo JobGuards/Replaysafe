@@ -1,19 +1,19 @@
-# StillUp Strategic Roadmap
+# Replaysafe Strategic Roadmap
 
 **Vision**: The safety layer for autonomous infrastructure.  
 **Focus**: "Replay-safe infrastructure for autonomous systems."
 
-StillUp provides the "Safety Primitives" that prevent autonomous agents and background jobs from causing destructive side effects during retries or failures.
+Replaysafe provides the "Safety Primitives" that prevent autonomous agents and background jobs from causing destructive side effects during retries or failures.
 
 ---
 
 ## 🟢 Phase 1: The Safety Foundation (Completed)
 *The core engine for replay-safe execution and side-effect deduplication.*
 
-- [x] **ReplayGuard™ Core Engine**: Decision engine to determine `EXECUTE` vs `SKIP` for side effects.
+- [x] **ReplayGuard Core Engine**: Decision engine to determine `EXECUTE` vs `SKIP` for side effects.
 - [x] **Action Fingerprinting**: Deterministic hashing of job inputs, targets, and types.
 - [x] **Replay-Safe Deduplication**: Prevents duplicate Stripe charges, double emails, and redundant DB writes using cryptographic execution fingerprinting.
-- [x] **ReplayGuard SDK (@stillup/guard-sdk)**: TypeScript SDK for wrapping fetch, AI calls, and generic functions.
+- [x] **ReplayGuard SDK (@replaysafe/guard-sdk)**: TypeScript SDK for wrapping fetch, AI calls, and generic functions.
 - [x] **Execution Tracing (Visual Timeline)**: High-fidelity audit trail showing "Skipped" vs "Executed" operations.
 - [x] **Heartbeat Sentinel**: Base infrastructure for monitoring "Silent Failures" in background jobs.
 - [x] **API Key Security**: Hardened project-scoped keys for CLI and SDK authentication.

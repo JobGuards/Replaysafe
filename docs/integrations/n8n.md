@@ -1,18 +1,18 @@
-# StillUp + n8n: Idempotent Workflow Nodes
+# Replaysafe + n8n: Idempotent Workflow Nodes
 
 n8n makes it easy to build powerful automation workflows, but when a workflow errors and you re-run it (or n8n retries a node automatically), every HTTP Request node, webhook call, and external API action fires again — potentially creating duplicate records, charges, or notifications.
 
-**StillUp solves this with `guard.n8n()`** — a drop-in wrapper for your n8n Code nodes that makes any external call replay-safe: the side effect executes at most once per unique input set, even if n8n re-runs the node.
+**Replaysafe solves this with `guard.n8n()`** — a drop-in wrapper for your n8n Code nodes that makes any external call replay-safe: the side effect executes at most once per unique input set, even if n8n re-runs the node.
 
 ---
 
 ## Installation
 
-Add StillUp to your n8n Custom Code setup:
+Add Replaysafe to your n8n Custom Code setup:
 
 ```bash
 # In your n8n custom packages directory
-npm install @stillup/guard-sdk
+npm install @replaysafe/guard-sdk
 ```
 
 Or if you're self-hosting n8n with a custom Docker image, add it to your `package.json`.
@@ -23,15 +23,15 @@ Or if you're self-hosting n8n with a custom Docker image, add it to your `packag
 
 ```javascript
 // n8n Code Node (JavaScript)
-const { withReplayGuard } = require('@stillup/guard-sdk');
+const { withReplayGuard } = require('@replaysafe/guard-sdk');
 
 const inputItem = $input.item.json;
 
 const result = await withReplayGuard(
   {
-    apiKey: process.env.STILLUP_API_KEY,
+    apiKey: process.env.REPLAYSAFE_API_KEY,
     monitorId: 'n8n-crm-sync-workflow',
-    baseUrl: process.env.STILLUP_API_URL || 'http://localhost:4040',
+    baseUrl: process.env.REPLAYSAFE_API_URL || 'http://localhost:4040',
   },
   async (guard) => {
     // ✅ This HubSpot contact is created exactly once, even if the workflow re-runs
@@ -66,11 +66,11 @@ return [{ json: result }];
 ## Protecting Multiple Steps in One Code Node
 
 ```javascript
-const { ReplayGuard } = require('@stillup/guard-sdk');
+const { ReplayGuard } = require('@replaysafe/guard-sdk');
 
 const item = $input.item.json;
 const guard = new ReplayGuard({
-  apiKey: process.env.STILLUP_API_KEY,
+  apiKey: process.env.REPLAYSAFE_API_KEY,
   monitorId: 'order-fulfillment',
   debug: true,
 });
@@ -122,9 +122,9 @@ return [{ json: { status: 'fulfilled', orderId: item.orderId } }];
 For simple HTTP calls, use `guard.fetch()` which wraps the native fetch with replay protection:
 
 ```javascript
-const { ReplayGuard } = require('@stillup/guard-sdk');
+const { ReplayGuard } = require('@replaysafe/guard-sdk');
 
-const guard = new ReplayGuard({ apiKey: process.env.STILLUP_API_KEY, monitorId: 'slack-notifier' });
+const guard = new ReplayGuard({ apiKey: process.env.REPLAYSAFE_API_KEY, monitorId: 'slack-notifier' });
 await guard.start(`notify-${$input.item.json.eventId}`);
 
 // This Slack message will only be sent once, even if the node re-runs
@@ -145,8 +145,8 @@ return [{ json: { notified: true } }];
 In your n8n instance, set these environment variables:
 
 ```
-STILLUP_API_KEY=your-project-api-key
-STILLUP_API_URL=https://your-stillup-instance.com  # or http://localhost:4040 for self-hosted
+REPLAYSAFE_API_KEY=your-project-api-key
+REPLAYSAFE_API_URL=https://your-Replaysafe-instance.com  # or http://localhost:4040 for self-hosted
 ```
 
 ---

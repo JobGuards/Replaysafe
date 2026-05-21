@@ -14,7 +14,7 @@ export default function PricingPage() {
     {
       name: 'Self-Hosted',
       price: '$0',
-      description: 'The core StillUp engine. Free forever.',
+      description: 'The core Replaysafe engine. Free forever.',
       features: [
         'Unlimited Heartbeat Monitors',
         'Unlimited Guarded Sessions',
@@ -29,7 +29,7 @@ export default function PricingPage() {
     {
       name: 'Cloud Pro',
       price: '$29',
-      description: 'Managed StillUp Cloud for teams.',
+      description: 'Managed Replaysafe Cloud for teams.',
       features: [
         'Up to 50 Managed Monitors',
         'Global Edge Distribution',
@@ -124,9 +124,9 @@ export default function PricingPage() {
 
               <Link 
                 href={
-                  plan.name === 'Self-Hosted' ? 'https://github.com/StillUp/StillUp' : 
+                  plan.name === 'Self-Hosted' ? 'https://github.com/Replaysafe/Replaysafe' : 
                   plan.name === 'Cloud Pro' ? '/payment?plan=pro' : 
-                  'mailto:sales@stillup.io'
+                  'mailto:sales@Replaysafe.io'
                 }
                 className="w-full"
               >
@@ -152,7 +152,7 @@ export default function PricingPage() {
           </div>
           <h2 className="text-3xl font-black uppercase tracking-tight italic">Focused on Open Source.</h2>
           <p className="text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-            StillUp is currently focused on empowering the developer community through our <b>OSS Version</b>.
+            Replaysafe is currently focused on empowering the developer community through our <b>OSS Version</b>.
             While we plan to offer managed Cloud plans in the future, our expansion into global infrastructure and specialized Cloud support will be
             <b> 100% driven by community demand</b>.
           </p>
@@ -162,7 +162,7 @@ export default function PricingPage() {
           </div>
 
           <div className="flex flex-wrap justify-center gap-4 pt-4">
-            <Link href="https://github.com/JobGuards/StillUp/issues">
+            <Link href="https://github.com/JobGuards/Replaysafe/issues">
               <Button variant="outline" className="rounded-full border-border/20 text-xs font-bold uppercase tracking-widest px-8">
                 Join the Discussion
               </Button>
@@ -187,7 +187,7 @@ export default function PricingPage() {
             </div>
             <h3 className="text-2xl font-black uppercase tracking-tight italic">Silent Failure Alerts</h3>
             <p className="text-muted-foreground leading-relaxed">
-              Detect network degradation and stale handshakes before your users do. StillUp is the first to know when pipes go dry.
+              Detect network degradation and stale handshakes before your users do. Replaysafe is the first to know when pipes go dry.
             </p>
           </div>
           <div className="space-y-6 group">

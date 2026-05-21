@@ -1,6 +1,6 @@
 # Architecture & Security
 
-StillUp is built as a modular, scalable platform using a modern full-stack architecture. This document outlines the technical design and the security measures that protect your monitoring data.
+Replaysafe is built as a modular, scalable platform using a modern full-stack architecture. This document outlines the technical design and the security measures that protect your monitoring data.
 
 ## Tech Stack
 
@@ -59,10 +59,10 @@ All state-changing actions are recorded for security and compliance.
 
 ## Distributed System Trade-offs
 
-Designing a safety layer for external applications requires conscious trade-offs between **availability** and **consistency**. StillUp is optimized to be "safe-by-default," prioritizing visibility and loop prevention while offering clear controls for strict requirements.
+Designing a safety layer for external applications requires conscious trade-offs between **availability** and **consistency**. Replaysafe is optimized to be "safe-by-default," prioritizing visibility and loop prevention while offering clear controls for strict requirements.
 
 ### 1. Fail Policies: OPEN vs. CLOSED
-If the StillUp API is unreachable (due to network failure, server outage, or rate limits), the SDK applies the configured `failPolicy`:
+If the Replaysafe API is unreachable (due to network failure, server outage, or rate limits), the SDK applies the configured `failPolicy`:
 
 | Policy | Primary Focus | Behavior on API Failure | Ideal Use Case |
 | :--- | :--- | :--- | :--- |
@@ -70,7 +70,7 @@ If the StillUp API is unreachable (due to network failure, server outage, or rat
 | **`CLOSED`** | Consistency | Blocks execution of the guarded operation and throws an error. | Critical operations where duplicate executions are catastrophic (e.g., payments, user creations). |
 
 ### 2. Hybrid Input Fingerprinting
-Traditional idempotency keys are either fully manual (prone to developer error) or fully automated (prone to hash mismatches from timestamp drift). StillUp uses a hybrid approach:
+Traditional idempotency keys are either fully manual (prone to developer error) or fully automated (prone to hash mismatches from timestamp drift). Replaysafe uses a hybrid approach:
 - **Safe Defaults**: The SDK automatically strips transient fields (`timestamp`, `createdAt`, `requestId`, `traceId`, etc.) before hashing the payload inputs.
 - **Developer Controls**: Developers can explicitly declare extra ignore-keys using `ignoreKeys`, or disable all safe defaults using `disableDefaultIgnoreKeys` for strict deterministic hashing.
 
@@ -78,11 +78,11 @@ Traditional idempotency keys are either fully manual (prone to developer error) 
 To protect the Postgres database from being overloaded during a retry storm:
 - **The Hot Path**: Every `guard.start()` call checks the in-memory `LoopDetectionCache` first to count attempts and check circuit breaker status.
 - **Cache Eviction**: Entries are kept in memory for 5 minutes and automatically evicted.
-- **Durability Fallback**: If the API process restarts, the cache is cleared. On the next execution, StillUp falls back to Postgres to query the execution history, re-hydrating the in-memory cache. This ensures Postgres remains the source of truth without sacrificing high-load performance.
+- **Durability Fallback**: If the API process restarts, the cache is cleared. On the next execution, Replaysafe falls back to Postgres to query the execution history, re-hydrating the in-memory cache. This ensures Postgres remains the source of truth without sacrificing high-load performance.
 
 ### 4. Self-Healing Jitter (Thundering Herd Mitigation)
 When multiple services go down simultaneously, they often recover at the same time. If self-healing fired replays immediately, it would cause a **thundering herd**, hammering downstream nodes.
-StillUp mitigates this by:
+Replaysafe mitigates this by:
 - **Randomized Jitter**: Injecting a randomized delay (5s to 30s) before executing any auto-replay webhook.
 - **Minimum Cooldown**: Enforcing a rate-limit window (default: 60s) per monitor to prevent spamming multiple replays for the same flapping monitor.
 

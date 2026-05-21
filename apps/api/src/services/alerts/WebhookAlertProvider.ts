@@ -34,7 +34,7 @@ export class WebhookAlertProvider implements AlertProvider {
         .createHmac('sha256', secret)
         .update(body)
         .digest('hex')
-      headers['X-StillUp-Signature'] = signature
+      headers['X-Replaysafe-Signature'] = signature
     }
 
     console.log(`[WebhookProvider] Sending webhook to ${url}`)

@@ -18,7 +18,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'StillUp - Heartbeat Monitoring',
+  title: 'Replaysafe - Heartbeat Monitoring',
   description: 'Monitor your cron jobs and backups.',
 }
 

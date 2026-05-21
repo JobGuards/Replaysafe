@@ -159,7 +159,7 @@ function PaymentContent() {
             <div className="space-y-4">
               <h1 className="text-5xl font-black text-foreground uppercase tracking-tighter italic leading-none">SENTINEL_DEPLOYED</h1>
               <p className="text-muted-foreground font-medium text-lg">
-                Your <span className="text-acid-lime font-black italic">StillUp {plans[plan].name}</span> protocols are now active.
+                Your <span className="text-acid-lime font-black italic">Replaysafe {plans[plan].name}</span> protocols are now active.
               </p>
             </div>
             <div className="bg-foreground/[0.03] border border-border/5 rounded-[2rem] p-8 text-left space-y-4 font-mono text-xs">
@@ -468,7 +468,7 @@ function PaymentContent() {
 
               <div className="p-8 border border-border/5 rounded-3xl space-y-4 opacity-60 hover:opacity-100 transition-opacity">
                 <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Deployment_Help?</p>
-                <p className="text-xs text-muted-foreground leading-relaxed font-medium">Need custom sentinel configurations or enterprise-grade auditing? <Link href="mailto:sales@stillup.io" className="text-acid-lime underline underline-offset-4">Contact Protocol Support</Link>.</p>
+                <p className="text-xs text-muted-foreground leading-relaxed font-medium">Need custom sentinel configurations or enterprise-grade auditing? <Link href="mailto:sales@Replaysafe.io" className="text-acid-lime underline underline-offset-4">Contact Protocol Support</Link>.</p>
               </div>
             </div>
           </div>

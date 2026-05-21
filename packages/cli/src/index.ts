@@ -5,25 +5,25 @@ import Conf from 'conf';
 import ora from 'ora';
 import axios from 'axios';
 
-const config = new Conf({ projectName: 'stillup' });
+const config = new Conf({ projectName: 'Replaysafe' });
 const program = new Command();
 
 const banner = `
-  ${chalk.bold.hex('#BFFF00')('STILLUP SENTINEL')} ${chalk.dim('v1.0.0')}
+  ${chalk.bold.hex('#BFFF00')('Replaysafe SENTINEL')} ${chalk.dim('v1.0.0')}
   ${chalk.dim('The Infrastructure Safety Layer')}
 `;
 
 program
-  .name('stillup')
-  .description('Official StillUp Infrastructure Sentinel CLI')
+  .name('Replaysafe')
+  .description('Official Replaysafe Infrastructure Sentinel CLI')
   .version('1.0.0');
 
 // --- LOGIN ---
 program
   .command('login')
-  .description('Authenticate with your StillUp API key')
-  .argument('<apiKey>', 'Your StillUp API Key')
-  .option('-u, --url <url>', 'StillUp API URL', 'http://localhost:4040')
+  .description('Authenticate with your Replaysafe API key')
+  .argument('<apiKey>', 'Your Replaysafe API Key')
+  .option('-u, --url <url>', 'Replaysafe API URL', 'http://localhost:4040')
   .action((apiKey: string, options: { url: string }) => {
     console.log(banner);
     const spinner = ora('Authenticating...').start();
@@ -31,7 +31,7 @@ program
     try {
       config.set('apiKey', apiKey);
       config.set('baseUrl', options.url);
-      spinner.succeed(chalk.green('Successfully authenticated with StillUp Sentinel.'));
+      spinner.succeed(chalk.green('Successfully authenticated with Replaysafe Sentinel.'));
       console.log(chalk.dim(`  Config saved to: ${config.path}`));
     } catch (err) {
       spinner.fail('Failed to save configuration.');
@@ -77,7 +77,7 @@ guard
     const apiKey = config.get('apiKey');
     
     if (!apiKey) {
-      console.log(chalk.red('Error: Please run `stillup login <apiKey>` first.'));
+      console.log(chalk.red('Error: Please run `Replaysafe login <apiKey>` first.'));
       return;
     }
 
@@ -115,7 +115,7 @@ guard
     const apiKey = config.get('apiKey');
     
     if (!apiKey) {
-      console.log(chalk.red('Error: Please run `stillup login <apiKey>` first.'));
+      console.log(chalk.red('Error: Please run `Replaysafe login <apiKey>` first.'));
       return;
     }
 
@@ -155,9 +155,9 @@ program
     const baseUrl = config.get('baseUrl');
     
     if (!apiKey) {
-      console.log(chalk.yellow('Not authenticated. Run `stillup login <apiKey>`'));
+      console.log(chalk.yellow('Not authenticated. Run `Replaysafe login <apiKey>`'));
     } else {
-      console.log(chalk.bold('StillUp Sentinel CLI'));
+      console.log(chalk.bold('Replaysafe Sentinel CLI'));
       console.log(`  API Key: ${chalk.dim('****' + (apiKey as string).slice(-4))}`);
       console.log(`  Base URL: ${chalk.cyan(baseUrl)}`);
     }
@@ -219,7 +219,7 @@ program
     const apiKey = config.get('apiKey');
 
     if (!apiKey) {
-      console.log(chalk.red('Error: Please run `stillup login <apiKey>` first.'));
+      console.log(chalk.red('Error: Please run `Replaysafe login <apiKey>` first.'));
       return;
     }
 
@@ -262,7 +262,7 @@ monitor
     const apiKey = config.get('apiKey');
 
     if (!apiKey) {
-      console.log(chalk.red('Error: Please run `stillup login <apiKey>` first.'));
+      console.log(chalk.red('Error: Please run `Replaysafe login <apiKey>` first.'));
       return;
     }
 
@@ -300,7 +300,7 @@ monitor
     const apiKey = config.get('apiKey');
 
     if (!apiKey) {
-      console.log(chalk.red('Error: Please run `stillup login <apiKey>` first.'));
+      console.log(chalk.red('Error: Please run `Replaysafe login <apiKey>` first.'));
       return;
     }
 
@@ -347,7 +347,7 @@ monitor
       spinner.succeed(chalk.green(`Monitor "${options.name}" created successfully.`));
       console.log(chalk.dim(`  ID:    ${res.data.id}`));
       console.log(chalk.dim(`  Token: ${chalk.yellow(res.data.heartbeatToken)}`));
-      console.log(`\n  Run: ${chalk.bold(`stillup hb ${res.data.heartbeatToken}`)} to send your first pulse.`);
+      console.log(`\n  Run: ${chalk.bold(`Replaysafe hb ${res.data.heartbeatToken}`)} to send your first pulse.`);
     } catch (error: any) {
       spinner.fail(chalk.red(`Failed to create monitor: ${error.message}`));
       if (error.response?.data) {
@@ -366,7 +366,7 @@ monitor
     const apiKey = config.get('apiKey');
 
     if (!apiKey) {
-      console.log(chalk.red('Error: Please run `stillup login <apiKey>` first.'));
+      console.log(chalk.red('Error: Please run `Replaysafe login <apiKey>` first.'));
       return;
     }
 
@@ -392,12 +392,12 @@ program
     const apiKey = config.get('apiKey');
 
     if (!apiKey) {
-      console.log(chalk.red('Error: Please run `stillup login <apiKey>` first.'));
+      console.log(chalk.red('Error: Please run `Replaysafe login <apiKey>` first.'));
       return;
     }
 
     console.log(banner);
-    const spinner = ora('Initializing StillUp Security Sentinel...').start();
+    const spinner = ora('Initializing Replaysafe Security Sentinel...').start();
     await new Promise(r => setTimeout(r, 800));
     
     spinner.text = 'Scanning RBAC configurations...';

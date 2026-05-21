@@ -19,8 +19,8 @@
   "dependencies": {
     "@sentry/node": "^10.52.0",
     "@sentry/profiling-node": "^10.52.0",
-    "@stillup/db": "workspace:*",
-    "@stillup/shared": "workspace:*",
+    "@replaysafe/db": "workspace:*",
+    "@replaysafe/shared": "workspace:*",
     "@types/cors": "^2.8.19",
     "axios": "^1.16.1",
     "bcrypt": "^6.0.0",

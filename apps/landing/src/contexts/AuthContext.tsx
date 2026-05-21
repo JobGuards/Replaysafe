@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setOrganizations(data.projects || [])
         
         // Restore from localStorage or default to first project
-        const storedId = localStorage.getItem('stillup_active_project')
+        const storedId = localStorage.getItem('replaysafe_active_project')
         if (storedId && (data.projects || []).some((p: any) => p.id === storedId)) {
           setActiveOrgId(storedId)
         } else if (data.projects && data.projects.length > 0) {
@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const setActiveOrganization = (id: string) => {
     setActiveOrgId(id)
-    localStorage.setItem('stillup_active_project', id)
+    localStorage.setItem('replaysafe_active_project', id)
     api.setProjectId(id)
     // Trigger global revalidation of all SWR hooks
     mutate(() => true, undefined, { revalidate: true })
@@ -94,7 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null)
       setOrganizations([])
       setActiveOrgId(null)
-      localStorage.removeItem('stillup_active_project')
+      localStorage.removeItem('replaysafe_active_project')
       const dashboardUrl = process.env.NEXT_PUBLIC_DASHBOARD_URL || ""
       window.location.href = `${dashboardUrl}/auth/signin`
     } catch (error) {

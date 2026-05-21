@@ -1,13 +1,13 @@
 # API Reference
 
-StillUp provides a robust REST API for integrating your services and extracting intelligence data.
+Replaysafe provides a robust REST API for integrating your services and extracting intelligence data.
 
 ## Authentication
 
 ### API Keys
 External services (like your cron jobs or servers) should use **X-API-Key** header.
 ```bash
-curl -X POST https://api.stillup.io/api/heartbeats \
+curl -X POST https://api.Replaysafe.io/api/heartbeats \
      -H "X-API-Key: YOUR_API_KEY"
 ```
 
@@ -71,7 +71,7 @@ Returns the last 24 hours of heartbeat status for grid visualization.
 
 ---
 
-## ReplayGuard™ API
+## ReplayGuard API
 
 ### Initialize Session
 `POST /api/guards/session`
@@ -118,7 +118,7 @@ Checks if a specific operation (e.g., payment) has already been performed in a p
 
 ## Error Handling
 
-StillUp uses standard HTTP status codes:
+Replaysafe uses standard HTTP status codes:
 - `200/201`: Success.
 - `400`: Validation Error (check response for details).
 - `401`: Unauthorized (Invalid or missing API key).

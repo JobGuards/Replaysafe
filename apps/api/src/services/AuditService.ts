@@ -1,4 +1,4 @@
-import { prisma } from '@stillup/db'
+import { prisma } from '@replaysafe/db'
 
 export type AuditAction = 
   | 'USER_LOGIN'
