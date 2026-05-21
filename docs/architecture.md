@@ -57,6 +57,32 @@ All state-changing actions are recorded for security and compliance.
 
 ---
 
+## Side-Effect Deduplication: Scope, Guarantees & Boundaries
+
+Replaysafe's deduplication engine is designed to prevent duplicate execution of non-idempotent side effects. To use the safety engine effectively, developers must understand its scope, storage window, and boundaries.
+
+### 1. Scope of Deduplication
+Deduplication is bounded by the session execution and the configuration scope:
+- **Session-Scoped (Default)**: By default, deduplication guarantees apply within a single **Execution Session** (associated with a unique `externalId`). If a job fails at step 3, retrying the *same* session (using the same `externalId`) will skip steps 1 and 2, but launching a *new* session with a different `externalId` will execute all steps from scratch.
+- **Cross-Session/Project Scope**: You can extend the deduplication scope to the entire **Project** by passing `scope: 'PROJECT'` in the `verify` call or adapter wrapper. This ensures a side effect (e.g. `WEBHOOK` to create a user account) is executed exactly once across all monitors and execution runs in that project.
+
+### 2. The Fingerprint Window & Transient Noise
+The uniqueness of a side effect is determined by its **cryptographic fingerprint**, calculated as `hash(type, target, hash(inputs))`.
+- **Transient Field Stripping**: To prevent timestamp and trace ID changes from breaking fingerprint matches across retries, the SDK automatically strips transient fields (e.g., `requestId`, `timestamp`, `nonce`).
+- **Input Determinism**: If the business inputs to a side effect change (e.g., payment `amount` increases from 5000 to 5001), the fingerprint changes, and the action **will execute again**. Developers must ensure that all semantic variables representing the same action remain identical between retries.
+
+### 3. Durability & Storage Window
+- **Durable Memory**: Execution sessions and completed side effects are written to the persistent PostgreSQL database. Deduplication across retries is guaranteed indefinitely, regardless of whether a retry happens immediately or days later.
+- **In-Memory Caching (Hot Path)**: To optimize performance during retry storms, the SDK utilizes local in-process caches and temporary Redis/Memory TTL structures (5-minute window) to identify loops. If these temporary structures clear, Replaysafe falls back to the durable database to maintain exact deduplication guarantees.
+
+### 4. State Drift Boundaries
+Replaysafe guarantees **execution safety**, not external state synchronization.
+- **Out-of-Band Modifications**: If a side effect succeeded but the target external database was modified/restored outside the workflow runner, Replaysafe is unaware of this drift. It will continue to report the side effect as successful and skip it on retry.
+- **State Snapshots**: To mitigate this, developers can use `guard.snapshot(key, state)` to record state signatures and reject execution if drift is detected.
+- **Compensation (Rollbacks)**: If a session terminates in a `FAILED` state, register compensation hooks using `guard.compensate()` to reverse side effects and restore consistency.
+
+---
+
 ## Distributed System Trade-offs
 
 Designing a safety layer for external applications requires conscious trade-offs between **availability** and **consistency**. Replaysafe is optimized to be "safe-by-default," prioritizing visibility and loop prevention while offering clear controls for strict requirements.

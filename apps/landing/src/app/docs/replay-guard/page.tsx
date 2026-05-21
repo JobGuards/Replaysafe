@@ -88,6 +88,39 @@ export const processPayment = async (orderId: string) => {
         </section>
 
         <section className="space-y-8 pt-16 border-t border-border/5">
+          <h2 className="text-4xl font-black uppercase tracking-tight text-foreground italic">Deduplication Scope & Boundaries</h2>
+          <p className="leading-relaxed text-muted-foreground">
+            To ensure execution safety without sacrificing flexibility, the ReplayGuard deduplication engine operates under strict guarantees and boundaries:
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="p-6 rounded-2xl bg-foreground/[0.02] border border-border/10">
+              <h4 className="font-bold text-foreground mb-2">1. Scope Boundaries</h4>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Deduplication is session-scoped by default using a unique <code className="text-acid-lime font-mono">externalId</code>. To share execution memory across monitors or sessions (e.g. unique user creation webhooks), configure your checks with <code className="text-acid-lime font-mono">scope: &apos;PROJECT&apos;</code>.
+              </p>
+            </div>
+            <div className="p-6 rounded-2xl bg-foreground/[0.02] border border-border/10">
+              <h4 className="font-bold text-foreground mb-2">2. Fingerprint Determinism</h4>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Fingerprints are generated via <code className="text-acid-lime font-mono">hash(type, target, hash(inputs))</code>. Transient noise (timestamps, traceIds) is stripped automatically. If semantic business inputs change, a new fingerprint is generated, executing the action again.
+              </p>
+            </div>
+            <div className="p-6 rounded-2xl bg-foreground/[0.02] border border-border/10">
+              <h4 className="font-bold text-foreground mb-2">3. Storage & Durability</h4>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                All completed side effects are stored durably in the PostgreSQL database. Caching layers are used for fast inline loop detection, but the persistent database guarantees idempotency even if retries occur days or weeks later.
+              </p>
+            </div>
+            <div className="p-6 rounded-2xl bg-foreground/[0.02] border border-border/10">
+              <h4 className="font-bold text-foreground mb-2">4. State Drift Mitigations</h4>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                ReplayGuard is a safety layer for execution, not database replication. Use <code className="text-acid-lime font-mono">guard.snapshot()</code> to track external state shifts, or register compensation rollbacks with <code className="text-acid-lime font-mono">guard.compensate()</code>.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="space-y-8 pt-16 border-t border-border/5">
           <h2 className="text-4xl font-black uppercase tracking-tight text-foreground italic">Integration with Replaysafe</h2>
           <p className="leading-relaxed text-muted-foreground">
             Once integrated, your job executions will appear in the **Sentinel Hub Dashboard** under "Guarded Replays", where you can audit every side effect and safely trigger retries.
