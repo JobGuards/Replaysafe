@@ -28,7 +28,7 @@ export function NewNav({ userEmail }: Props) {
         <Link className="px-5 py-2 rounded-full text-sm font-bold text-muted-foreground hover:text-foreground hover:bg-foreground/[0.05] transition-all duration-300 tracking-widest uppercase text-[10px]" href="/docs">
           Docs
         </Link>
-        <Link className="px-5 py-2 rounded-full text-sm font-bold text-muted-foreground hover:text-foreground hover:bg-foreground/[0.05] transition-all duration-300 tracking-widest uppercase text-[10px]" href="http://localhost:3001/pricing" target="_blank">
+        <Link className="px-5 py-2 rounded-full text-sm font-bold text-muted-foreground hover:text-foreground hover:bg-foreground/[0.05] transition-all duration-300 tracking-widest uppercase text-[10px]" href="/pricing" target="_blank">
           Managed
         </Link>
       </nav>
@@ -60,8 +60,11 @@ export function NewNav({ userEmail }: Props) {
             )}
           </div>
         ) : (
-          <Link href={`${dashboardUrl}/auth/signin`} className="ml-2 bg-foreground text-background px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest hover:opacity-90 hover:scale-105 transition-all duration-300">
-            Sign in
+          // <Link href={`${dashboardUrl}/auth/signin`} className="ml-2 bg-foreground text-background px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest hover:opacity-90 hover:scale-105 transition-all duration-300">
+          //   Sign in
+          // </Link>
+          <Link href="/pricing" className="ml-2 bg-foreground text-background px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest hover:opacity-90 hover:scale-105 transition-all duration-300">
+            Waitlist
           </Link>
         )}
       </div>

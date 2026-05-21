@@ -17,7 +17,7 @@ export function Logo({ className = '', iconOnly = false }: LogoProps) {
       </div>
       {!iconOnly && (
         <span className="font-black tracking-tighter text-xl uppercase italic text-foreground">
-          Still<span className="text-acid-lime">Up</span>
+          Replay<span className="text-acid-lime">safe</span>
         </span>
       )}
     </Link>
