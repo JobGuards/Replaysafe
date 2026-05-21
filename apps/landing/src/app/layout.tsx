@@ -7,19 +7,19 @@ import { ThemeProvider } from '@/components/ThemeProvider'
 import { Toaster } from 'sonner'
 import './globals.css'
 
-const outfit = Outfit({ 
+const outfit = Outfit({
   subsets: ["latin"],
   variable: '--font-outfit',
 });
 
-const inter = Inter({ 
+const inter = Inter({
   subsets: ["latin"],
   variable: '--font-inter',
 });
 
 export const metadata: Metadata = {
-  title: 'StillUp - Heartbeat Monitoring',
-  description: 'Monitor your cron jobs and backups.',
+  title: 'StillUp',
+  description: 'Replay-Safe execution engine for autonomous agents and resilient background jobs.',
 }
 
 export default function RootLayout({
