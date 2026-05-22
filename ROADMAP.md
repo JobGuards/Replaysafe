@@ -55,7 +55,7 @@ Replaysafe provides the safety primitives that make retrying an AI agent or back
 
 ---
 
-## 🟢 Phase 5: Autonomous Sentinel Hub (COMPLETED)
+## ⏳ Phase 5: Autonomous Sentinel Hub (IN PROGRESS)
 *The centralized control plane for autonomous reliability.*
 
 - [x] **Memory-Aware Status Pages**: Public pages that show not just "Up/Down", but "Retry Safety" and "Rollback Health."
@@ -78,7 +78,7 @@ Replaysafe provides the safety primitives that make retrying an AI agent or back
 | Rollback Engine (`guard.compensate()`) | Infrastructure Memory | ✅ COMPLETED |
 | State Snapshots (`guard.snapshot()`) | Infrastructure Memory | ✅ COMPLETED |
 | Sovereign Infrastructure | Self-Hosting | ✅ COMPLETED |
-| Autonomous Sentinel Hub | Intelligence | ✅ COMPLETED |
+| Autonomous Sentinel Hub | Intelligence | 🚧 IN PROGRESS |
 
 ---
 
