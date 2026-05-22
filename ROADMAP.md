@@ -3,7 +3,7 @@
 **Vision**: The safety layer for AI agents.  
 **Focus**: Prevent AI agents and background jobs from causing duplicate side effects during retries and failures.
 
-Replaysafe provides the safety primitives that make retrying an AI agent or background job always safe — never catastrophic.
+Replaysafe provides the safety primitives that make retrying an AI agent or background job always safe - never catastrophic.
 
 ---
 
@@ -83,28 +83,28 @@ Replaysafe provides the safety primitives that make retrying an AI agent or back
 ---
 
 ## 🔵 Phase 6: Agent Execution Memory
-*Deepen AI agent support — give agents memory of what they've already done.*
+*Deepen AI agent support - give agents memory of what they've already done.*
 
-- [ ] **OpenAI Assistants API adapter** — `guard.openai()` wraps Assistants tool calls with dedup
-- [ ] **Anthropic MCP adapter** — `guard.mcp()` intercepts MCP tool calls before execution
-- [ ] **LangChain adapter** — wraps LangChain tool executor
-- [ ] **Agent execution memory API** — REST endpoint: "what has this agent already done?"
-- [ ] **Memory timeline dashboard** — visual timeline of Skipped vs Executed calls across retries
+- [ ] **OpenAI Assistants API adapter** - `guard.openai()` wraps Assistants tool calls with dedup
+- [ ] **Anthropic MCP adapter** - `guard.mcp()` intercepts MCP tool calls before execution
+- [ ] **LangChain adapter** - wraps LangChain tool executor
+- [ ] **Agent execution memory API** - REST endpoint: "what has this agent already done?"
+- [ ] **Memory timeline dashboard** - visual timeline of Skipped vs Executed calls across retries
 
 ---
 
 ## 🔵 Phase 7: Cross-Agent Coordination
-*Multiple agents sharing safety context — prevent conflicts before they happen.*
+*Multiple agents sharing safety context - prevent conflicts before they happen.*
 
-- [ ] **Project-scope dedup** — Agent A's completed side effects are visible to Agent B
-- [ ] **Advisory conflict detection** — log when two agents attempted the same fingerprint
-- [ ] **Distributed agent tracing** — trace side effects across forks and sub-agents
+- [ ] **Project-scope dedup** - Agent A's completed side effects are visible to Agent B
+- [ ] **Advisory conflict detection** - log when two agents attempted the same fingerprint
+- [ ] **Distributed agent tracing** - trace side effects across forks and sub-agents
 
 ---
 
 ## 🔵 Phase 8: Autonomous Recovery
 *Agents that recover from failures without human intervention.*
 
-- [ ] **Autonomous compensation** — auto-trigger rollbacks when an agent fails mid-execution
-- [ ] **Drift detection** — alert when external state changed between agent retry attempts
-- [ ] **Agent failure pattern detection** — identify recurring failure signatures automatically
+- [ ] **Autonomous compensation** - auto-trigger rollbacks when an agent fails mid-execution
+- [ ] **Drift detection** - alert when external state changed between agent retry attempts
+- [ ] **Agent failure pattern detection** - identify recurring failure signatures automatically

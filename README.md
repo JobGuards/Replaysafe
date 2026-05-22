@@ -3,7 +3,7 @@
 
   <h1>Replaysafe</h1>
   <p><strong>The safety layer for AI agents and async workflows.</strong></p>
-  <p>Prevent duplicate side effects — double charges, repeated emails, redundant API calls — when AI agents and background jobs fail and retry.</p>
+  <p>Prevent duplicate side effects - double charges, repeated emails, redundant API calls - when AI agents and background jobs fail and retry.</p>
   
   [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-acidlime.svg)](LICENSE)
   [![Version](https://img.shields.io/badge/version-1.0.0--alpha-blue.svg)]()
@@ -14,7 +14,7 @@
 
 ## 🔴 The Problem: AI Agents Don't Know What They Already Did
 
-When an AI agent fails mid-execution and retries, it re-runs from scratch — with no memory of which tool calls already succeeded.
+When an AI agent fails mid-execution and retries, it re-runs from scratch - with no memory of which tool calls already succeeded.
 
 ```
 1. agent.tool("stripe.charge", amount=500)        ✅ Charged $500
@@ -31,21 +31,21 @@ The customer is double-charged. The agent doesn't know. You find out from a supp
 |----------|-------------------|--------------------|
 | Agent retries after DB crash | Double charge | Returns cached result |
 | Agent retries after LLM timeout | Pays for 2 LLM calls + duplicate side effect | Skips cached side effect |
-| Agent makes 50 tool calls, fails at #48 | Reruns all 50 on retry | Skips #1–47, resumes at #48 |
+| Agent makes 50 tool calls, fails at #48 | Reruns all 50 on retry | Skips #1 - 47, resumes at #48 |
 
-The same problem hits traditional background jobs, queues, and cron jobs — but AI agents make it worse because they're **non-deterministic**. You can't pre-compute idempotency keys. Every retry is a gamble.
+The same problem hits traditional background jobs, queues, and cron jobs - but AI agents make it worse because they're **non-deterministic**. You can't pre-compute idempotency keys. Every retry is a gamble.
 
 ---
 
 ## 🟢 The Primitive: ReplayGuard
 
-ReplayGuard wraps your non-idempotent side effects with a cryptographic fingerprint. Before executing, it checks if this exact operation already ran. If it did — it returns the cached result and skips execution. If it didn't — it executes, caches the result, and tracks it for potential rollback.
+ReplayGuard wraps your non-idempotent side effects with a cryptographic fingerprint. Before executing, it checks if this exact operation already ran. If it did - it returns the cached result and skips execution. If it didn't - it executes, caches the result, and tracks it for potential rollback.
 
 ### Guarantees
-- **Replay-safe retries** — same input, same result, no duplicate execution
-- **Deduplication** — cryptographic fingerprinting across all retries
-- **Rollback compensation** — register undo actions that auto-trigger on failure
-- **Stable execution fingerprints** — transient fields (timestamps, trace IDs, UUIDs) stripped automatically
+- **Replay-safe retries** - same input, same result, no duplicate execution
+- **Deduplication** - cryptographic fingerprinting across all retries
+- **Rollback compensation** - register undo actions that auto-trigger on failure
+- **Stable execution fingerprints** - transient fields (timestamps, trace IDs, UUIDs) stripped automatically
 
 ### Example: AI Agent with Stripe Double-Charge Prevention
 
@@ -117,7 +117,7 @@ await withReplayGuard(config, async (guard) => {
 
 ## 🔌 Framework Adapters
 
-Drop-in adapters for the most common AI and workflow frameworks. Every adapter uses the same `guard.wrap()` core — only the intent label changes.
+Drop-in adapters for the most common AI and workflow frameworks. Every adapter uses the same `guard.wrap()` core - only the intent label changes.
 
 ```bash
 npm install @replaysafe/guard-sdk

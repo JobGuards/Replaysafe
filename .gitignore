@@ -39,3 +39,5 @@ scratch/
 
 apps/test-backend/
 .pnpm-store/
+
+plans/
