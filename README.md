@@ -2,33 +2,52 @@
 <img width="150" height="160" alt="Replaysafelogo" src="https://github.com/user-attachments/assets/7bf8e426-9649-4df6-a4c3-2269ebae02b1" />
 
   <h1>Replaysafe</h1>
-  <p><strong>Replay-safe retries for async jobs and AI-agent workflows.</strong></p>
+  <p><strong>The safety layer for AI agents and async workflows.</strong></p>
+  <p>Prevent duplicate side effects — double charges, repeated emails, redundant API calls — when AI agents and background jobs fail and retry.</p>
   
   [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-acidlime.svg)](LICENSE)
   [![Version](https://img.shields.io/badge/version-1.0.0--alpha-blue.svg)]()
+  [![npm](https://img.shields.io/badge/npm-%40replaysafe%2Fguard--sdk-cb3837)](https://www.npmjs.com/package/@replaysafe/guard-sdk)
 </div>
 
 ---
 
-Replaysafe is a **lightweight, privacy-first safety layer** that prevents duplicate side effects (like double charges, duplicate emails, and redundant API calls) during job retries and non-deterministic agent workflows.
+## 🔴 The Problem: AI Agents Don't Know What They Already Did
 
-## 🔴 The Pain: Retry Amplification
-When background jobs, queues, or AI agents fail mid-execution and retry:
-1. **Duplicate Processing**: A job crashes *after* charging a customer card but *before* updating the database. On retry, it charges the card again.
-2. **Cascading Load / Hammering**: Upstream retries hit downstream databases aggressively, causing cascading failures and resource exhaustion.
-3. **Transient Payload Drift**: Payload hashes change on retries due to random UUIDs, timestamps, or trace IDs, breaking basic idempotency checks.
+When an AI agent fails mid-execution and retries, it re-runs from scratch — with no memory of which tool calls already succeeded.
+
+```
+1. agent.tool("stripe.charge", amount=500)        ✅ Charged $500
+2. agent.tool("db.update_order", status="paid")    ❌ Crashes here
+3. RETRY → agent reruns from scratch
+4. agent.tool("stripe.charge", amount=500)        ❌ Charged $500 AGAIN
+```
+
+The customer is double-charged. The agent doesn't know. You find out from a support ticket.
+
+### This gets worse at scale:
+
+| Scenario | Without Replaysafe | With Replaysafe |
+|----------|-------------------|--------------------|
+| Agent retries after DB crash | Double charge | Returns cached result |
+| Agent retries after LLM timeout | Pays for 2 LLM calls + duplicate side effect | Skips cached side effect |
+| Agent makes 50 tool calls, fails at #48 | Reruns all 50 on retry | Skips #1–47, resumes at #48 |
+
+The same problem hits traditional background jobs, queues, and cron jobs — but AI agents make it worse because they're **non-deterministic**. You can't pre-compute idempotency keys. Every retry is a gamble.
 
 ---
 
 ## 🟢 The Primitive: ReplayGuard
-Replaysafe wraps your non-idempotent side effects with **ReplayGuard**. It creates deterministic execution fingerprints of your operations, caches successful executions, and automatically returns the original result on subsequent retries.
+
+ReplayGuard wraps your non-idempotent side effects with a cryptographic fingerprint. Before executing, it checks if this exact operation already ran. If it did — it returns the cached result and skips execution. If it didn't — it executes, caches the result, and tracks it for potential rollback.
 
 ### Guarantees
-- **Replay-safe retries**
-- **Deduplication**
-- **Stable execution fingerprints**
+- **Replay-safe retries** — same input, same result, no duplicate execution
+- **Deduplication** — cryptographic fingerprinting across all retries
+- **Rollback compensation** — register undo actions that auto-trigger on failure
+- **Stable execution fingerprints** — transient fields (timestamps, trace IDs, UUIDs) stripped automatically
 
-### Example: Stripe Double-Charge Prevention
+### Example: AI Agent with Stripe Double-Charge Prevention
 
 ```typescript
 import { withReplayGuard } from '@replaysafe/guard-sdk';
@@ -39,22 +58,21 @@ const config = {
 };
 
 await withReplayGuard(config, async (guard) => {
-  // 1. Guard a non-idempotent operation (e.g., Stripe Charge)
+  // 1. Guard a non-idempotent operation — safe to retry
   const charge = await guard.wrap('STRIPE_CHARGE', 'order_9832', { amount: 5000 }, async () => {
-    // If the job retries, this block will be SKIPPED and the original charge returned.
+    // If the agent retries, this block is SKIPPED and the original charge result returned.
     return await stripe.charges.create({ amount: 5000, currency: 'usd' });
   });
 
-  // 2. Register optional rollback compensation if a later step fails
+  // 2. Register a rollback — automatically triggered if the workflow throws
   await guard.compensate('STRIPE_CHARGE', 'order_9832', { amount: 5000 }, {
     type: 'STRIPE_REFUND',
     target: charge.id,
   });
 
-  // Imagine a transient database crash happens here:
+  // If this crashes and the agent retries — the charge above is NOT repeated.
   await db.orders.update({ id: 'order_9832', status: 'PAID' });
 }, {
-  // 3. Rollback triggered automatically if the block throws
   onRollback: async (action) => {
     if (action.type === 'STRIPE_REFUND') {
       await stripe.refunds.create({ charge: action.target });
@@ -63,43 +81,86 @@ await withReplayGuard(config, async (guard) => {
 });
 ```
 
+### AI Agent Example: LLM Cost Protection
+
+```typescript
+import { withReplayGuard } from '@replaysafe/guard-sdk';
+
+await withReplayGuard(config, async (guard) => {
+  // guard.ai() deduplicates expensive LLM calls — if the agent retries,
+  // the cached completion is returned instead of paying for a second call.
+  const summary = await guard.ai('gpt-4o', { prompt, temperature: 0 }, async () => {
+    return await openai.chat.completions.create({ model: 'gpt-4o', messages });
+  });
+
+  // Protect the downstream side effect too
+  await guard.wrap('EMAIL', user.email, { subject: 'Your summary' }, async () => {
+    return await sendEmail(user.email, summary);
+  });
+});
+```
+
 ---
 
-## ⚡ Advanced Features
+## ⚡ Features
 
-Replaysafe is designed specifically for high-load reliability engineering:
-
-*   **Deterministic Fingerprinting (Safe Defaults)**: Strips transient noise like `timestamp`, `requestId`, `createdAt`, and `traceId` automatically before hashing. Only your semantic payload inputs determine the fingerprint.
-*   **Fast-Path Circuit Breaking**: Uses an in-memory TTL map in the API service. If a client is caught in an infinite retry storm, we trip the execution circuit breaker without hammering Postgres, saving your database from collapse.
-*   **Network Resilience (SDK-embedded)**: Native timeout wraps (3s) and exponential backoff retries with full jitter protect your workers from blocking on Replaysafe API latency.
-*   **Fail-Safe Policies**: Choose how the SDK behaves if Replaysafe goes down:
-    *   `OPEN` (Default): High Availability. Proceed with execution if safety cannot be verified.
-    *   `CLOSED`: High Integrity. Block execution if safety cannot be verified (e.g., financial ops).
-*   **Self-Healing with Rate-Limiting & Jitter**: Triggers auto-replays on monitor failure, but applies randomized jitter delay (5–30s) and minimum cooldown rate-limits to avoid a stampeding herd after an outage.
+*   **Deterministic Fingerprinting**: Strips transient noise like `timestamp`, `requestId`, `createdAt`, and `traceId` automatically before hashing. Only semantic payload inputs determine the fingerprint.
+*   **Rollback Compensation** (`guard.compensate()`): Register undo actions that execute automatically if the workflow fails mid-run. Saga pattern in 3 lines.
+*   **Fail-Safe Policies**: Choose how the SDK behaves if Replaysafe is unreachable:
+    *   `OPEN` (Default): Proceed with execution — high availability for non-critical operations.
+    *   `CLOSED`: Block execution — high integrity for financial operations where duplicates are catastrophic.
+*   **Fast-Path Circuit Breaking**: In-memory TTL circuit breaker trips after 5 consecutive retry loops, with 60-minute cooldown. Prevents retry storms from hammering your database.
+*   **Network Resilience**: 3s timeout + exponential backoff with full jitter on every SDK→API call. Replaysafe going slow never blocks your workers.
+*   **Self-Healing with Jitter**: Auto-replays on monitor failure with randomized delay (5–30s) to prevent thundering herd after outages.
 
 ---
 
 ## 🔌 Framework Adapters
 
-Replaysafe provides zero-boilerplate wrappers for the most popular workflow and AI frameworks:
+Drop-in adapters for the most common AI and workflow frameworks. Every adapter uses the same `guard.wrap()` core — only the intent label changes.
 
-*   **AI Agents**: [LangGraph](./docs/integrations/langgraph.md) & [CrewAI](./docs/integrations/crewai.md) adapters to guard expensive LLM actions.
-*   **Workflows**: [Inngest](./docs/integrations/inngest.md) & [n8n](./docs/integrations/n8n.md) steps to enforce external API idempotency.
-*   **Data Pipelines**: Apache Airflow execution guards.
+```bash
+npm install @replaysafe/guard-sdk
+```
+
+### AI Agents
+| Framework | Method | Guide |
+|-----------|--------|-------|
+| **LangGraph** | `guard.langGraph(nodeId, inputs, fn)` | [Integration Guide →](./docs/integrations/langgraph.md) |
+| **CrewAI** | `guard.crewai(toolName, inputs, fn)` | [Integration Guide →](./docs/integrations/crewai.md) |
+
+### Workflow Engines
+| Framework | Method | Guide |
+|-----------|--------|-------|
+| **Inngest** | `guard.inngest(functionId, inputs, fn)` | [Integration Guide →](./docs/integrations/inngest.md) |
+| **n8n** | `guard.n8n(nodeName, inputs, fn)` | [Integration Guide →](./docs/integrations/n8n.md) |
+| **Apache Airflow** | `guard.airflow(taskId, inputs, fn)` | [Integration Guide →](./docs/integrations/langgraph.md#pattern) |
+
+### Generic (Any Framework)
+```typescript
+// Works with any custom agent, queue, or job runner
+const result = await guard.wrap(
+  'MY_OPERATION',           // Type label — appears in dashboard
+  'unique-operation-id',    // Target identifier
+  { ...semanticInputs },    // Input hash — transient fields stripped automatically
+  () => myDangerousSideEffect()
+);
+```
 
 ---
 
 ## 🚀 Quick Start (Docker)
 
-The fastest way to deploy Replaysafe locally:
+The fastest way to run Replaysafe locally:
 
 ```bash
 # 1. Clone the repository
 git clone https://github.com/Replaysafe/Replaysafe.git && cd Replaysafe
 
-# 2. Launch the stack
+# 2. Launch the full stack
 docker-compose up -d
 ```
+
 Visit `http://localhost:3000` to access the dashboard.
 
 ---
@@ -110,10 +171,11 @@ Visit `http://localhost:3000` to access the dashboard.
 *   [Architecture, DB Cache, & Fail Policies](./docs/architecture.md)
 *   [API Schema Reference](./docs/api-reference.md)
 *   [Self-Hosted Deployment Guide](./docs/self-hosted-guide.md)
+*   [Framework Integrations](./docs/integrations/README.md)
 
 ## ⚖️ License
 
-Replaysafe is open-source software licensed under the [AGPL-3.0 License](LICENSE).
+Replaysafe is open-source software licensed under the [AGPL-3.0 License](LICENSE). Commercial licenses are available for teams that cannot open-source their products under AGPL.
 
 <div align="center">
   <p>Built with ❤️ by the Replaysafe Team</p>
