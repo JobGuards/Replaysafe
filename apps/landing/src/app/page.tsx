@@ -28,19 +28,18 @@ import {
 export default function LandingPage() {
   const { user } = useAuth();
   const dashboardUrl = process.env.NEXT_PUBLIC_DASHBOARD_URL || "";
-  const apiBase = (process.env.NEXT_PUBLIC_API_URL || "https://api.your-domain.com").replace(/\/api$/, "");
-  const START_COMMAND = `curl -fsS ${apiBase}/hb/your-token`;
+  const INSTALL_COMMAND = "npm install @replaysafe/guard-sdk";
   const [copied, setCopied] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [activeFeature, setActiveFeature] = useState(0);
 
   async function copyStart() {
     try {
-      await navigator.clipboard.writeText(START_COMMAND);
+      await navigator.clipboard.writeText(INSTALL_COMMAND);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1500);
     } catch {
-      window.prompt("Copy this command:", START_COMMAND);
+      window.prompt("Copy this command:", INSTALL_COMMAND);
     }
   }
 
@@ -48,9 +47,9 @@ export default function LandingPage() {
     { q: "What is Replaysafe?", a: "Replaysafe is a reliability platform that combines heartbeat monitoring for infrastructure with ReplayGuard for background job safety. We ensure your backups run and your job retries are idempotent." },
     { q: "What is ReplayGuard?", a: "ReplayGuard makes retrying failed jobs safe. It tracks side effects (payments, emails) using cryptographic fingerprints to prevent duplicate execution during retries." },
     { q: "How does it monitor Tunnels?", a: "We track handshake age and latency for WireGuard, SSH, and OpenVPN. If your tunnel degrades or keys go stale, we detect it without intercepting traffic." },
-    { q: "Can I report failures explicitly?", a: "Yes! You can use our CLI or SDK to report failures, measure latency, and guard side effects with replay-safe deduplication — preventing duplicate actions even across aggressive retries." },
+    { q: "Can I report failures explicitly?", a: "Yes! You can use our CLI or SDK to report failures, measure latency, and guard side effects with replay-safe deduplication - preventing duplicate actions even across aggressive retries." },
     { q: "What is 'Execution Memory'?", a: "Replaysafe remembers past failures and successful side effects. We help you find patterns and ensure that retrying a job never charges a customer twice." },
-    { q: "Does it work with my existing orchestration framework?", a: "Yes — ReplayGuard ships with named adapters for LangGraph, LangChain, Inngest, n8n, CrewAI, and Airflow. Each is a drop-in wrapper over the same safety engine. No framework lock-in, no rewrites. If you use raw Python or a custom runner, the HTTP API works anywhere." },
+    { q: "Does it work with my existing orchestration framework?", a: "Yes - ReplayGuard ships with named adapters for LangGraph, CrewAI, Inngest, n8n, and Airflow. Each is a drop-in wrapper over the same safety engine. No framework lock-in, no rewrites. If you use a custom runner or any other framework, the generic guard.wrap() method works anywhere." },
   ];
 
   return (
@@ -80,22 +79,22 @@ export default function LandingPage() {
             </div>
           </div>
           <h1 className="text-headline-xl font-headline-xl text-foreground uppercase tracking-tight">
-            The <span className="glow-lime font-black">Airbag</span><br />
-            <span className="text-foreground/40 font-black italic">For Any Orchestration Stack.</span>
+            The <span className="glow-lime font-black">Safety Layer</span><br />
+            <span className="text-foreground/40 font-black italic">For AI Agents.</span>
           </h1>
           <p className="text-body-lg font-body-lg text-muted-foreground max-w-2xl mt-2">
-            Open Source Safety layer for non-deterministic systems. Prevent duplicate side effects, secure your local infrastructure, and ensure 100% data sovereignty.
+            When AI agents fail and retry, they repeat every action they already took - double charges, duplicate emails, redundant API calls. ReplayGuard intercepts duplicate side effects before they happen.
           </p>
           <div className="flex flex-col items-center gap-lg mt-15">
             <a href="https://github.com/JobGuards/Replaysafe" className="bg-acid-lime text-primary-foreground px-sm py-sm rounded-full font-black uppercase tracking-widest text-sm shadow-[0_0_20px_rgba(var(--theme-lime-rgb),0.3)] hover:shadow-[0_0_40px_rgba(var(--theme-lime-rgb),0.6)] transition-all duration-500 flex items-center gap-xs transform hover:-translate-y-1">
               <Github className="w-8 h-8" />
             </a>
-            {/* Copy Command Section */}
+            {/* Install Command */}
             <div className="flex flex-col items-center gap-2">
               <div className="bg-zinc-950 rounded-xl p-1 flex items-center shadow-2xl border border-white/10 group overflow-hidden">
                 <div className="px-md py-sm font-code-md text-sm md:text-base flex items-center gap-sm">
                   <span className="text-acid-lime font-bold select-none">❯</span>
-                  <span className="text-zinc-100 font-medium selection:bg-acid-lime/30">{START_COMMAND}</span>
+                  <span className="text-zinc-100 font-medium selection:bg-acid-lime/30">{INSTALL_COMMAND}</span>
                 </div>
                 <button
                   onClick={copyStart}
@@ -105,7 +104,7 @@ export default function LandingPage() {
                   {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                 </button>
               </div>
-              <span className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground/40 italic">⚡ Early Access — API endpoint coming soon</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground/40 italic">⚡ Open source · Self-hostable · AGPL-3.0</span>
             </div>
           </div>
         </section>
@@ -133,51 +132,51 @@ export default function LandingPage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 z-10 w-full lg:w-auto">
-                {/* Node 1 */}
+                {/* Node 1 - LangGraph Agent */}
                 <div className="glass-panel rounded-2xl p-6 flex flex-col gap-4 border-border/10 hover:border-acid-lime/50 transition-all hover:shadow-[0_0_20px_rgba(217,255,0,0.1)] relative overflow-hidden group">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-foreground/[0.03] flex items-center justify-center border border-border/10">
+                      <Activity className="text-acid-lime w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-black uppercase tracking-tight">LangGraph Agent</div>
+                      <div className="text-[10px] text-muted-foreground font-code-md uppercase tracking-widest">Retry_Attempt_02</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-acid-lime bg-acid-lime/5 px-3 py-1.5 rounded-lg border border-acid-lime/10 w-fit">
+                    <ShieldCheck className="w-3 h-3" /> DEDUPED
+                  </div>
+                </div>
+
+                {/* Node 2 - Stripe Charge */}
+                <div className="glass-panel rounded-2xl p-6 flex flex-col gap-4 border-border/10 hover:border-acid-lime/50 transition-all hover:shadow-[0_0_20px_rgba(217,255,0,0.1)] relative overflow-hidden group bg-acid-lime/[0.02]">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-acid-lime/10 flex items-center justify-center border border-acid-lime/20">
+                      <Zap className="text-acid-lime w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-black uppercase tracking-tight">Stripe Charge</div>
+                      <div className="text-[10px] text-acid-lime font-code-md uppercase tracking-widest">ReplayGuard</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-acid-lime bg-acid-lime/10 px-3 py-1.5 rounded-lg border border-acid-lime/20 w-fit">
+                    <ShieldCheck className="w-3 h-3" /> SKIPPED
+                  </div>
+                </div>
+
+                {/* Node 3 - LLM Call */}
+                <div className="glass-panel rounded-2xl p-6 flex flex-col gap-4 border-border/10 hover:border-acid-lime/50 transition-all hover:shadow-[0_0_20px_rgba(217,255,0,0.1)] relative overflow-hidden group border-acid-lime/20 bg-acid-lime/5">
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-xl bg-foreground/[0.03] flex items-center justify-center border border-border/10">
                       <Database className="text-acid-lime w-5 h-5" />
                     </div>
                     <div>
-                      <div className="text-sm font-black uppercase tracking-tight">Postgres Backup</div>
-                      <div className="text-[10px] text-muted-foreground font-code-md uppercase tracking-widest">Cron_Daily</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-acid-lime bg-acid-lime/5 px-3 py-1.5 rounded-lg border border-acid-lime/10 w-fit">
-                    <span className="w-1.5 h-1.5 rounded-full bg-acid-lime animate-pulse"></span> HEALTHY
-                  </div>
-                </div>
-
-                {/* Node 2 - Tunnel Node */}
-                <div className="glass-panel rounded-2xl p-6 flex flex-col gap-4 border-border/10 hover:border-acid-lime/50 transition-all hover:shadow-[0_0_20px_rgba(217,255,0,0.1)] relative overflow-hidden group bg-acid-lime/[0.02]">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-acid-lime/10 flex items-center justify-center border border-acid-lime/20">
-                      <Lock className="text-acid-lime w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="text-sm font-black uppercase tracking-tight">HQ VPN Tunnel</div>
-                      <div className="text-[10px] text-acid-lime font-code-md uppercase tracking-widest">WireGuard</div>
+                      <div className="text-sm font-black uppercase tracking-tight">LLM Call</div>
+                      <div className="text-[10px] text-acid-lime font-code-md uppercase tracking-widest">guard.ai()</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-acid-lime bg-acid-lime/10 px-3 py-1.5 rounded-lg border border-acid-lime/20 w-fit">
-                    <Wifi className="w-3 h-3" /> 12ms LATENCY
-                  </div>
-                </div>
-
-                {/* Node 3 - ReplayGuard Node */}
-                <div className="glass-panel rounded-2xl p-6 flex flex-col gap-4 border-border/10 hover:border-acid-lime/50 transition-all hover:shadow-[0_0_20px_rgba(217,255,0,0.1)] relative overflow-hidden group border-acid-lime/20 bg-acid-lime/5">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-foreground/[0.03] flex items-center justify-center border border-border/10">
-                      <Zap className="text-acid-lime w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="text-sm font-black uppercase tracking-tight">Payment Retry</div>
-                      <div className="text-[10px] text-acid-lime font-code-md uppercase tracking-widest">ReplayGuard</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-acid-lime bg-acid-lime/10 px-3 py-1.5 rounded-lg border border-acid-lime/20 w-fit">
-                    <ShieldCheck className="w-3 h-3" /> IDEMPOTENT
+                    <Check className="w-3 h-3" /> CACHED
                   </div>
                 </div>
               </div>
@@ -185,7 +184,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ReplayGuard Deep Dive — PRIMARY SECTION */}
+        {/* ReplayGuard Deep Dive - PRIMARY SECTION */}
         <section className="w-full py-24 relative">
           <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
             <div className="space-y-10">
@@ -293,18 +292,17 @@ export default function LandingPage() {
         </section>
 
         <section className="w-full py-24 relative overflow-hidden">
-          {/* Works With — Framework Compatibility Strip */}
+          {/* Works With - Framework Compatibility Strip */}
           <div className="mt-16 w-full mx-auto">
             <p className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground/50 mb-6 italic text-center">Drop-in safety proxy for</p>
             <div className="flex flex-wrap justify-center items-center gap-3">
               {[
                 { name: 'LangGraph', color: '#1a73e8', icon: '⬡', href: '/docs/integrations/langgraph' },
-                { name: 'LangChain', color: '#38bdf8', icon: '🦜', href: '/docs/integrations/langgraph' },
+                { name: 'CrewAI', color: '#00b894', icon: '⬡', href: '/docs/integrations/crewai' },
                 { name: 'Inngest', color: '#e8821a', icon: '⚡', href: '/docs/integrations/inngest' },
                 { name: 'n8n', color: '#ea4b71', icon: '◆', href: '/docs/integrations/n8n' },
-                { name: 'CrewAI', color: '#00b894', icon: '⬡', href: '/docs/integrations/crewai' },
                 { name: 'Airflow', color: '#017cee', icon: '◈', href: '/docs/integrations/langgraph' },
-                { name: 'Raw Python', color: '#4a9eff', icon: '⬟', href: '/docs/integrations/crewai' },
+                { name: 'Any Framework', color: '#4a9eff', icon: '⬟', href: '/docs/integrations/README' },
               ].map((fw) => (
                 <Link
                   key={fw.name}
@@ -326,7 +324,7 @@ export default function LandingPage() {
                 <span className="w-2 h-2 rounded-full bg-destructive"></span>
                 <span className="text-[10px] font-black uppercase tracking-widest text-destructive/70">Without ReplayGuard</span>
               </div>
-              <pre className="text-xs font-mono text-muted-foreground p-4 overflow-x-auto leading-relaxed"><code>{`// LangGraph node — UNSAFE on retry
+              <pre className="text-xs font-mono text-muted-foreground p-4 overflow-x-auto leading-relaxed"><code>{`// LangGraph node - UNSAFE on retry
 async function chargeNode(state) {
   // ⚠️ On retry: charges TWICE
   const charge = await stripe
@@ -343,7 +341,7 @@ async function chargeNode(state) {
                 <span className="w-2 h-2 rounded-full bg-acid-lime animate-pulse"></span>
                 <span className="text-[10px] font-black uppercase tracking-widest text-acid-lime/70">With ReplayGuard</span>
               </div>
-              <pre className="text-xs font-mono text-muted-foreground p-4 overflow-x-auto leading-relaxed"><code>{`// LangGraph node — SAFE on retry
+              <pre className="text-xs font-mono text-muted-foreground p-4 overflow-x-auto leading-relaxed"><code>{`// LangGraph node - SAFE on retry
 async function chargeNode(state, guard) {
   // ✅ On retry: replays cached result
   const charge = await guard.langGraph(
@@ -360,13 +358,13 @@ async function chargeNode(state, guard) {
           </div>
         </section>
 
-        {/* Sentinel / Infrastructure Telemetry — SUPPORTING SECTION */}
+        {/* Sentinel / Infrastructure Telemetry - SUPPORTING SECTION */}
         <section className="w-full py-24 relative overflow-hidden">
           <div className="text-center mb-20">
             <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-acid-lime mb-4 italic">Visibility for the Replay Engine</h2>
             <h3 className="text-4xl md:text-5xl font-black uppercase tracking-tight">Infrastructure <span className="glow-lime">Telemetry</span>.</h3>
             <p className="text-muted-foreground mt-8 max-w-2xl mx-auto text-lg leading-relaxed">
-              Know when the infrastructure your agents depend on starts to degrade — before a retry turns into a disaster.
+              Know when the infrastructure your agents depend on starts to degrade - before a retry turns into a disaster.
             </p>
           </div>
 
@@ -405,19 +403,34 @@ async function chargeNode(state, guard) {
       </main>
 
       <section className="w-full max-w-7xl mx-auto px-margin py-xl flex flex-col items-center gap-lg">
-        <h2 className="text-headline-lg font-headline-lg text-foreground text-center">Trusted by Engineers Building Autonomous Systems</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-md w-full">
-          <div className="glass-panel rounded-xl p-lg flex flex-col justify-between gap-md border border-border/20 hover:border-acid-lime/30 transition-all">
-            <p className="text-body-lg font-body-lg text-foreground italic">"ReplayGuard saved us from charging 200 customers twice during a retry storm. It intercepted the duplicate payment before it hit Stripe."</p>
-            <div className="text-label-sm text-muted-foreground">- Lead Engineer @ FinTech Startup</div>
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-acid-lime/20 bg-acid-lime/5 text-[10px] font-black italic text-acid-lime uppercase tracking-widest mb-2">
+          Early Access
+        </div>
+        <h2 className="text-headline-lg font-headline-lg text-foreground text-center">Built for the Problems You're Already Hitting</h2>
+        <p className="text-muted-foreground text-center max-w-2xl text-sm leading-relaxed">
+          Replaysafe is in early access. We're working directly with engineering teams who are deploying AI agents in production and hitting the duplicate side-effect problem. If that's you, we want to hear from you.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-md w-full mt-4">
+          <div className="glass-panel rounded-xl p-lg flex flex-col gap-md border border-border/20 hover:border-acid-lime/30 transition-all">
+            <div className="w-10 h-10 rounded-xl bg-acid-lime/10 flex items-center justify-center border border-acid-lime/20">
+              <Zap className="text-acid-lime w-5 h-5" />
+            </div>
+            <h4 className="font-black uppercase tracking-tight italic text-sm">The Double-Charge Problem</h4>
+            <p className="text-sm text-muted-foreground leading-relaxed">Agent charges a customer, DB write fails, agent retries - and charges again. ReplayGuard fingerprints the charge and skips execution on retry. The customer is never billed twice.</p>
           </div>
-          <div className="glass-panel rounded-xl p-lg flex flex-col justify-between gap-md border border-border/20 hover:border-acid-lime/30 transition-all">
-            <p className="text-body-lg font-body-lg text-foreground italic">"Our AI agents were silently retrying failed LLM calls and corrupting downstream state. Replaysafe's execution memory stopped that completely."</p>
-            <div className="text-label-sm text-muted-foreground">- Senior AI Infrastructure Engineer</div>
+          <div className="glass-panel rounded-xl p-lg flex flex-col gap-md border border-border/20 hover:border-acid-lime/30 transition-all">
+            <div className="w-10 h-10 rounded-xl bg-acid-lime/10 flex items-center justify-center border border-acid-lime/20">
+              <Database className="text-acid-lime w-5 h-5" />
+            </div>
+            <h4 className="font-black uppercase tracking-tight italic text-sm">The LLM Retry Tax</h4>
+            <p className="text-sm text-muted-foreground leading-relaxed">Every agent retry re-runs every LLM call from scratch. <span className="font-mono text-acid-lime/80">guard.ai()</span> caches completions - if the same call already ran, the cached result is returned. No second API bill.</p>
           </div>
-          <div className="glass-panel rounded-xl p-lg flex flex-col justify-between gap-md border border-border/20 hover:border-acid-lime/30 transition-all">
-            <p className="text-body-lg font-body-lg text-foreground italic">"The duplicate side-effect problem is something we were hand-rolling with Redis locks. Replaysafe's replay-safe layer just solved it. We ripped out 400 lines of custom code."</p>
-            <div className="text-label-sm text-muted-foreground">- Infrastructure Lead @ B2B SaaS</div>
+          <div className="glass-panel rounded-xl p-lg flex flex-col gap-md border border-border/20 hover:border-acid-lime/30 transition-all">
+            <div className="w-10 h-10 rounded-xl bg-acid-lime/10 flex items-center justify-center border border-acid-lime/20">
+              <RefreshCw className="text-acid-lime w-5 h-5" />
+            </div>
+            <h4 className="font-black uppercase tracking-tight italic text-sm">The 50-Step Restart Problem</h4>
+            <p className="text-sm text-muted-foreground leading-relaxed">Agent runs 50 tool calls, fails at step 48, retries from scratch. ReplayGuard skips steps 1–47, resumes at 48. No duplicate side effects. No wasted compute.</p>
           </div>
         </div>
       </section>
