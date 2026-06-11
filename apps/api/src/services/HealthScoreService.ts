@@ -36,8 +36,8 @@ export class HealthScoreService {
 
     // 2. Latency Score
     const latencies = heartbeats
-      .filter((h: any) => h.latencyMs !== null)
-      .map((h: any) => h.latencyMs)
+      .filter((h: any) => h.latency !== null && h.latency !== undefined)
+      .map((h: any) => h.latency)
     
     const avgLatency = latencies.length > 0 
       ? latencies.reduce((a: number, b: number) => a + b, 0) / latencies.length

@@ -83,7 +83,7 @@ router.post('/plan', authMiddleware, projectAccessMiddleware('OWNER'), async (re
     auditService.log({
       userId: req.user?.id,
       projectId: updatedProject.id,
-      action: 'PROJECT_CREATE',
+      action: 'PROJECT_UPDATE',
       resourceType: 'PROJECT',
       resourceId: updatedProject.id,
       metadata: { upgradedTo: plan }

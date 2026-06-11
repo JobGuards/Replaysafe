@@ -1,17 +1,20 @@
 import { prisma } from '@replaysafe/db'
 
 export type AuditAction = 
+  | 'USER_SIGNUP'
   | 'USER_LOGIN'
   | 'USER_LOGOUT'
   | 'MONITOR_CREATE'
   | 'MONITOR_UPDATE'
   | 'MONITOR_DELETE'
   | 'PROJECT_CREATE'
+  | 'PROJECT_UPDATE'
   | 'PROJECT_DELETE'
   | 'ALERT_CHANNEL_CREATE'
   | 'ALERT_CHANNEL_DELETE'
   | 'API_KEY_CREATE'
   | 'API_KEY_DELETE'
+  | 'GUARD_SESSION_CREATE'
 
 export interface AuditLogOptions {
   userId?: string

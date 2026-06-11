@@ -159,11 +159,6 @@ export function projectAccessMiddleware(requiredRole: 'OWNER' | 'ADMIN' | 'MEMBE
 export function monitorAccessMiddleware(requiredRole: 'OWNER' | 'ADMIN' | 'MEMBER' = 'MEMBER') {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      if (!req.user) {
-        res.status(401).json({ error: 'Authentication required' })
-        return
-      }
-
       const { monitorId } = req.params
       if (!monitorId) {
         res.status(400).json({ error: 'Monitor ID is required' })
@@ -178,6 +173,28 @@ export function monitorAccessMiddleware(requiredRole: 'OWNER' | 'ADMIN' | 'MEMBE
 
       if (!monitor) {
         res.status(404).json({ error: 'Monitor not found' })
+        return
+      }
+
+      // If project context is already set (from API key auth), verify it matches
+      if (req.project) {
+        if (req.project.id !== monitor.projectId) {
+          res.status(403).json({ error: 'You do not have access to this monitor' })
+          return
+        }
+        const roles = ['MEMBER', 'ADMIN', 'OWNER']
+        const userRoleIndex = roles.indexOf(req.project.role)
+        const requiredRoleIndex = roles.indexOf(requiredRole)
+        if (userRoleIndex < requiredRoleIndex) {
+          res.status(403).json({ error: `Insufficient permissions. Required role: ${requiredRole}` })
+          return
+        }
+        return next()
+      }
+
+      // Require user for non-API-key auth
+      if (!req.user) {
+        res.status(401).json({ error: 'Authentication required' })
         return
       }
 
@@ -329,8 +346,8 @@ export async function apiKeyMiddleware(
       return
     }
 
-    // Attach project to request
-    req.project = { id: keyData.projectId, role: 'OWNER' }
+    // Attach project to request — API keys map to ADMIN role
+    req.project = { id: keyData.projectId, role: 'ADMIN' }
 
     // Update lastUsed timestamp asynchronously (no need to wait for it)
     prisma.apiKey

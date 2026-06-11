@@ -1,10 +1,12 @@
 import { AlertProvider, AlertData } from './AlertProvider.js'
+import { validateWebhookUrl } from '../../utils/validateUrl.js'
 
 
 export class SlackAlertProvider implements AlertProvider {
   async sendAlert(channelConfig: any, data: AlertData): Promise<void> {
     const { webhookUrl } = channelConfig
     if (!webhookUrl) throw new Error('Slack webhookUrl is missing')
+    validateWebhookUrl(webhookUrl)
 
     const isResolution = data.type === 'resolution'
     const isEmergency = data.type === 'emergency'

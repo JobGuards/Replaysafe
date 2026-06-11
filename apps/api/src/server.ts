@@ -57,11 +57,17 @@ export function createApp() {
     })
   );
 
-  // 4. Body parsing and cookie parsing
+  // 4. Raw body capture for Stripe webhook signature verification (must be before JSON parser)
+  app.use('/api/stripe/webhook', express.raw({ type: 'application/json', limit: '10kb' }), (req, _res, next) => {
+    (req as any).rawBody = req.body
+    next()
+  })
+
+  // 5. Body parsing and cookie parsing
   app.use(express.json({ limit: "10kb" })); // Request size limit
   app.use(cookieParser());
 
-  // 5. Global API rate limiting
+  // 6. Global API rate limiting
   app.use("/api", apiRateLimiter);
 
   // 6. Metrics and Health check

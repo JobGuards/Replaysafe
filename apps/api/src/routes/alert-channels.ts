@@ -4,6 +4,8 @@ import { authMiddleware, projectAccessMiddleware } from '../middleware/auth.js'
 import { encryptJSON, decryptJSON } from '../utils/encryption.js'
 import { auditService } from '../services/AuditService.js'
 import { alertService } from '../services/AlertService.js'
+import { createAlertChannelSchema } from '../validators/alertChannel.js'
+import { z } from 'zod'
 
 const router = Router()
 
@@ -18,11 +20,14 @@ router.get('/', authMiddleware, projectAccessMiddleware('MEMBER'), async (req, r
       where: { projectId: project!.id },
     })
 
-    // Decrypt configs before sending to UI
-    const decryptedChannels = channels.map((c: any) => ({
-      ...c,
-      config: decryptJSON(c.config),
-    }))
+    // Decrypt configs before sending to UI; skip any that fail
+    const decryptedChannels = channels.map((c: any) => {
+      try {
+        return { ...c, config: decryptJSON(c.config) }
+      } catch {
+        return { ...c, config: { error: 'Failed to decrypt config' } }
+      }
+    })
 
     res.json(decryptedChannels)
   } catch (error) {
@@ -38,12 +43,17 @@ router.get('/', authMiddleware, projectAccessMiddleware('MEMBER'), async (req, r
 router.post('/', authMiddleware, projectAccessMiddleware('ADMIN'), async (req, res) => {
   try {
     const { project } = req
-    const { type, config, enabled } = req.body
 
-    if (!type || !config) {
-      res.status(400).json({ error: 'Type and config are required' })
+    const validation = createAlertChannelSchema.safeParse(req.body)
+    if (!validation.success) {
+      res.status(400).json({
+        error: 'Validation failed',
+        details: validation.error.format(),
+      })
       return
     }
+
+    const { type, config, enabled } = validation.data
 
     // Encrypt config at rest
     const encryptedConfig = encryptJSON(config)
@@ -68,7 +78,7 @@ router.post('/', authMiddleware, projectAccessMiddleware('ADMIN'), async (req, r
 
     res.status(201).json({
       ...channel,
-      config: decryptJSON(channel.config),
+      config: (() => { try { return decryptJSON(channel.config) } catch { return { error: 'Failed to decrypt config' } } })(),
     })
   } catch (error) {
     console.error('Create alert channel error:', error)

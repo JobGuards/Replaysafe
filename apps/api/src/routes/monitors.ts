@@ -36,24 +36,26 @@ router.post('/', unifiedAuth, projectAccessMiddleware('ADMIN'), async (req, res)
       validation.data.timezone
     )
 
-    // 3. Create monitor
+    // 3. Create monitor (includes heartbeatToken in response)
     const monitor = await monitorRepository.create({
       ...validation.data,
       projectId: project.id,
-      // We also need to set nextExpectedAt in the repository or here
     })
 
-    // Update with nextExpectedAt (or we could have added it to the repo create method)
-    // For now, let's update it here to keep it simple as requested
-    const updatedMonitor = await monitorRepository.update(monitor.id, project.id, {
+    // Update with nextExpectedAt
+    await monitorRepository.update(monitor.id, project.id, {
         // @ts-ignore
         nextExpectedAt
     })
 
-    // Log the action
-    await auditService.logMonitorAction('MONITOR_CREATE', updatedMonitor, req.user?.id)
+    // Re-fetch without token for audit, but keep the created record (with token) for response
+    const monitorForAudit = { ...monitor }
+    delete monitorForAudit.heartbeatToken
 
-    res.status(201).json(updatedMonitor)
+    // Log the action
+    await auditService.logMonitorAction('MONITOR_CREATE', monitorForAudit, req.user?.id)
+
+    res.status(201).json(monitor)
   } catch (error) {
     console.error('Create monitor error:', error)
     if (error instanceof Error) {

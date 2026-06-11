@@ -52,6 +52,10 @@ export class MonitorRepository {
       (monitor as any).lastHeartbeat = monitor.heartbeats[0] || null
     }
 
+    if (monitor) {
+      delete (monitor as any).heartbeatToken
+    }
+
     return monitor
   }
 
@@ -77,6 +81,7 @@ export class MonitorRepository {
 
     return monitors.map((m: any) => {
       m.lastHeartbeat = m.heartbeats?.[0] || null
+      delete m.heartbeatToken
       return m
     })
   }

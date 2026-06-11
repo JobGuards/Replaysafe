@@ -1,12 +1,21 @@
 import { rateLimit } from 'express-rate-limit'
 
+function envInt(key: string, defaultVal: number): number {
+  const v = process.env[key]
+  if (v) {
+    const n = parseInt(v, 10)
+    if (!isNaN(n) && n > 0) return n
+  }
+  return defaultVal
+}
+
 /**
  * General API rate limiter
  * Limits repeat requests to public APIs and/or internal endpoints
  */
 export const apiRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  limit: 1000, // Increased for development
+  windowMs: envInt('RATE_LIMIT_API_WINDOW_MS', 15 * 60 * 1000),
+  limit: envInt('RATE_LIMIT_API_MAX', 1000),
   standardHeaders: 'draft-7',
   legacyHeaders: false,
   message: {
@@ -19,14 +28,13 @@ export const apiRateLimiter = rateLimit({
  * (Signup and Login)
  */
 export const authRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  limit: 100, // Increased for development
+  windowMs: envInt('RATE_LIMIT_AUTH_WINDOW_MS', 15 * 60 * 1000),
+  limit: envInt('RATE_LIMIT_AUTH_MAX', 20),
   standardHeaders: 'draft-7',
   legacyHeaders: false,
   message: {
     error: 'Too many authentication attempts, please try again in 15 minutes.',
   },
-  skipSuccessfulRequests: true,
 })
 
 /**
@@ -34,8 +42,8 @@ export const authRateLimiter = rateLimit({
  * Prevents spamming the ingestion endpoint
  */
 export const heartbeatRateLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minute
-  limit: 30, // Limit each IP to 30 heartbeats per minute
+  windowMs: envInt('RATE_LIMIT_HEARTBEAT_WINDOW_MS', 1 * 60 * 1000),
+  limit: envInt('RATE_LIMIT_HEARTBEAT_MAX', 30),
   standardHeaders: 'draft-7',
   legacyHeaders: false,
   message: {

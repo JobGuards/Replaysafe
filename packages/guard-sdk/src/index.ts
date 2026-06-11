@@ -624,14 +624,19 @@ export async function withReplayGuard<T>(
     await guard.complete('SUCCESS');
     return result;
   } catch (error) {
-    // Automatically trigger rollback on failure
-    const completion = await guard.complete('FAILED', true);
-    
-    if (completion?.rollbacks && opt.onRollback) {
-      if (config.debug) console.log(`[ReplayGuard] Executing ${completion.rollbacks.length} rollback hooks`);
-      for (const rb of completion.rollbacks) {
-        await opt.onRollback(rb);
+    // Automatically trigger rollback on failure (best-effort — never masks original error)
+    try {
+      const completion = await guard.complete('FAILED', true);
+      if (completion?.rollbacks && opt.onRollback) {
+        if (config.debug) console.log(`[ReplayGuard] Executing ${completion.rollbacks.length} rollback hooks`);
+        for (const rb of completion.rollbacks) {
+          await Promise.resolve(opt.onRollback(rb)).catch((e: any) => {
+            if (config.debug) console.error(`[ReplayGuard] Rollback hook failed: ${e.message}`);
+          });
+        }
       }
+    } catch (completeErr) {
+      if (config.debug) console.error(`[ReplayGuard] Session completion failed (original error preserved): ${completeErr}`);
     }
     
     throw error;

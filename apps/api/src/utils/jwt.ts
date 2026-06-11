@@ -21,6 +21,7 @@ export interface JwtPayload {
  */
 export function generateToken(payload: JwtPayload): string {
   return jwt.sign(payload, getSecret(), {
+    algorithm: 'HS256',
     expiresIn: JWT_EXPIRES_IN as any,
   })
 }
@@ -31,7 +32,7 @@ export function generateToken(payload: JwtPayload): string {
  */
 export function verifyToken(token: string): JwtPayload {
   try {
-    const decoded = jwt.verify(token, getSecret()) as JwtPayload
+    const decoded = jwt.verify(token, getSecret(), { algorithms: ['HS256'] }) as JwtPayload
     return decoded
   } catch (error) {
     if (error instanceof jwt.JsonWebTokenError) {

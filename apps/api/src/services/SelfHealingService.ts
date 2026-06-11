@@ -1,5 +1,6 @@
 import { prisma } from '@replaysafe/db'
 import axios from 'axios'
+import { validateWebhookUrl } from '../utils/validateUrl.js'
 
 /**
  * Adds a randomized jitter delay to prevent stampeding herd effects when many
@@ -104,6 +105,7 @@ export class SelfHealingService {
     // 4. Execute general healing webhook if configured (non-autoReplay mode)
     if (policy.webhookUrl && !policy.autoReplay) {
       try {
+        validateWebhookUrl(policy.webhookUrl)
         await axios.post(policy.webhookUrl, {
           monitorId,
           monitorName: monitor.name,
@@ -129,6 +131,7 @@ export class SelfHealingService {
       const targetUrl = policy.replayUrl || policy.webhookUrl
       if (targetUrl) {
         try {
+          validateWebhookUrl(targetUrl)
           // Apply jitter before firing to avoid thundering herd
           await applyJitter(
             (policy.jitterMinSeconds ?? 5) * 1000,

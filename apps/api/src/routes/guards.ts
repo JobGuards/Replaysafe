@@ -3,6 +3,7 @@ import { apiKeyMiddleware, unifiedAuth, projectAccessMiddleware } from "../middl
 import { GuardsService } from "../services/GuardsService.js";
 import { signToken, verifyToken } from "../utils/encryption.js";
 import { prisma } from "@replaysafe/db";
+import { auditService } from "../services/AuditService.js";
 
 const router = Router();
 
@@ -23,7 +24,15 @@ router.post("/session", apiKeyMiddleware, async (req, res) => {
 
     const execution = await GuardsService.createSession(monitorId, project.id, externalId);
     const signature = signToken(execution.id);
-    
+
+    auditService.log({
+      projectId: project.id,
+      action: 'GUARD_SESSION_CREATE',
+      resourceType: 'GUARD_EXECUTION',
+      resourceId: execution.id,
+      metadata: { monitorId, externalId, attempt: execution.attempt },
+    }).catch(e => console.error('[Guards] Audit log failed:', e))
+
     res.json({
       executionId: execution.id,
       attempt: execution.attempt,

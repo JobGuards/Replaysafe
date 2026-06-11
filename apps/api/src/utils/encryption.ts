@@ -1,60 +1,68 @@
 import crypto from 'crypto'
-import dotenv from 'dotenv'
-
-dotenv.config()
 
 const ALGORITHM = 'aes-256-gcm'
 const IV_LENGTH = 12
 const AUTH_TAG_LENGTH = 16
-const KEY = process.env.MASTER_ENCRYPTION_KEY 
-  ? crypto.scryptSync(process.env.MASTER_ENCRYPTION_KEY, 'salt', 32)
-  : crypto.randomBytes(32) // Fallback for dev if not set, but will lose data on restart
 
-if (!process.env.MASTER_ENCRYPTION_KEY && process.env.NODE_ENV === 'production') {
-  throw new Error('MASTER_ENCRYPTION_KEY must be set in production')
+const MASTER_KEY: string = process.env.MASTER_ENCRYPTION_KEY ?? ''
+if (!MASTER_KEY) {
+  throw new Error(
+    'FATAL: MASTER_ENCRYPTION_KEY environment variable is not set. '
+    + 'Generate one with: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"'
+  )
+}
+
+/**
+ * Derives a 32-byte key from the master key using a random salt.
+ * The salt is prepended to the ciphertext so decryption can re-derive the same key.
+ */
+function deriveKey(salt: Buffer): Buffer {
+  return crypto.scryptSync(MASTER_KEY, salt, 32)
 }
 
 /**
  * Encrypts a string
- * Returns format: iv:authTag:encryptedText
+ * Returns format: salt:iv:authTag:encryptedText
  */
 export function encrypt(text: string): string {
+  const salt = crypto.randomBytes(16)
+  const key = deriveKey(salt)
   const iv = crypto.randomBytes(IV_LENGTH)
-  const cipher = crypto.createCipheriv(ALGORITHM, KEY, iv)
+  const cipher = crypto.createCipheriv(ALGORITHM, key, iv)
   
   let encrypted = cipher.update(text, 'utf8', 'hex')
   encrypted += cipher.final('hex')
   
   const authTag = cipher.getAuthTag().toString('hex')
   
-  return `${iv.toString('hex')}:${authTag}:${encrypted}`
+  return `${salt.toString('hex')}:${iv.toString('hex')}:${authTag}:${encrypted}`
 }
 
 /**
  * Decrypts a string
+ * @throws Error if decryption fails (wrong key, corrupted data, or invalid format)
  */
 export function decrypt(encryptedText: string): string {
-  try {
-    const [ivHex, authTagHex, encrypted] = encryptedText.split(':')
-    
-    if (!ivHex || !authTagHex || !encrypted) {
-      throw new Error('Invalid encrypted text format')
-    }
-    
-    const iv = Buffer.from(ivHex, 'hex')
-    const authTag = Buffer.from(authTagHex, 'hex')
-    const decipher = crypto.createDecipheriv(ALGORITHM, KEY, iv)
-    
-    decipher.setAuthTag(authTag)
-    
-    let decrypted = decipher.update(encrypted, 'hex', 'utf8')
-    decrypted += decipher.final('utf8')
-    
-    return decrypted
-  } catch (error: any) {
-    console.warn(`[Encryption] Decryption failed: ${error.message}`)
-    return encryptedText // Return original if decryption fails (might be unencrypted legacy data)
+  const parts = encryptedText.split(':')
+  const [saltHex, ivHex, authTagHex, ...rest] = parts
+  const encrypted = rest.join(':')
+
+  if (!saltHex || !ivHex || !authTagHex || !encrypted) {
+    throw new Error('Invalid encrypted text format: expected salt:iv:authTag:ciphertext')
   }
+
+  const salt = Buffer.from(saltHex, 'hex')
+  const iv = Buffer.from(ivHex, 'hex')
+  const authTag = Buffer.from(authTagHex, 'hex')
+  const key = deriveKey(salt)
+  const decipher = crypto.createDecipheriv(ALGORITHM, key, iv)
+
+  decipher.setAuthTag(authTag)
+
+  let decrypted = decipher.update(encrypted, 'hex', 'utf8')
+  decrypted += decipher.final('utf8')
+
+  return decrypted
 }
 
 /**
@@ -65,28 +73,29 @@ export function encryptJSON(obj: any): string {
 }
 
 /**
- * Decrypts a JSON object
+ * Decrypts a JSON object.
+ * @throws Error if decryption fails
  */
 export function decryptJSON(encryptedText: string): any {
   const decrypted = decrypt(encryptedText)
   try {
     return JSON.parse(decrypted)
-  } catch (error) {
-    return decrypted
+  } catch {
+    throw new Error('Decryption succeeded but result is not valid JSON')
   }
 }
 
 /**
- * Signs a string with HMAC-SHA256
+ * Signs a string with HMAC-SHA256 using the master key.
  */
 export function signToken(data: string): string {
-  const hmac = crypto.createHmac('sha256', KEY)
+  const hmac = crypto.createHmac('sha256', MASTER_KEY)
   hmac.update(data)
   return hmac.digest('hex')
 }
 
 /**
- * Verifies an HMAC-SHA256 signature
+ * Verifies an HMAC-SHA256 signature.
  */
 export function verifyToken(data: string, signature: string): boolean {
   try {

@@ -57,9 +57,9 @@ router.get('/:monitorId/pulse', unifiedAuth, monitorAccessMiddleware(), async (r
         receivedAt: { gte: twentyFourHoursAgo },
       },
       select: {
-        status: true,
+        type: true,
         receivedAt: true,
-        latencyMs: true,
+        latency: true,
       },
       orderBy: { receivedAt: 'desc' },
       take: 288, // ~5 min intervals for 24h

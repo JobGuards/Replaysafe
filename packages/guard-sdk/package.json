@@ -23,6 +23,9 @@
     "lint": "echo \"No lint yet\"",
     "check-lint": "echo \"No lint yet\""
   },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
     "object-hash": "^3.0.0"
   },

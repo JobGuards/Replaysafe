@@ -8,6 +8,36 @@ import { auditService } from '../services/AuditService.js'
 import { ProjectRole } from '@replaysafe/db'
 import { z } from 'zod'
 
+// In-memory account lockout tracker
+const lockoutStore = new Map<string, { count: number, lockedUntil: number }>()
+const MAX_FAILED_ATTEMPTS = 10
+const LOCKOUT_DURATION_MS = 15 * 60 * 1000 // 15 minutes
+
+function checkLockout(email: string): void {
+  const entry = lockoutStore.get(email.toLowerCase())
+  if (entry && entry.lockedUntil > Date.now()) {
+    const remainingMin = Math.ceil((entry.lockedUntil - Date.now()) / 60000)
+    throw new Error(`Account temporarily locked. Try again in ${remainingMin} minute(s).`)
+  }
+  if (entry && entry.lockedUntil <= Date.now()) {
+    lockoutStore.delete(email.toLowerCase())
+  }
+}
+
+function recordFailedAttempt(email: string): void {
+  const key = email.toLowerCase()
+  const entry = lockoutStore.get(key) || { count: 0, lockedUntil: 0 }
+  entry.count++
+  if (entry.count >= MAX_FAILED_ATTEMPTS) {
+    entry.lockedUntil = Date.now() + LOCKOUT_DURATION_MS
+  }
+  lockoutStore.set(key, entry)
+}
+
+function clearLockout(email: string): void {
+  lockoutStore.delete(email.toLowerCase())
+}
+
 const router = Router()
 
 /**
@@ -78,7 +108,7 @@ router.post('/signup', async (req: Request, res: Response): Promise<void> => {
     await auditService.log({
       userId: result.user.id,
       projectId: result.project.id,
-      action: 'USER_LOGIN', // First login
+      action: 'USER_SIGNUP',
       resourceType: 'USER',
       resourceId: result.user.id,
       ipAddress: req.ip,
@@ -137,6 +167,14 @@ router.post('/signin', async (req: Request, res: Response): Promise<void> => {
     // Validate input
     const validatedData = signinSchema.parse(req.body)
 
+    // Check account lockout before any DB lookup
+    try {
+      checkLockout(validatedData.email)
+    } catch (err: any) {
+      res.status(429).json({ error: err.message })
+      return
+    }
+
     // Find user by email
     const user = await prisma.user.findUnique({
       where: { email: validatedData.email },
@@ -147,7 +185,8 @@ router.post('/signin', async (req: Request, res: Response): Promise<void> => {
       },
     })
 
-    if (!user) {
+    if (!user || !user.passwordHash) {
+      recordFailedAttempt(validatedData.email)
       res.status(401).json({ error: 'Invalid email or password' })
       return
     }
@@ -155,13 +194,17 @@ router.post('/signin', async (req: Request, res: Response): Promise<void> => {
     // Compare password
     const isPasswordValid = await comparePassword(
       validatedData.password,
-      user.passwordHash || ''
+      user.passwordHash
     )
 
     if (!isPasswordValid) {
+      recordFailedAttempt(validatedData.email)
       res.status(401).json({ error: 'Invalid email or password' })
       return
     }
+
+    // Clear lockout on successful login
+    clearLockout(validatedData.email)
 
     // Generate JWT token
     const token = generateToken({

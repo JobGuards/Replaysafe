@@ -68,17 +68,15 @@ const handleHeartbeat = async (req: any, res: any) => {
 
     // 2. Incident Management
     if (type === 'SUCCESS') {
+      // For SUCCESS heartbeats: auto-resolve any open incidents.
+      // If it's also late, the monitor was down but has recovered — no separate late incident needed.
       await incidentService.autoResolve(monitor.id)
     } else {
       await incidentService.createIncident(monitor.id, 'failed')
     }
 
-    if (isLate && type === 'SUCCESS') {
-      // If it's successful but late, we might still want an incident if it wasn't already created
-      // But usually "late" is handled by the worker if it misses the window.
-      // If it arrives late but successful, we can record it.
-      await incidentService.createIncident(monitor.id, 'late')
-    }
+    // Late but successful heartbeats don't need a new incident — autoResolve already handled it.
+    // The missed-heartbeat worker handles late detections independently.
 
     // 3. Calculate and update next expected date
     const nextExpectedAt = getNextExpectedDate(
