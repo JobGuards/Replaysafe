@@ -4,12 +4,15 @@ const ALGORITHM = 'aes-256-gcm'
 const IV_LENGTH = 12
 const AUTH_TAG_LENGTH = 16
 
-const MASTER_KEY: string = process.env.MASTER_ENCRYPTION_KEY ?? ''
-if (!MASTER_KEY) {
-  throw new Error(
-    'FATAL: MASTER_ENCRYPTION_KEY environment variable is not set. '
-    + 'Generate one with: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"'
-  )
+function getMasterKey(): string {
+  const key = process.env.MASTER_ENCRYPTION_KEY
+  if (!key) {
+    throw new Error(
+      'MASTER_ENCRYPTION_KEY environment variable is not set. '
+      + 'Generate one with: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"'
+    )
+  }
+  return key
 }
 
 /**
@@ -17,7 +20,7 @@ if (!MASTER_KEY) {
  * The salt is prepended to the ciphertext so decryption can re-derive the same key.
  */
 function deriveKey(salt: Buffer): Buffer {
-  return crypto.scryptSync(MASTER_KEY, salt, 32)
+  return crypto.scryptSync(getMasterKey(), salt, 32)
 }
 
 /**
@@ -89,7 +92,7 @@ export function decryptJSON(encryptedText: string): any {
  * Signs a string with HMAC-SHA256 using the master key.
  */
 export function signToken(data: string): string {
-  const hmac = crypto.createHmac('sha256', MASTER_KEY)
+  const hmac = crypto.createHmac('sha256', getMasterKey())
   hmac.update(data)
   return hmac.digest('hex')
 }
