@@ -33,7 +33,11 @@ export function createApp() {
   const app = express();
 
   // 1. Security Headers
-  app.use(helmet());
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: "cross-origin" },
+    })
+  );
 
   // 2. Request Logging
   app.use(requestLogger);
