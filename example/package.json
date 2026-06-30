@@ -1,0 +1,24 @@
+{
+  "name": "example-payment-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3005",
+    "build": "next build",
+    "start": "next start -p 3005"
+  },
+  "dependencies": {
+    "next": "16.2.6",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "razorpay": "^2.9.5",
+    "lucide-react": "^0.454.0",
+    "@replaysafe/guard-sdk": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5"
+  }
+}
