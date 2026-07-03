@@ -86,6 +86,7 @@ export default function Settings() {
   const { data: apiKeys, mutate: mutateKeys } = useSWR('/api-keys', () => api.getApiKeys())
   const [newKeyName, setNewKeyName] = useState('')
   const [isCreatingKey, setIsCreatingKey] = useState(false)
+  const [generatedKey, setGeneratedKey] = useState<string | null>(null)
 
   const handleCreateKey = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -96,7 +97,8 @@ export default function Settings() {
       toast.success('API Key created successfully')
       setNewKeyName('')
       mutateKeys()
-      
+
+      setGeneratedKey(newKey.key)
       navigator.clipboard.writeText(newKey.key)
       toast.info('API Key copied to clipboard! Keep it safe.')
     } catch (err) {
@@ -125,7 +127,7 @@ export default function Settings() {
   const handleAddDiscord = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!discordWebhookUrl) return
-    
+
     if (!discordWebhookUrl.startsWith('https://discord.com/api/webhooks/')) {
       toast.error('Invalid Discord Webhook URL')
       return
@@ -157,6 +159,39 @@ export default function Settings() {
 
   return (
     <div className="p-6 md:p-8">
+      {/* Generated Key Modal */}
+      {generatedKey && (
+        <div className="fixed inset-0 z-50 flex items-center  justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="glass-panel border border-border/10 rounded-2xl p-8  w-2xl mx-4 shadow-2xl relative overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-acid-lime to-transparent"></div>
+            <h3 className="text-xl font-black text-foreground mb-4 uppercase tracking-tight">API Key Generated</h3>
+            <p className="text-xs text-muted-foreground mb-6 leading-relaxed">
+              Please copy this key now. For security reasons, <strong>we cannot show it to you again</strong>.
+            </p>
+            <div className="flex gap-2 items-center bg-background/50 border border-border/10 p-3 rounded-xl mb-6">
+              <code className="text-xs font-mono select-all break-all text-acid-lime flex-1">{generatedKey}</code>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="hover:text-acid-lime text-muted-foreground"
+                onClick={() => {
+                  navigator.clipboard.writeText(generatedKey)
+                  toast.success('Copied to clipboard!')
+                }}
+              >
+                <Copy className="w-4 h-4" />
+              </Button>
+            </div>
+            <Button
+              className="w-full bg-acid-lime text-primary-foreground hover:opacity-90 font-bold h-12 rounded-xl"
+              onClick={() => setGeneratedKey(null)}
+            >
+              Done, I've saved it
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-3xl">
         {/* Header */}
         <div className="mb-8">
@@ -315,8 +350,8 @@ export default function Settings() {
           </div>
 
           <form onSubmit={handleCreateKey} className="flex gap-4 mb-10">
-            <Input 
-              placeholder="Key Name (e.g., Production Server)" 
+            <Input
+              placeholder="Key Name (e.g., Production Server)"
               value={newKeyName}
               onChange={(e) => setNewKeyName(e.target.value)}
               className="bg-background/30 border-border/10 h-12 rounded-xl"
@@ -348,20 +383,9 @@ export default function Settings() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="text-muted-foreground hover:text-acid-lime"
-                      onClick={() => {
-                        navigator.clipboard.writeText(key.key)
-                        toast.success('Key copied to clipboard')
-                      }}
-                    >
-                      <Copy className="w-4 h-4" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       className="text-muted-foreground hover:text-destructive"
                       onClick={() => handleDeleteKey(key.id)}
                     >
@@ -397,15 +421,15 @@ export default function Settings() {
                 <h3 className="text-sm font-black uppercase tracking-tight">Add Discord Webhook</h3>
               </div>
               <form onSubmit={handleAddDiscord} className="space-y-4">
-                <Input 
-                  placeholder="https://discord.com/api/webhooks/..." 
+                <Input
+                  placeholder="https://discord.com/api/webhooks/..."
                   value={discordWebhookUrl}
                   onChange={(e) => setDiscordWebhookUrl(e.target.value)}
                   className="bg-background/30 border-border/10 text-xs h-10 rounded-xl"
                 />
-                <Button 
-                  type="submit" 
-                  disabled={isAddingChannel || !discordWebhookUrl} 
+                <Button
+                  type="submit"
+                  disabled={isAddingChannel || !discordWebhookUrl}
                   className="w-full bg-foreground text-background h-10 rounded-xl font-black uppercase tracking-widest text-[9px] gap-2"
                 >
                   {isAddingChannel ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-3 h-3" />}
@@ -458,9 +482,9 @@ export default function Settings() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       className="text-muted-foreground hover:text-destructive"
                       onClick={() => handleDeleteChannel(channel.id)}
                     >
@@ -481,7 +505,7 @@ export default function Settings() {
         <div className="bg-destructive/5 border border-destructive rounded-lg p-6">
           <h2 className="text-xl font-bold text-foreground mb-2">Danger Zone</h2>
           <p className="text-muted-foreground mb-6">Permanently delete your account and all associated data. This action cannot be undone.</p>
-          
+
           <Button
             variant="outline"
             className="border-destructive text-destructive hover:bg-destructive/10 bg-transparent"
