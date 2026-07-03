@@ -41,3 +41,6 @@ apps/test-backend/
 .pnpm-store/
 
 plans/
+
+.agents/
+.openhands/
