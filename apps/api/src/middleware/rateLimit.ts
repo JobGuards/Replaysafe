@@ -15,7 +15,7 @@ function envInt(key: string, defaultVal: number): number {
  */
 export const apiRateLimiter = rateLimit({
   windowMs: envInt('RATE_LIMIT_API_WINDOW_MS', 15 * 60 * 1000),
-  limit: envInt('RATE_LIMIT_API_MAX', 1000),
+  limit: envInt('RATE_LIMIT_API_MAX', 100),
   standardHeaders: 'draft-7',
   legacyHeaders: false,
   message: {

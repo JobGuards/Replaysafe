@@ -1,8 +1,7 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@replaysafe/db";
 import { alertService } from "./AlertService.js";
 import { LoopDetectionCache } from "../lib/LoopDetectionCache.js";
-
-const prisma = new PrismaClient();
+import axios from "axios";
 
 export class GuardsService {
   /**
@@ -367,8 +366,21 @@ export class GuardsService {
 
     for (const rb of rollbacks) {
       try {
-        // Here we would actually execute the rollback logic (e.g., HTTP call)
-        // For now, we mark them as COMPLETED to simulate the effect.
+        // Execute actual rollback logic if the target is an HTTP URL
+        if (rb.target && (rb.target.startsWith("http://") || rb.target.startsWith("https://"))) {
+          const method = rb.type === "HTTP_DELETE" ? "DELETE" : "POST";
+          await axios({
+            method,
+            url: rb.target,
+            data: rb.payload || undefined,
+            headers: {
+              "Content-Type": "application/json",
+              "User-Agent": "Replaysafe-Rollback-Trigger/1.0",
+            },
+            timeout: 5000,
+          });
+        }
+
         await prisma.guardRollback.update({
           where: { id: rb.id },
           data: {
@@ -376,7 +388,7 @@ export class GuardsService {
             executedAt: new Date(),
           }
         });
-        console.log(`[ReplayGuard] Rollback COMPLETED for ${rb.sideEffect.target} (${rb.type})`);
+        console.log(`[ReplayGuard] Rollback COMPLETED for ${rb.sideEffect?.target || rb.target} (${rb.type})`);
       } catch (error: any) {
         console.error(`[ReplayGuard] Rollback FAILED for ${rb.id}:`, error.message);
         await prisma.guardRollback.update({

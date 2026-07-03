@@ -3,6 +3,8 @@ import { prisma } from '@replaysafe/db'
 import { authMiddleware } from '../middleware/auth.js'
 import crypto from 'crypto'
 
+import Stripe from 'stripe'
+
 const router = Router()
 
 /**
@@ -13,12 +15,61 @@ router.post('/checkout', authMiddleware, async (req: Request, res: Response) => 
   try {
     const { projectId, plan } = req.body
     
-    // In a real app, you would:
-    // 1. Initialize Stripe: const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
-    // 2. Create session: const session = await stripe.checkout.sessions.create(...)
-    
-    // For this skeleton, we'll return a mock URL
-    res.json({ url: 'https://checkout.stripe.com/pay/mock_session_123' })
+    const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY
+    if (!STRIPE_SECRET_KEY) {
+      console.warn('STRIPE_SECRET_KEY not configured. Returning mock checkout session.')
+      res.json({ url: 'https://checkout.stripe.com/pay/mock_session_123' })
+      return
+    }
+
+    const stripe = new Stripe(STRIPE_SECRET_KEY)
+
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+    })
+
+    if (!project) {
+      res.status(404).json({ error: 'Project not found' })
+      return
+    }
+
+    const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000'
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: `Replaysafe ${plan} Subscription`,
+              description: `Upgrade project ${project.name} to ${plan} plan`,
+            },
+            unit_amount: plan === 'PRO' ? 2900 : 9900, // $29 or $99/mo
+            recurring: {
+              interval: 'month',
+            },
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'subscription',
+      success_url: `${FRONTEND_URL}/dashboard?checkout=success`,
+      cancel_url: `${FRONTEND_URL}/dashboard?checkout=cancelled`,
+      customer: project.stripeCustomerId || undefined,
+      metadata: {
+        projectId,
+        plan,
+      },
+      subscription_data: {
+        metadata: {
+          projectId,
+          plan,
+        },
+      },
+    })
+
+    res.json({ url: session.url })
   } catch (error) {
     console.error('Stripe checkout error:', error)
     res.status(500).json({ error: 'Internal server error' })
