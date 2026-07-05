@@ -145,4 +145,69 @@ describe('ReplayGuard SDK', () => {
       await expect(guard.start('ext-id-1')).rejects.toThrow('Persistent outage');
     });
   });
+
+  describe('Feature Enhancements (Issues 1-4)', () => {
+    it('should compute fingerprint publically', () => {
+      const guard = new ReplayGuard({
+        apiKey: 'sk_test_123',
+        monitorId: 'monitor_123',
+      });
+
+      const fp = guard.fingerprint('TEST_TYPE', 'test_target', { value: 42 });
+      expect(fp).toBeDefined();
+      expect(typeof fp).toBe('string');
+    });
+
+    it('should expose fingerprint in VerifyResponse', async () => {
+      const guard = new ReplayGuard({
+        apiKey: 'sk_test_123',
+        monitorId: 'monitor_123',
+      });
+
+      const res = await guard.verify('TEST_TYPE', 'test_target', { value: 42 });
+      expect(res.fingerprint).toBeDefined();
+      expect(res.fingerprint).toBe(guard.fingerprint('TEST_TYPE', 'test_target', { value: 42 }));
+    });
+
+    it('should inject Idempotency-Key header in guard.fetch()', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ success: true }),
+      });
+      vi.stubGlobal('fetch', mockFetch);
+
+      const guard = new ReplayGuard({
+        apiKey: 'sk_test_123',
+        monitorId: 'monitor_123',
+      });
+
+      await guard.fetch('https://api.stripe.com/v1/charges', {
+        method: 'POST',
+        body: JSON.stringify({ amount: 100 }),
+      });
+
+      // Verification fetch call happened first (if session exists, but here no session so it failed open)
+      // The second call is the actual outbound fetch. Let's check it:
+      expect(mockFetch).toHaveBeenCalled();
+      const lastCallArgs = mockFetch.mock.calls[mockFetch.mock.calls.length - 1];
+      const headers = lastCallArgs[1]?.headers;
+      
+      const hasKey = headers && (headers['Idempotency-Key'] || headers.get?.('Idempotency-Key'));
+      expect(hasKey).toBeTruthy();
+    });
+
+    it('should support stripe() semantic adapter', async () => {
+      const guard = new ReplayGuard({
+        apiKey: 'sk_test_123',
+        monitorId: 'monitor_123',
+      });
+
+      const mockOperation = vi.fn().mockResolvedValue({ id: 'ch_123' });
+      const result = await guard.stripe('operation_123', { amount: 50 }, mockOperation);
+      
+      expect(mockOperation).toHaveBeenCalled();
+      expect(result.id).toBe('ch_123');
+    });
+  });
 });
