@@ -161,6 +161,19 @@ The SDK never blocks your agent due to its own network issues. Every API call ha
 
 ---
 
+## Upcoming
+
+- **Execution Ledger (`guard.effect()`)** — full lifecycle per side effect: `INTENDED → EXECUTING → COMMITTED → VERIFIED`, with timestamps at every transition and a stored provider receipt (charge ID, message ID, etc.).
+- **`UNKNOWN` state** — when a call times out mid-flight, the effect is flagged `UNKNOWN` instead of silently missing, giving a defined state to recover from rather than guessing.
+- **Provider-side Verification** — before any retry of an `UNKNOWN` effect, Replaysafe checks the provider directly (Stripe, SendGrid, GitHub, Slack, Twilio) to confirm whether it actually completed.
+- **`guard.resume(workflowId)`** — crashed multi-step workflows continue from the minimal safe checkpoint: verified steps skip, uncertain steps are checked first, failed steps trigger compensation.
+- **Anthropic MCP & OpenAI Assistants adapters** — `guard.mcp()` and `guard.openai()` wrap framework-native tool calls with ledger-backed memory so retries skip already-completed tool calls automatically.
+- **Agent Execution Memory API** — `GET /agents/:id/effects` answers "what has this agent already done?" across all runs: verified, unknown, and failed effects queryable in one call.
+- **Cross-agent coordination** — shared project-level ledger means two independent agents operating on the same resource cannot silently double-execute; conflict is flagged before it causes damage.
+
+
+---
+
 ## Documentation
 
 - [Introduction & Core Concepts](./docs/introduction.md)
