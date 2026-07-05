@@ -83,6 +83,29 @@ Replaysafe guarantees **execution safety**, not external state synchronization.
 
 ---
 
+## Defense-in-Depth Idempotency Patterns
+
+When building resilient agentic systems, you should combine Replaysafe's execution safety layer with the target API's native idempotency controls where available.
+
+### 1. Replaysafe Alone (No Native API Idempotency)
+Use Replaysafe as the sole idempotency layer for downstream operations that do **not** natively support idempotency keys:
+- Writing to a legacy database or updating a record.
+- Triggering internal notification microservices or custom webhooks.
+- Invoking third-party APIs that do not accept idempotency headers.
+
+Replaysafe handles the verification, blocks duplicate execution, and returns the cached result.
+
+### 2. Replaysafe + Native Idempotency (Defense-in-Depth)
+For mission-critical operations (like charging a credit card via Stripe, or initiating a payout via PayPal), always combine Replaysafe with the target API's native idempotency mechanisms:
+- **How it works**: Retrieve the computed Replaysafe fingerprint via `guard.fingerprint()`, and pass it as the idempotency key to the external API (e.g., as Stripe's `idempotencyKey` option).
+- **Auto-Injection**: Replaysafe's `guard.fetch()` automatically injects the calculated fingerprint as the `Idempotency-Key` header on all outbound HTTP requests if not already defined.
+
+This ensures safety at both the coordinator (Replaysafe) and executor (Stripe/PayPal) layers.
+
+---
+
+---
+
 ## Distributed System Trade-offs
 
 Designing a safety layer for external applications requires conscious trade-offs between **availability** and **consistency**. Replaysafe is optimized to be "safe-by-default," prioritizing visibility and loop prevention while offering clear controls for strict requirements.

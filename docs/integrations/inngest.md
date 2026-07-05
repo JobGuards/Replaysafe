@@ -101,14 +101,20 @@ export const processPayment = inngest.createFunction(
       await guard.start(`${event.data.paymentId}-charge`);
 
       try {
+        const inputs = { amount: event.data.amount, customerId: event.data.stripeId };
         const charge = await guard.inngest(
           'stripe-charge',
-          { amount: event.data.amount, customerId: event.data.stripeId },
-          () => stripe.charges.create({
-            amount: event.data.amount,
-            customer: event.data.stripeId,
-            currency: 'usd',
-          })
+          inputs,
+          () => stripe.charges.create(
+            {
+              amount: event.data.amount,
+              customer: event.data.stripeId,
+              currency: 'usd',
+            },
+            {
+              idempotencyKey: guard.fingerprint('INNGEST_STEP', 'stripe-charge', inputs)
+            }
+          )
         );
         await guard.complete('SUCCESS');
         return charge.id;

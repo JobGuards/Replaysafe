@@ -8,7 +8,7 @@ function getSecret(): string {
   return secret
 }
 
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d'
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h'
 
 
 export interface JwtPayload {

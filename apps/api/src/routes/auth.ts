@@ -8,34 +8,56 @@ import { auditService } from '../services/AuditService.js'
 import { ProjectRole } from '@replaysafe/db'
 import { z } from 'zod'
 
-// In-memory account lockout tracker
-const lockoutStore = new Map<string, { count: number, lockedUntil: number }>()
 const MAX_FAILED_ATTEMPTS = 10
 const LOCKOUT_DURATION_MS = 15 * 60 * 1000 // 15 minutes
 
-function checkLockout(email: string): void {
-  const entry = lockoutStore.get(email.toLowerCase())
-  if (entry && entry.lockedUntil > Date.now()) {
-    const remainingMin = Math.ceil((entry.lockedUntil - Date.now()) / 60000)
+async function checkLockout(email: string): Promise<void> {
+  const user = await prisma.user.findUnique({
+    where: { email: email.toLowerCase() },
+    select: { failedAttempts: true, lockedUntil: true },
+  })
+
+  if (user && user.lockedUntil && user.lockedUntil.getTime() > Date.now()) {
+    const remainingMin = Math.ceil((user.lockedUntil.getTime() - Date.now()) / 60000)
     throw new Error(`Account temporarily locked. Try again in ${remainingMin} minute(s).`)
   }
-  if (entry && entry.lockedUntil <= Date.now()) {
-    lockoutStore.delete(email.toLowerCase())
+
+  if (user && user.lockedUntil && user.lockedUntil.getTime() <= Date.now()) {
+    await prisma.user.update({
+      where: { email: email.toLowerCase() },
+      data: { failedAttempts: 0, lockedUntil: null },
+    })
   }
 }
 
-function recordFailedAttempt(email: string): void {
-  const key = email.toLowerCase()
-  const entry = lockoutStore.get(key) || { count: 0, lockedUntil: 0 }
-  entry.count++
-  if (entry.count >= MAX_FAILED_ATTEMPTS) {
-    entry.lockedUntil = Date.now() + LOCKOUT_DURATION_MS
-  }
-  lockoutStore.set(key, entry)
+async function recordFailedAttempt(email: string): Promise<void> {
+  const user = await prisma.user.findUnique({
+    where: { email: email.toLowerCase() },
+    select: { id: true, failedAttempts: true },
+  })
+
+  if (!user) return
+
+  const newAttempts = user.failedAttempts + 1
+  const lockedUntil = newAttempts >= MAX_FAILED_ATTEMPTS ? new Date(Date.now() + LOCKOUT_DURATION_MS) : null
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      failedAttempts: newAttempts,
+      lockedUntil,
+    },
+  })
 }
 
-function clearLockout(email: string): void {
-  lockoutStore.delete(email.toLowerCase())
+async function clearLockout(email: string): Promise<void> {
+  await prisma.user.updateMany({
+    where: { email: email.toLowerCase() },
+    data: {
+      failedAttempts: 0,
+      lockedUntil: null,
+    },
+  })
 }
 
 const router = Router()
@@ -169,7 +191,7 @@ router.post('/signin', async (req: Request, res: Response): Promise<void> => {
 
     // Check account lockout before any DB lookup
     try {
-      checkLockout(validatedData.email)
+      await checkLockout(validatedData.email)
     } catch (err: any) {
       res.status(429).json({ error: err.message })
       return
@@ -186,7 +208,7 @@ router.post('/signin', async (req: Request, res: Response): Promise<void> => {
     })
 
     if (!user || !user.passwordHash) {
-      recordFailedAttempt(validatedData.email)
+      await recordFailedAttempt(validatedData.email)
       res.status(401).json({ error: 'Invalid email or password' })
       return
     }
@@ -198,13 +220,13 @@ router.post('/signin', async (req: Request, res: Response): Promise<void> => {
     )
 
     if (!isPasswordValid) {
-      recordFailedAttempt(validatedData.email)
+      await recordFailedAttempt(validatedData.email)
       res.status(401).json({ error: 'Invalid email or password' })
       return
     }
 
     // Clear lockout on successful login
-    clearLockout(validatedData.email)
+    await clearLockout(validatedData.email)
 
     // Generate JWT token
     const token = generateToken({

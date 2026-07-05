@@ -24,7 +24,7 @@ Replaysafe provides the safety primitives that make retrying an AI agent or back
 *Deepening support for AI Agents and non-deterministic autonomous systems.*
 
 - [x] **AI Action Verification**: Specialized `.ai()` wrapper to protect high-cost LLM generations.
-- [x] **Webhook Safety Layer**: Automatic idempotency headers and replay protection for outbound webhooks.
+- [x] **Webhook Safety Layer**: Automatic idempotency headers in fetch calls and replay protection for outbound webhooks.
 - [x] **State Fingerprinting**: Ability to snapshot infrastructure state before/after actions to detect drift.
 - [x] **Deduplication Engine**: Global cross-project deduplication for identical jobs triggered by agents.
 - [x] **Multi-Attempt History**: Aggregated view of a job's life across N failures and M recoveries.

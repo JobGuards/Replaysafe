@@ -16,14 +16,14 @@ const router = Router()
 router.get('/', authMiddleware, projectAccessMiddleware('MEMBER'), async (req, res) => {
   try {
     const { project } = req
-    const channels = await (prisma.alertChannel as any).findMany({
+    const channels = await prisma.alertChannel.findMany({
       where: { projectId: project!.id },
     })
 
     // Decrypt configs before sending to UI; skip any that fail
-    const decryptedChannels = channels.map((c: any) => {
+    const decryptedChannels = channels.map((c) => {
       try {
-        return { ...c, config: decryptJSON(c.config) }
+        return { ...c, config: decryptJSON(c.config as string) }
       } catch {
         return { ...c, config: { error: 'Failed to decrypt config' } }
       }
@@ -58,7 +58,7 @@ router.post('/', authMiddleware, projectAccessMiddleware('ADMIN'), async (req, r
     // Encrypt config at rest
     const encryptedConfig = encryptJSON(config)
 
-    const channel = await (prisma.alertChannel as any).create({
+    const channel = await prisma.alertChannel.create({
       data: {
         projectId: project!.id,
         type,
@@ -78,7 +78,7 @@ router.post('/', authMiddleware, projectAccessMiddleware('ADMIN'), async (req, r
 
     res.status(201).json({
       ...channel,
-      config: (() => { try { return decryptJSON(channel.config) } catch { return { error: 'Failed to decrypt config' } } })(),
+      config: (() => { try { return decryptJSON(channel.config as string) } catch { return { error: 'Failed to decrypt config' } } })(),
     })
   } catch (error) {
     console.error('Create alert channel error:', error)
@@ -93,8 +93,8 @@ router.post('/', authMiddleware, projectAccessMiddleware('ADMIN'), async (req, r
 router.post('/:id/test', authMiddleware, projectAccessMiddleware('ADMIN'), async (req, res) => {
   try {
     const { project } = req
-    const channel = await (prisma.alertChannel as any).findUnique({
-      where: { id: req.params.id, projectId: project!.id },
+    const channel = await prisma.alertChannel.findUnique({
+      where: { id: req.params.id as string, projectId: project!.id },
     })
 
     if (!channel) {
@@ -103,22 +103,26 @@ router.post('/:id/test', authMiddleware, projectAccessMiddleware('ADMIN'), async
     }
 
     // Decrypt config
-    const config = decryptJSON(channel.config)
+    const config = decryptJSON(channel.config as string)
 
     // Send test alert
-    // Note: We need a mock monitor and incident for the test
-    const mockMonitor = { name: 'Test Monitor', id: 'test-123' }
-    const mockIncident = { id: 'test-inc-123', monitorId: 'test-123' }
+    const provider = (alertService as any).providers[channel.type.toLowerCase()]
+    if (!provider) {
+      res.status(400).json({ error: `No provider found for channel type: ${channel.type}` })
+      return
+    }
 
-    // Use internal method or exposed test method
-    // For now, let's just trigger sendToChannel if we can, but it's private.
-    // We'll expose a sendTestAlert in AlertService or just call the provider here.
+    const mockMonitor = { name: 'Test Monitor', id: 'test-123' }
+    const mockIncident = { id: 'test-inc-123', monitorId: 'test-123', startedAt: new Date(), type: 'test' }
+
+    await provider.sendAlert(config, {
+      monitor: mockMonitor as any,
+      incident: mockIncident as any,
+      type: 'creation',
+      durationText: 'This is a test notification.'
+    })
     
-    // Better: Expose a method in AlertService
-    // For simplicity here, we'll just log and return success for now
-    // In a real implementation, we'd call the provider.
-    
-    res.json({ message: 'Test notification sent (mocked for now)' })
+    res.json({ message: 'Test notification sent successfully' })
   } catch (error) {
     console.error('Test alert channel error:', error)
     res.status(500).json({ error: 'Internal server error' })
@@ -133,12 +137,12 @@ router.delete('/:id', authMiddleware, projectAccessMiddleware('ADMIN'), async (r
     const { project } = req
     
     // First, delete any Alert records associated with this channel
-    await (prisma as any).alert.deleteMany({
-      where: { channelId: req.params.id }
+    await prisma.alert.deleteMany({
+      where: { channelId: req.params.id as string }
     })
 
-    await (prisma.alertChannel as any).delete({
-      where: { id: req.params.id, projectId: project!.id },
+    await prisma.alertChannel.delete({
+      where: { id: req.params.id as string, projectId: project!.id },
     })
 
     await auditService.log({

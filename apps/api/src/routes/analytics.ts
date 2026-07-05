@@ -9,70 +9,6 @@ import { AnalyticsService } from '../services/AnalyticsService.js'
 const router = Router()
 
 /**
- * GET /api/analytics/:monitorId
- * Returns 30-day daily summaries, detected patterns, and current health score.
- */
-router.get('/:monitorId', unifiedAuth, monitorAccessMiddleware(), async (req: any, res: any) => {
-  try {
-    const { monitorId } = req.params
-    const thirtyDaysAgo = subDays(startOfDay(new Date()), 30)
-
-    const [summaries, monitor, health, patterns] = await Promise.all([
-      (prisma as any).executionSummary.findMany({
-        where: { monitorId, period: 'daily', date: { gte: thirtyDaysAgo } },
-        orderBy: { date: 'asc' },
-      }),
-      (prisma as any).monitor.findUnique({
-        where: { id: monitorId },
-        select: { name: true, status: true, projectId: true },
-      }),
-      healthScoreService.calculateScore(monitorId),
-      patternDetectionService.detectPatterns(monitorId),
-    ])
-
-    res.json({ 
-      summaries, 
-      patterns, 
-      health,
-      monitorName: monitor?.name 
-    })
-  } catch (err) {
-    console.error(err)
-    res.status(500).json({ error: 'Internal server error' })
-  }
-})
-
-/**
- * GET /api/analytics/:monitorId/pulse
- * Returns last 24 hours of heartbeats for pulse grid visualization
- */
-router.get('/:monitorId/pulse', unifiedAuth, monitorAccessMiddleware(), async (req: any, res: any) => {
-  try {
-    const { monitorId } = req.params
-    const twentyFourHoursAgo = subHours(new Date(), 24)
-
-    const pulses = await (prisma as any).heartbeat.findMany({
-      where: {
-        monitorId,
-        receivedAt: { gte: twentyFourHoursAgo },
-      },
-      select: {
-        type: true,
-        receivedAt: true,
-        latency: true,
-      },
-      orderBy: { receivedAt: 'desc' },
-      take: 288, // ~5 min intervals for 24h
-    })
-
-    res.json({ pulses })
-  } catch (err) {
-    console.error(err)
-    res.status(500).json({ error: 'Internal server error' })
-  }
-})
-
-/**
  * GET /api/analytics/project/overview
  * Overall project-level analytics: all monitors, their health scores and summaries.
  */
@@ -148,6 +84,72 @@ router.get('/project/overview', unifiedAuth, projectAccessMiddleware(), async (r
     res.status(500).json({ error: 'Internal server error' })
   }
 })
+
+/**
+ * GET /api/analytics/:monitorId
+ * Returns 30-day daily summaries, detected patterns, and current health score.
+ */
+router.get('/:monitorId', unifiedAuth, monitorAccessMiddleware(), async (req: any, res: any) => {
+  try {
+    const { monitorId } = req.params
+    const thirtyDaysAgo = subDays(startOfDay(new Date()), 30)
+
+    const [summaries, monitor, health, patterns] = await Promise.all([
+      (prisma as any).executionSummary.findMany({
+        where: { monitorId, period: 'daily', date: { gte: thirtyDaysAgo } },
+        orderBy: { date: 'asc' },
+      }),
+      (prisma as any).monitor.findUnique({
+        where: { id: monitorId },
+        select: { name: true, status: true, projectId: true },
+      }),
+      healthScoreService.calculateScore(monitorId),
+      patternDetectionService.detectPatterns(monitorId),
+    ])
+
+    res.json({ 
+      summaries, 
+      patterns, 
+      health,
+      monitorName: monitor?.name 
+    })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+/**
+ * GET /api/analytics/:monitorId/pulse
+ * Returns last 24 hours of heartbeats for pulse grid visualization
+ */
+router.get('/:monitorId/pulse', unifiedAuth, monitorAccessMiddleware(), async (req: any, res: any) => {
+  try {
+    const { monitorId } = req.params
+    const twentyFourHoursAgo = subHours(new Date(), 24)
+
+    const pulses = await (prisma as any).heartbeat.findMany({
+      where: {
+        monitorId,
+        receivedAt: { gte: twentyFourHoursAgo },
+      },
+      select: {
+        type: true,
+        receivedAt: true,
+        latency: true,
+      },
+      orderBy: { receivedAt: 'desc' },
+      take: 288, // ~5 min intervals for 24h
+    })
+
+    res.json({ pulses })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+
 
 /**
  * GET /api/analytics/:monitorId/history

@@ -1,4 +1,5 @@
 import { AlertProvider, AlertData } from './AlertProvider.js'
+import { Resend } from 'resend'
 
 export class EmailAlertProvider implements AlertProvider {
   /**
@@ -23,10 +24,20 @@ export class EmailAlertProvider implements AlertProvider {
 
     console.log(`[EmailProvider] Sending email to ${email}`)
     console.log(`Subject: ${subject}`)
-    // console.log(`Body: ${body}`)
 
-    // TODO: Integrate with Resend/Postmark/SendGrid
-    // await resend.emails.send({ from, to: email, subject, html: body })
+    const RESEND_API_KEY = process.env.RESEND_API_KEY
+    if (!RESEND_API_KEY) {
+      console.warn(`[EmailProvider] RESEND_API_KEY not configured. Simulated email sending.`)
+      return
+    }
+
+    const resend = new Resend(RESEND_API_KEY)
+    await resend.emails.send({
+      from: process.env.EMAIL_FROM || 'alerts@replaysafe.com',
+      to: email,
+      subject,
+      html: body,
+    })
   }
 
   private renderTemplate(data: AlertData): string {

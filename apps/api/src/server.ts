@@ -23,6 +23,7 @@ import { authMiddleware, projectAccessMiddleware } from "./middleware/auth.js";
 import { prisma } from "@replaysafe/db";
 import { auditService } from "./services/AuditService.js";
 import * as Sentry from "@sentry/node";
+import { initSentry } from "./lib/sentry.js";
 
 // Load .env from monorepo root regardless of CWD
 const __filename = fileURLToPath(import.meta.url);
@@ -30,6 +31,7 @@ const __rootDir = resolve(dirname(__filename), "../../..");
 dotenv.config({ path: resolve(__rootDir, ".env") });
 
 export function createApp() {
+  initSentry();
   const app = express();
 
   // 1. Security Headers

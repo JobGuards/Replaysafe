@@ -68,6 +68,7 @@ export interface GuardOptions {
 export interface VerifyResponse {
   action: GuardAction;
   cachedResult?: any;
+  fingerprint: string;
 }
 
 export class ReplayGuard {
@@ -126,6 +127,15 @@ export class ReplayGuard {
   }
 
   /**
+   * Computes a cryptographic fingerprint for an operation based on its type, target, and inputs.
+   * Strip safe default transient keys (timestamps, request IDs) automatically.
+   */
+  fingerprint(type: string, target: string, inputs: any): string {
+    const inputHash = this._buildInputHash(inputs);
+    return hash({ type, target, inputHash });
+  }
+
+  /**
    * Verifies if a side effect should be executed or skipped based on history.
    */
   async verify(
@@ -134,18 +144,17 @@ export class ReplayGuard {
     inputs: any, 
     scope: GuardScope = 'MONITOR'
   ): Promise<VerifyResponse> {
+    const fp = this.fingerprint(type, target, inputs);
+
     if (!this.context) {
       if (this.config.debug) console.warn('[ReplayGuard] No active session. Executing without safety layer.');
-      return { action: 'EXECUTE' };
+      return { action: 'EXECUTE', fingerprint: fp };
     }
 
-    const inputHash = this._buildInputHash(inputs);
-    const fingerprint = hash({ type, target, inputHash });
-
     // 1. Check local cache (Process-level deduplication)
-    if (this.localCache.has(fingerprint)) {
+    if (this.localCache.has(fp)) {
       if (this.config.debug) console.log(`[ReplayGuard] Local cache hit for: ${target}`);
-      return { action: 'SKIP', cachedResult: this.localCache.get(fingerprint) };
+      return { action: 'SKIP', cachedResult: this.localCache.get(fp), fingerprint: fp };
     }
 
     try {
@@ -158,10 +167,10 @@ export class ReplayGuard {
         body: JSON.stringify({
           executionId: this.context.executionId,
           token: this.context.token,
-          fingerprint,
+          fingerprint: fp,
           type,
           target,
-          inputHash,
+          inputHash: this._buildInputHash(inputs),
           scope,
         }),
       });
@@ -171,10 +180,11 @@ export class ReplayGuard {
       }
 
       const result: VerifyResponse = await res.json();
+      result.fingerprint = fp;
       
       // Update local cache if skipped
       if (result.action === 'SKIP') {
-        this.localCache.set(fingerprint, result.cachedResult);
+        this.localCache.set(fp, result.cachedResult);
       }
 
       return result;
@@ -186,7 +196,7 @@ export class ReplayGuard {
       }
 
       if (this.config.debug) console.warn('[ReplayGuard] Defaulting to EXECUTE (Fail Open)');
-      return { action: 'EXECUTE' };
+      return { action: 'EXECUTE', fingerprint: fp };
     }
   }
 
@@ -224,10 +234,12 @@ export class ReplayGuard {
    * Guarded wrapper for HTTP fetch requests.
    */
   async fetch(url: string, options?: RequestInit, scope: GuardScope = 'MONITOR'): Promise<Response> {
-    const { action, cachedResult } = await this.verify('HTTP', url, {
+    const inputs = {
       method: options?.method || 'GET',
       body: options?.body,
-    }, scope);
+    };
+
+    const { action, cachedResult, fingerprint } = await this.verify('HTTP', url, inputs, scope);
 
     if (action === 'SKIP') {
       if (this.config.debug) console.log(`[ReplayGuard] Skipping dangerous side effect (HTTP): ${url}`);
@@ -237,16 +249,40 @@ export class ReplayGuard {
       });
     }
 
-    const response = await fetch(url, options);
+    // Auto-inject Idempotency-Key header on outbound request if not already present
+    const modifiedOptions = { ...options };
+    const rawHeaders = modifiedOptions.headers || {};
+    let hasIdempotencyKey = false;
+    
+    if (typeof Headers !== 'undefined' && rawHeaders instanceof Headers) {
+      hasIdempotencyKey = rawHeaders.has('Idempotency-Key') || rawHeaders.has('idempotency-key');
+      if (!hasIdempotencyKey) {
+        rawHeaders.set('Idempotency-Key', fingerprint);
+      }
+    } else if (Array.isArray(rawHeaders)) {
+      hasIdempotencyKey = (rawHeaders as string[][]).some(([k]) => k.toLowerCase() === 'idempotency-key');
+      if (!hasIdempotencyKey) {
+        (rawHeaders as string[][]).push(['Idempotency-Key', fingerprint]);
+      }
+    } else {
+      // Record<string, string>
+      const lowerKeys = Object.keys(rawHeaders as Record<string, string>).map(k => k.toLowerCase());
+      hasIdempotencyKey = lowerKeys.includes('idempotency-key');
+      if (!hasIdempotencyKey) {
+        modifiedOptions.headers = {
+          ...(rawHeaders as Record<string, string>),
+          'Idempotency-Key': fingerprint
+        };
+      }
+    }
+
+    const response = await fetch(url, modifiedOptions);
     
     // Report result if successful
     if (response.ok) {
       try {
         const body = await response.clone().json();
-        await this.reportResult('HTTP', url, {
-          method: options?.method || 'GET',
-          body: options?.body,
-        }, body);
+        await this.reportResult('HTTP', url, inputs, body);
       } catch (e) {
         // Fallback for non-JSON bodies
       }
@@ -596,6 +632,26 @@ export class ReplayGuard {
     scope: GuardScope = 'MONITOR'
   ): Promise<T> {
     return this.wrap('CREWAI_TOOL', toolName, inputs, operation, scope);
+  }
+
+  /**
+   * Stripe adapter — wraps a Stripe operation with replay-safe deduplication,
+   * recommended for defense-in-depth payment integrations.
+   *
+   * @example
+   * const result = await guard.stripe(
+   *   'charge_customer',
+   *   { amount: 5000, customerId: 'cust_123' },
+   *   () => stripe.charges.create({ amount: 5000, customer: 'cust_123' })
+   * );
+   */
+  async stripe<T>(
+    operationId: string,
+    inputs: any,
+    operation: () => Promise<T>,
+    scope: GuardScope = 'MONITOR'
+  ): Promise<T> {
+    return this.wrap('STRIPE_OPERATION', operationId, inputs, operation, scope);
   }
 }
 

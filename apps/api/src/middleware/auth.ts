@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import { verifyToken } from '../utils/jwt.js'
 import { prisma } from '@replaysafe/db'
+import crypto from 'node:crypto'
 
 // Extend Express Request type to include user and project
 declare global {
@@ -51,8 +52,9 @@ export async function unifiedAuth(
     // 2. Try API Key
     const apiKey = req.headers['x-api-key']
     if (apiKey && typeof apiKey === 'string') {
+      const hashedKey = crypto.createHash('sha256').update(apiKey).digest('hex')
       const keyData = await prisma.apiKey.findUnique({
-        where: { key: apiKey },
+        where: { key: hashedKey },
         select: { projectId: true, id: true },
       })
 
@@ -333,8 +335,9 @@ export async function apiKeyMiddleware(
     }
 
     // Find the project associated with this API key
+    const hashedKey = crypto.createHash('sha256').update(apiKey).digest('hex')
     const keyData = await prisma.apiKey.findUnique({
-      where: { key: apiKey },
+      where: { key: hashedKey },
       select: {
         projectId: true,
         id: true,

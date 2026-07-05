@@ -6,7 +6,7 @@
   "description": "",
   "scripts": {
     "dev": "concurrently \"pnpm --filter api dev\" \"pnpm --filter web dev\" \"pnpm --filter landing dev\"",
-    "build": "pnpm -r build",
+    "build": "pnpm -r --filter !example-payment-app build",
     "test": "pnpm -r test",
     "lint": "pnpm -r run --if-present check-lint",
     "ci": "pnpm build && pnpm test",
@@ -28,6 +28,8 @@
   },
   "pnpm": {
     "overrides": {
+      "react": "19.2.0",
+      "react-dom": "19.2.0",
       "lodash": ">=4.18.0",
       "fast-uri": ">=3.1.2",
       "brace-expansion@>=4.0.0 <5.0.5": ">=5.0.5",
