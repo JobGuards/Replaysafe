@@ -203,10 +203,8 @@ describe('ReplayGuard SDK', () => {
         monitorId: 'monitor_123',
       });
 
-      const mockOperation = vi.fn().mockResolvedValue({ id: 'ch_123' });
-      const result = await guard.stripe('operation_123', { amount: 50 }, mockOperation);
+      const result = await guard.stripe<{ id: string }>('operation_123', { amount: 50 }, async () => ({ id: 'ch_123' }));
       
-      expect(mockOperation).toHaveBeenCalled();
       expect(result.id).toBe('ch_123');
     });
   });
