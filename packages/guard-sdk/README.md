@@ -20,13 +20,18 @@ const config = {
 };
 
 await withReplayGuard(config, async (guard) => {
-  // 1. Guard an idempotent side effect
-  const charge = await guard.wrap('STRIPE_CHARGE', 'customer_123', { amount: 5000 }, async () => {
-    return await stripe.charges.create({ ... });
+  const inputs = { amount: 5000, customerId: 'customer_123' };
+
+  // 1. Guard a Stripe operation with defense-in-depth idempotency
+  const charge = await guard.stripe('customer_123', inputs, async () => {
+    return await stripe.charges.create(
+      { amount: 5000, customer: 'customer_123' },
+      { idempotencyKey: guard.fingerprint('STRIPE_OPERATION', 'customer_123', inputs) }
+    );
   });
 
   // 2. Register a compensation action for automatic rollback
-  await guard.compensate('STRIPE_CHARGE', 'customer_123', { amount: 5000 }, {
+  await guard.compensate('STRIPE_OPERATION', 'customer_123', inputs, {
     type: 'STRIPE_REFUND',
     target: charge.id,
     payload: { reason: 'Job failed' }

@@ -52,15 +52,22 @@ export async function chargeNode(
   state: OnboardingState,
   guard: ReplayGuard
 ) {
+  const inputs = { customerId: state.customerId, amount: state.planAmount };
+
   // ✅ This charge will NOT be duplicated during retries (replay-safe deduplication)
   const charge = await guard.langGraph(
     'charge_customer_node',
-    { customerId: state.customerId, amount: state.planAmount },
-    () => stripe.charges.create({
-      amount: state.planAmount,
-      currency: 'usd',
-      customer: state.customerId,
-    })
+    inputs,
+    () => stripe.charges.create(
+      {
+        amount: state.planAmount,
+        currency: 'usd',
+        customer: state.customerId,
+      },
+      {
+        idempotencyKey: guard.fingerprint('LANGGRAPH_NODE', 'charge_customer_node', inputs)
+      }
+    )
   );
 
   // ✅ The welcome email is also protected

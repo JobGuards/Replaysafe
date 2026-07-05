@@ -58,14 +58,19 @@ const config = {
 };
 
 await withReplayGuard(config, async (guard) => {
-  // 1. Guard a non-idempotent operation — safe to retry
-  const charge = await guard.wrap('STRIPE_CHARGE', 'order_9832', { amount: 5000 }, async () => {
-    // If the agent retries, this block is SKIPPED and the original charge result returned.
-    return await stripe.charges.create({ amount: 5000, currency: 'usd' });
+  const inputs = { amount: 5000, currency: 'usd', orderId: 'order_9832' };
+
+  // 1. Guard a Stripe operation with defense-in-depth idempotency
+  const charge = await guard.stripe('order_9832', inputs, async () => {
+    // Pass Replaysafe's fingerprint as Stripe's native idempotency_key
+    return await stripe.charges.create(
+      { amount: 5000, currency: 'usd' },
+      { idempotencyKey: guard.fingerprint('STRIPE_OPERATION', 'order_9832', inputs) }
+    );
   });
 
   // 2. Register a rollback — automatically triggered if the workflow throws
-  await guard.compensate('STRIPE_CHARGE', 'order_9832', { amount: 5000 }, {
+  await guard.compensate('STRIPE_OPERATION', 'order_9832', inputs, {
     type: 'STRIPE_REFUND',
     target: charge.id,
   });
