@@ -97,7 +97,7 @@ export class EffectTimeoutError extends Error {
   readonly fingerprint: string;
   constructor(message: string, fingerprint: string) {
     super(message);
-    this.name = 'EffectTimeoutError';
+    this.name = "EffectTimeoutError";
     this.fingerprint = fingerprint;
   }
 }
@@ -161,7 +161,7 @@ export class ReplayGuard {
   async start(
     externalId?: string,
     workflowId?: string,
-    agentId?: string
+    agentId?: string,
   ): Promise<ReplayContext | null> {
     try {
       const res = await this._fetchWithRetry(
@@ -435,33 +435,57 @@ export class ReplayGuard {
    * });
    */
   async effect<T>(options: EffectOptions<T>): Promise<T> {
-    const { type, target, input, provider, execute, receipt, timeoutMs = 30_000, scope = 'MONITOR' } = options;
+    const {
+      type,
+      target,
+      input,
+      provider,
+      execute,
+      receipt,
+      timeoutMs = 30_000,
+      scope = "MONITOR",
+    } = options;
     const fp = this.fingerprint(type, target, input);
 
     if (!this.context) {
-      if (this.config.debug) console.warn('[ReplayGuard] No session. Running effect without safety layer.');
+      if (this.config.debug)
+        console.warn(
+          "[ReplayGuard] No session. Running effect without safety layer.",
+        );
       return execute();
     }
 
     // 1. Local cache check (process-level dedup — fastest path)
     if (this.localCache.has(fp)) {
-      if (this.config.debug) console.log(`[ReplayGuard] Local cache hit (effect): ${type}:${target}`);
+      if (this.config.debug)
+        console.log(
+          `[ReplayGuard] Local cache hit (effect): ${type}:${target}`,
+        );
       return this.localCache.get(fp) as T;
     }
 
     // 2. Begin: check ledger dedup + write EXECUTING
-    let beginResult: { action: 'EXECUTE' | 'SKIP'; cachedResult?: any };
+    let beginResult: { action: "EXECUTE" | "SKIP"; cachedResult?: any };
     try {
-      beginResult = await this._callBegin(fp, type, target, input, provider, scope);
+      beginResult = await this._callBegin(
+        fp,
+        type,
+        target,
+        input,
+        provider,
+        scope,
+      );
     } catch (e: any) {
-      if (this.config.debug) console.error(`[ReplayGuard] effect.begin failed: ${e.message}`);
-      if (this.config.failPolicy === 'CLOSED') throw e;
+      if (this.config.debug)
+        console.error(`[ReplayGuard] effect.begin failed: ${e.message}`);
+      if (this.config.failPolicy === "CLOSED") throw e;
       // Fail open — run the operation without ledger tracking
       return execute();
     }
 
-    if (beginResult.action === 'SKIP') {
-      if (this.config.debug) console.log(`[ReplayGuard] SKIP (effect): ${type}:${target}`);
+    if (beginResult.action === "SKIP") {
+      if (this.config.debug)
+        console.log(`[ReplayGuard] SKIP (effect): ${type}:${target}`);
       this.localCache.set(fp, beginResult.cachedResult);
       return beginResult.cachedResult as T;
     }
@@ -470,7 +494,13 @@ export class ReplayGuard {
     let result: T;
     try {
       if (timeoutMs > 0) {
-        result = await this._withOperationTimeout(execute, timeoutMs, fp, type, target);
+        result = await this._withOperationTimeout(
+          execute,
+          timeoutMs,
+          fp,
+          type,
+          target,
+        );
       } else {
         result = await execute();
       }
@@ -486,7 +516,8 @@ export class ReplayGuard {
     // 4. Commit: write result + receipt → COMMITTED
     const receiptData = receipt ? receipt(result) : undefined;
     await this._callCommit(fp, result, receiptData).catch((e: any) => {
-      if (this.config.debug) console.error(`[ReplayGuard] effect.commit failed: ${e.message}`);
+      if (this.config.debug)
+        console.error(`[ReplayGuard] effect.commit failed: ${e.message}`);
     });
 
     this.localCache.set(fp, result);
@@ -512,7 +543,7 @@ export class ReplayGuard {
       target,
       input: inputs,
       execute: operation,
-      timeoutMs: 0,   // preserve existing behavior: no operation timeout
+      timeoutMs: 0, // preserve existing behavior: no operation timeout
       scope,
     });
   }
@@ -622,25 +653,32 @@ export class ReplayGuard {
     target: string,
     input: any,
     provider?: string,
-    scope: GuardScope = 'MONITOR'
-  ): Promise<{ action: 'EXECUTE' | 'SKIP'; cachedResult?: any }> {
-    const res = await this._fetchWithRetry(`${this.config.baseUrl}/api/guards/effect/begin`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': this.config.apiKey },
-      body: JSON.stringify({
-        executionId: this.context!.executionId,
-        token: this.context!.token,
-        fingerprint: fp,
-        type,
-        target,
-        inputHash: this._buildInputHash(input),
-        provider: provider ?? null,
-        workflowId: (this.context as any).workflowId ?? null,
-        agentId: (this.context as any).agentId ?? null,
-        scope,
-      }),
-    });
-    if (!res.ok) throw new Error(`[ReplayGuard] effect/begin failed: ${await res.text()}`);
+    scope: GuardScope = "MONITOR",
+  ): Promise<{ action: "EXECUTE" | "SKIP"; cachedResult?: any }> {
+    const res = await this._fetchWithRetry(
+      `${this.config.baseUrl}/api/guards/effect/begin`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": this.config.apiKey,
+        },
+        body: JSON.stringify({
+          executionId: this.context!.executionId,
+          token: this.context!.token,
+          fingerprint: fp,
+          type,
+          target,
+          inputHash: this._buildInputHash(input),
+          provider: provider ?? null,
+          workflowId: (this.context as any).workflowId ?? null,
+          agentId: (this.context as any).agentId ?? null,
+          scope,
+        }),
+      },
+    );
+    if (!res.ok)
+      throw new Error(`[ReplayGuard] effect/begin failed: ${await res.text()}`);
     return res.json();
   }
 
@@ -648,57 +686,81 @@ export class ReplayGuard {
   private async _callCommit(
     fp: string,
     result: any,
-    receipt?: Record<string, any>
+    receipt?: Record<string, any>,
   ): Promise<void> {
-    const res = await this._fetchWithRetry(`${this.config.baseUrl}/api/guards/effect/commit`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': this.config.apiKey },
-      body: JSON.stringify({
-        executionId: this.context!.executionId,
-        token: this.context!.token,
-        fingerprint: fp,
-        result,
-        receipt: receipt ?? null,
-      }),
-    });
-    if (!res.ok && this.config.debug) console.error(`[ReplayGuard] effect/commit failed: ${await res.text()}`);
+    const res = await this._fetchWithRetry(
+      `${this.config.baseUrl}/api/guards/effect/commit`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": this.config.apiKey,
+        },
+        body: JSON.stringify({
+          executionId: this.context!.executionId,
+          token: this.context!.token,
+          fingerprint: fp,
+          result,
+          receipt: receipt ?? null,
+        }),
+      },
+    );
+    if (!res.ok && this.config.debug)
+      console.error(`[ReplayGuard] effect/commit failed: ${await res.text()}`);
   }
 
   /** Calls POST /api/guards/effect/unknown */
   private async _callMarkUnknown(fp: string, reason: string): Promise<void> {
     try {
-      await this._fetchWithRetry(`${this.config.baseUrl}/api/guards/effect/unknown`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': this.config.apiKey },
-        body: JSON.stringify({
-          executionId: this.context!.executionId,
-          token: this.context!.token,
-          fingerprint: fp,
-          reason,
-        }),
-      });
+      await this._fetchWithRetry(
+        `${this.config.baseUrl}/api/guards/effect/unknown`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": this.config.apiKey,
+          },
+          body: JSON.stringify({
+            executionId: this.context!.executionId,
+            token: this.context!.token,
+            fingerprint: fp,
+            reason,
+          }),
+        },
+      );
     } catch (e: any) {
-      if (this.config.debug) console.error(`[ReplayGuard] effect/unknown failed: ${e.message}`);
+      if (this.config.debug)
+        console.error(`[ReplayGuard] effect/unknown failed: ${e.message}`);
     }
   }
 
   /** Calls POST /api/guards/effect/unknown for FAILED outcomes */
-  private async _callMarkFailed(fp: string, errorMessage: string): Promise<void> {
+  private async _callMarkFailed(
+    fp: string,
+    errorMessage: string,
+  ): Promise<void> {
     try {
       // Reuse the unknown route with a descriptive reason; Phase 7 will resolve status
       // A dedicated /effect/failed route is available on the API if needed in the future.
-      await this._fetchWithRetry(`${this.config.baseUrl}/api/guards/effect/unknown`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': this.config.apiKey },
-        body: JSON.stringify({
-          executionId: this.context!.executionId,
-          token: this.context!.token,
-          fingerprint: fp,
-          reason: `Operation failed: ${errorMessage}`,
-        }),
-      });
+      await this._fetchWithRetry(
+        `${this.config.baseUrl}/api/guards/effect/unknown`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": this.config.apiKey,
+          },
+          body: JSON.stringify({
+            executionId: this.context!.executionId,
+            token: this.context!.token,
+            fingerprint: fp,
+            reason: `Operation failed: ${errorMessage}`,
+          }),
+        },
+      );
     } catch (e: any) {
-      if (this.config.debug) console.error(`[ReplayGuard] effect/markFailed failed: ${e.message}`);
+      if (this.config.debug)
+        console.error(`[ReplayGuard] effect/markFailed failed: ${e.message}`);
     }
   }
 
@@ -712,22 +774,30 @@ export class ReplayGuard {
     timeoutMs: number,
     fp: string,
     type: string,
-    target: string
+    target: string,
   ): Promise<T> {
     return new Promise<T>((resolve, reject) => {
       const timer = setTimeout(() => {
         const reason = `Operation timed out after ${timeoutMs}ms`;
         // Fire-and-forget: mark UNKNOWN in the ledger, then reject
         this._callMarkUnknown(fp, reason).catch(() => {});
-        reject(new EffectTimeoutError(
-          `[ReplayGuard] ${type}:${target} timed out after ${timeoutMs}ms`,
-          fp
-        ));
+        reject(
+          new EffectTimeoutError(
+            `[ReplayGuard] ${type}:${target} timed out after ${timeoutMs}ms`,
+            fp,
+          ),
+        );
       }, timeoutMs);
 
       execute().then(
-        (result) => { clearTimeout(timer); resolve(result); },
-        (err)    => { clearTimeout(timer); reject(err); }
+        (result) => {
+          clearTimeout(timer);
+          resolve(result);
+        },
+        (err) => {
+          clearTimeout(timer);
+          reject(err);
+        },
       );
     });
   }

@@ -17,7 +17,7 @@ const router = Router();
  */
 function isValidToken(executionId: string, token?: string): boolean {
   if (!token) return true; // token is optional — callers that don't send it are trusted via API key
-  const [id, sig] = token.split('.');
+  const [id, sig] = token.split(".");
   return id === executionId && verifyToken(id, sig);
 }
 
@@ -47,17 +47,25 @@ router.post("/session", apiKeyMiddleware, async (req, res) => {
       project.id,
       externalId,
       workflowId,
-      agentId
+      agentId,
     );
     const signature = signToken(execution.id);
 
-    auditService.log({
-      projectId: project.id,
-      action: 'GUARD_SESSION_CREATE',
-      resourceType: 'GUARD_EXECUTION',
-      resourceId: execution.id,
-      metadata: { monitorId, externalId, attempt: execution.attempt, workflowId, agentId },
-    }).catch(e => console.error('[Guards] Audit log failed:', e));
+    auditService
+      .log({
+        projectId: project.id,
+        action: "GUARD_SESSION_CREATE",
+        resourceType: "GUARD_EXECUTION",
+        resourceId: execution.id,
+        metadata: {
+          monitorId,
+          externalId,
+          attempt: execution.attempt,
+          workflowId,
+          agentId,
+        },
+      })
+      .catch((e) => console.error("[Guards] Audit log failed:", e));
 
     res.json({
       executionId: execution.id,
@@ -142,10 +150,22 @@ router.post("/verify", apiKeyMiddleware, async (req, res) => {
  */
 router.post("/effect/begin", apiKeyMiddleware, async (req, res) => {
   try {
-    const { executionId, fingerprint, type, target, inputHash, token, provider, workflowId, agentId } = req.body;
+    const {
+      executionId,
+      fingerprint,
+      type,
+      target,
+      inputHash,
+      token,
+      provider,
+      workflowId,
+      agentId,
+    } = req.body;
 
     if (!executionId || !fingerprint) {
-      return res.status(400).json({ error: "executionId and fingerprint are required" });
+      return res
+        .status(400)
+        .json({ error: "executionId and fingerprint are required" });
     }
 
     if (!isValidToken(executionId, token)) {
@@ -160,13 +180,15 @@ router.post("/effect/begin", apiKeyMiddleware, async (req, res) => {
       inputHash || "",
       provider,
       workflowId,
-      agentId
+      agentId,
     );
 
     res.json(result);
   } catch (error: any) {
     console.error("[Guards] Effect begin error:", error.message);
-    res.status(500).json({ error: "Failed to begin side effect", details: error.message });
+    res
+      .status(500)
+      .json({ error: "Failed to begin side effect", details: error.message });
   }
 });
 
@@ -179,19 +201,28 @@ router.post("/effect/commit", apiKeyMiddleware, async (req, res) => {
     const { executionId, fingerprint, token, result, receipt } = req.body;
 
     if (!executionId || !fingerprint) {
-      return res.status(400).json({ error: "executionId and fingerprint are required" });
+      return res
+        .status(400)
+        .json({ error: "executionId and fingerprint are required" });
     }
 
     if (!isValidToken(executionId, token)) {
       return res.status(401).json({ error: "Invalid session token" });
     }
 
-    await GuardsService.commitSideEffect(executionId, fingerprint, result, receipt);
+    await GuardsService.commitSideEffect(
+      executionId,
+      fingerprint,
+      result,
+      receipt,
+    );
 
     res.json({ ok: true });
   } catch (error: any) {
     console.error("[Guards] Effect commit error:", error.message);
-    res.status(500).json({ error: "Failed to commit side effect", details: error.message });
+    res
+      .status(500)
+      .json({ error: "Failed to commit side effect", details: error.message });
   }
 });
 
@@ -205,7 +236,9 @@ router.post("/effect/unknown", apiKeyMiddleware, async (req, res) => {
     const { executionId, fingerprint, token, reason } = req.body;
 
     if (!executionId || !fingerprint) {
-      return res.status(400).json({ error: "executionId and fingerprint are required" });
+      return res
+        .status(400)
+        .json({ error: "executionId and fingerprint are required" });
     }
 
     if (!isValidToken(executionId, token)) {
@@ -215,13 +248,18 @@ router.post("/effect/unknown", apiKeyMiddleware, async (req, res) => {
     await GuardsService.markUnknown(
       executionId,
       fingerprint,
-      reason || "Timed out — outcome unknown"
+      reason || "Timed out — outcome unknown",
     );
 
     res.json({ ok: true });
   } catch (error: any) {
     console.error("[Guards] Effect unknown error:", error.message);
-    res.status(500).json({ error: "Failed to mark side effect unknown", details: error.message });
+    res
+      .status(500)
+      .json({
+        error: "Failed to mark side effect unknown",
+        details: error.message,
+      });
   }
 });
 
@@ -277,7 +315,9 @@ router.patch("/execution/:id", apiKeyMiddleware, async (req, res) => {
     const { status, token, shouldRollback } = req.body;
 
     if (!status || !["SUCCESS", "FAILED", "UNKNOWN"].includes(status)) {
-      return res.status(400).json({ error: "status must be SUCCESS, FAILED, or UNKNOWN" });
+      return res
+        .status(400)
+        .json({ error: "status must be SUCCESS, FAILED, or UNKNOWN" });
     }
 
     if (!isValidToken(id, token)) {
@@ -341,22 +381,28 @@ router.get(
  * Phase 6: List all side effects for a workflow ID (Dashboard + Phase 8 resume)
  * GET /api/guards/workflow/:workflowId
  */
-router.get("/workflow/:workflowId", unifiedAuth, projectAccessMiddleware("MEMBER"), async (req: any, res: any) => {
-  try {
-    const { project } = req;
-    if (!project) return res.status(401).json({ error: "Project context missing" });
+router.get(
+  "/workflow/:workflowId",
+  unifiedAuth,
+  projectAccessMiddleware("MEMBER"),
+  async (req: any, res: any) => {
+    try {
+      const { project } = req;
+      if (!project)
+        return res.status(401).json({ error: "Project context missing" });
 
-    const effects = await GuardsService.listEffectsByWorkflow(
-      req.params.workflowId as string,
-      project.id
-    );
+      const effects = await GuardsService.listEffectsByWorkflow(
+        req.params.workflowId as string,
+        project.id,
+      );
 
-    res.json(effects);
-  } catch (error) {
-    console.error("[Guards] Workflow effects error:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
+      res.json(effects);
+    } catch (error) {
+      console.error("[Guards] Workflow effects error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+);
 
 /**
  * List all guarded executions for the project (Dashboard)

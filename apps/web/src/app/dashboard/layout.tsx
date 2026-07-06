@@ -109,13 +109,48 @@ export default function DashboardLayout({
           }`}
         >
           <nav className="p-8 space-y-6">
-            <SidebarLink href="/dashboard" icon={<Home className="w-4 h-4" />} label="Dashboard" active={pathname === '/dashboard'} />
-            <SidebarLink href="/dashboard/monitors" icon={<Activity className="w-4 h-4" />} label="Agents" active={pathname?.startsWith('/dashboard/monitors')} />
-            <SidebarLink href="/dashboard/activity" icon={<Clock className="w-4 h-4" />} label="Liveness Logs" active={pathname === '/dashboard/activity'} />
-            <SidebarLink href="/dashboard/incidents" icon={<AlertTriangle className="w-4 h-4" />} label="Crashes" active={pathname === '/dashboard/incidents'} />
-            <SidebarLink href="/dashboard/guards" icon={<ShieldCheck className="w-4 h-4" />} label="Execution Ledger" active={pathname === '/dashboard/guards'} />
-            <SidebarLink href="/dashboard/webhooks" icon={<Globe className="w-4 h-4" />} label="Escalations" active={pathname === '/dashboard/webhooks'} />
-            <SidebarLink href="/dashboard/analytics" icon={<BarChart3 className="w-4 h-4" />} label="Analytics" active={pathname === '/dashboard/analytics'} />
+            <SidebarLink
+              href="/dashboard"
+              icon={<Home className="w-4 h-4" />}
+              label="Dashboard"
+              active={pathname === "/dashboard"}
+            />
+            <SidebarLink
+              href="/dashboard/monitors"
+              icon={<Activity className="w-4 h-4" />}
+              label="Agents"
+              active={pathname?.startsWith("/dashboard/monitors")}
+            />
+            <SidebarLink
+              href="/dashboard/activity"
+              icon={<Clock className="w-4 h-4" />}
+              label="Liveness Logs"
+              active={pathname === "/dashboard/activity"}
+            />
+            <SidebarLink
+              href="/dashboard/incidents"
+              icon={<AlertTriangle className="w-4 h-4" />}
+              label="Crashes"
+              active={pathname === "/dashboard/incidents"}
+            />
+            <SidebarLink
+              href="/dashboard/guards"
+              icon={<ShieldCheck className="w-4 h-4" />}
+              label="Execution Ledger"
+              active={pathname === "/dashboard/guards"}
+            />
+            <SidebarLink
+              href="/dashboard/webhooks"
+              icon={<Globe className="w-4 h-4" />}
+              label="Escalations"
+              active={pathname === "/dashboard/webhooks"}
+            />
+            <SidebarLink
+              href="/dashboard/analytics"
+              icon={<BarChart3 className="w-4 h-4" />}
+              label="Analytics"
+              active={pathname === "/dashboard/analytics"}
+            />
             <div className="border-t border-border/5 my-8" />
             <SidebarLink
               href="/dashboard/settings"

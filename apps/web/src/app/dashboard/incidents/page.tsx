@@ -46,8 +46,9 @@ export default function IncidentsPage() {
             Failure <span className="text-acid-lime">Logs</span>
           </h1>
           <p className="text-muted-foreground text-lg md:text-xl font-medium leading-relaxed max-w-2xl">
-            Real-time telemetry of agent execution errors. Every process crash, 
-            infinite retry loop, and failed side-effect rollback logged for deep analysis.
+            Real-time telemetry of agent execution errors. Every process crash,
+            infinite retry loop, and failed side-effect rollback logged for deep
+            analysis.
           </p>
         </div>
       </div>

@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useState } from 'react'
-import useSWR from 'swr'
-import { api } from '@/lib/api'
-import { 
-  Shield, 
-  Clock, 
-  CheckCircle2, 
-  XCircle, 
-  Activity, 
+import React, { useState } from "react";
+import useSWR from "swr";
+import { api } from "@/lib/api";
+import {
+  Shield,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  Activity,
   ChevronRight,
   Search,
   Filter,
@@ -22,22 +22,27 @@ import { useAuth } from "@/contexts/AuthContext";
 const fetcher = () => api.getGuardedExecutions();
 
 export default function GuardExecutionsPage() {
-  const { activeOrganization } = useAuth()
-  const [searchQuery, setSearchQuery] = useState('')
-  const { data: executions, error, isLoading, mutate } = useSWR(
-    activeOrganization ? ['/api/guards', activeOrganization.id] : null, 
-    fetcher
-  )
+  const { activeOrganization } = useAuth();
+  const [searchQuery, setSearchQuery] = useState("");
+  const {
+    data: executions,
+    error,
+    isLoading,
+    mutate,
+  } = useSWR(
+    activeOrganization ? ["/api/guards", activeOrganization.id] : null,
+    fetcher,
+  );
 
   const filteredExecutions = executions?.filter((exec: any) => {
-    const query = searchQuery.toLowerCase()
+    const query = searchQuery.toLowerCase();
     return (
-      (exec.externalId?.toLowerCase() || '').includes(query) ||
-      (exec.id?.toLowerCase() || '').includes(query) ||
-      (exec.workflowId?.toLowerCase() || '').includes(query) ||
-      (exec.monitor?.name?.toLowerCase() || '').includes(query)
-    )
-  })
+      (exec.externalId?.toLowerCase() || "").includes(query) ||
+      (exec.id?.toLowerCase() || "").includes(query) ||
+      (exec.workflowId?.toLowerCase() || "").includes(query) ||
+      (exec.monitor?.name?.toLowerCase() || "").includes(query)
+    );
+  });
 
   if (isLoading) {
     return (
@@ -90,9 +95,9 @@ export default function GuardExecutionsPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-4">
           <div className="relative flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40" />
-            <input 
-              type="text" 
-              placeholder="Search by Job ID, Workflow ID, or Monitor..." 
+            <input
+              type="text"
+              placeholder="Search by Job ID, Workflow ID, or Monitor..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full h-12 pl-12 pr-6 rounded-xl bg-foreground/[0.03] border border-border/10 focus:border-acid-lime/50 transition-all text-sm font-medium"
@@ -100,13 +105,13 @@ export default function GuardExecutionsPage() {
           </div>
 
           <div className="flex items-center gap-3">
-             <button 
-               onClick={() => mutate()}
-               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-foreground/[0.03] border border-border/10 text-[10px] font-black uppercase tracking-widest hover:bg-foreground/[0.05] transition-all"
-             >
-               <RefreshCw className="w-3 h-3" />
-               Refresh
-             </button>
+            <button
+              onClick={() => mutate()}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-foreground/[0.03] border border-border/10 text-[10px] font-black uppercase tracking-widest hover:bg-foreground/[0.05] transition-all"
+            >
+              <RefreshCw className="w-3 h-3" />
+              Refresh
+            </button>
           </div>
         </div>
 
@@ -119,16 +124,22 @@ export default function GuardExecutionsPage() {
               >
                 <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr_auto_auto] items-center gap-8">
                   {/* Status Indicator */}
-                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border shadow-lg transition-all group-hover:scale-110 ${
-                    execution.status === 'SUCCESS' 
-                      ? 'bg-acid-lime/10 border-acid-lime/20 text-acid-lime shadow-acid-lime/5' 
-                      : execution.status === 'RUNNING'
-                      ? 'bg-yellow-400/10 border-yellow-400/20 text-yellow-400 animate-pulse'
-                      : execution.status === 'UNKNOWN'
-                      ? 'bg-orange-400/10 border-orange-400/20 text-orange-400 animate-pulse'
-                      : 'bg-destructive/10 border-destructive/20 text-destructive shadow-destructive/5'
-                  }`}>
-                    {execution.status === 'SUCCESS' ? <CheckCircle2 className="w-7 h-7" /> : <Activity className="w-7 h-7" />}
+                  <div
+                    className={`w-14 h-14 rounded-2xl flex items-center justify-center border shadow-lg transition-all group-hover:scale-110 ${
+                      execution.status === "SUCCESS"
+                        ? "bg-acid-lime/10 border-acid-lime/20 text-acid-lime shadow-acid-lime/5"
+                        : execution.status === "RUNNING"
+                          ? "bg-yellow-400/10 border-yellow-400/20 text-yellow-400 animate-pulse"
+                          : execution.status === "UNKNOWN"
+                            ? "bg-orange-400/10 border-orange-400/20 text-orange-400 animate-pulse"
+                            : "bg-destructive/10 border-destructive/20 text-destructive shadow-destructive/5"
+                    }`}
+                  >
+                    {execution.status === "SUCCESS" ? (
+                      <CheckCircle2 className="w-7 h-7" />
+                    ) : (
+                      <Activity className="w-7 h-7" />
+                    )}
                   </div>
 
                   {/* Info */}

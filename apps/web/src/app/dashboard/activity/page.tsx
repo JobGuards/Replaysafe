@@ -161,7 +161,9 @@ export default function Activity() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Liveness Logs</h1>
-          <p className="text-muted-foreground">View real-time check-in history of all running agent processes.</p>
+          <p className="text-muted-foreground">
+            View real-time check-in history of all running agent processes.
+          </p>
         </div>
         <Button
           variant="outline"

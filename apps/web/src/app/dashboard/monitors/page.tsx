@@ -35,14 +35,19 @@ export default function MonitorsPage() {
               Agent <span className="text-acid-lime">Profiles</span>
             </h1>
             <p className="text-muted-foreground text-lg md:text-xl font-medium leading-relaxed max-w-2xl">
-              Track liveness, health status, and execution budgets of background agent daemons.
-              Proactive loop protection and rollback sentinel metrics.
+              Track liveness, health status, and execution budgets of background
+              agent daemons. Proactive loop protection and rollback sentinel
+              metrics.
             </p>
           </div>
 
           <Link href="/dashboard/monitors/new">
-            <Button size="lg" className="bg-acid-lime text-primary-foreground gap-4 px-12 h-16 rounded-2xl shadow-2xl shadow-acid-lime/20 hover:shadow-acid-lime/40 transition-all font-black uppercase tracking-widest text-sm group">
-              <Plus className="h-5 w-5 group-hover:rotate-90 transition-transform" /> Register Agent
+            <Button
+              size="lg"
+              className="bg-acid-lime text-primary-foreground gap-4 px-12 h-16 rounded-2xl shadow-2xl shadow-acid-lime/20 hover:shadow-acid-lime/40 transition-all font-black uppercase tracking-widest text-sm group"
+            >
+              <Plus className="h-5 w-5 group-hover:rotate-90 transition-transform" />{" "}
+              Register Agent
             </Button>
           </Link>
         </div>
