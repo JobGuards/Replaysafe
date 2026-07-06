@@ -130,11 +130,9 @@ router.post(
         channel.type.toLowerCase()
       ];
       if (!provider) {
-        res
-          .status(400)
-          .json({
-            error: `No provider found for channel type: ${channel.type}`,
-          });
+        res.status(400).json({
+          error: `No provider found for channel type: ${channel.type}`,
+        });
         return;
       }
 

@@ -106,11 +106,9 @@ router.post("/webhook", async (req: Request, res: Response) => {
       rawBody = rawBody.toString("utf8");
     }
     if (!rawBody) {
-      return res
-        .status(400)
-        .json({
-          error: "Unable to read request body for signature verification",
-        });
+      return res.status(400).json({
+        error: "Unable to read request body for signature verification",
+      });
     }
     const expectedSignature = crypto
       .createHmac("sha256", STRIPE_WEBHOOK_SECRET)

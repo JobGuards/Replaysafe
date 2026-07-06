@@ -108,11 +108,9 @@ export function projectAccessMiddleware(
         const requiredRoleIndex = roles.indexOf(requiredRole);
 
         if (userRoleIndex < requiredRoleIndex) {
-          res
-            .status(403)
-            .json({
-              error: `Insufficient permissions. Required role: ${requiredRole}`,
-            });
+          res.status(403).json({
+            error: `Insufficient permissions. Required role: ${requiredRole}`,
+          });
           return;
         }
         return next();
@@ -156,11 +154,9 @@ export function projectAccessMiddleware(
       const requiredRoleIndex = roles.indexOf(requiredRole);
 
       if (userRoleIndex < requiredRoleIndex) {
-        res
-          .status(403)
-          .json({
-            error: `Insufficient permissions. Required role: ${requiredRole}`,
-          });
+        res.status(403).json({
+          error: `Insufficient permissions. Required role: ${requiredRole}`,
+        });
         return;
       }
 
@@ -220,11 +216,9 @@ export function monitorAccessMiddleware(
         const userRoleIndex = roles.indexOf(req.project.role);
         const requiredRoleIndex = roles.indexOf(requiredRole);
         if (userRoleIndex < requiredRoleIndex) {
-          res
-            .status(403)
-            .json({
-              error: `Insufficient permissions. Required role: ${requiredRole}`,
-            });
+          res.status(403).json({
+            error: `Insufficient permissions. Required role: ${requiredRole}`,
+          });
           return;
         }
         return next();
@@ -259,11 +253,9 @@ export function monitorAccessMiddleware(
       const requiredRoleIndex = roles.indexOf(requiredRole);
 
       if (userRoleIndex < requiredRoleIndex) {
-        res
-          .status(403)
-          .json({
-            error: `Insufficient permissions. Required role: ${requiredRole}`,
-          });
+        res.status(403).json({
+          error: `Insufficient permissions. Required role: ${requiredRole}`,
+        });
         return;
       }
 
