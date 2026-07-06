@@ -40,15 +40,14 @@ export default function IncidentsPage() {
         <div className="relative z-10 space-y-6">
           <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.4em] text-acid-lime italic">
             <Zap className="w-3 h-3 fill-acid-lime" />
-            Security_Audit_Protocol_v2.0
+            Agent_Control_Protocol_v2.0
           </div>
           <h1 className="text-5xl md:text-6xl font-black tracking-tighter text-foreground uppercase italic leading-none">
-            Incident <span className="text-acid-lime">Vault</span>
+            Failure <span className="text-acid-lime">Logs</span>
           </h1>
           <p className="text-muted-foreground text-lg md:text-xl font-medium leading-relaxed max-w-2xl">
-            Real-time telemetry of infrastructure deviations. Every downtime,
-            latency spike, and missed heartbeat captured for deep forensic
-            analysis.
+            Real-time telemetry of agent execution errors. Every process crash, 
+            infinite retry loop, and failed side-effect rollback logged for deep analysis.
           </p>
         </div>
       </div>

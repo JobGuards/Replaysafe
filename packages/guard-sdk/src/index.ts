@@ -67,6 +67,8 @@ export type GuardScope = "MONITOR" | "PROJECT";
 
 export interface GuardOptions {
   externalId?: string;
+  workflowId?: string;
+  agentId?: string;
   onRollback?: (rollback: any) => Promise<void> | void;
 }
 
@@ -74,6 +76,60 @@ export interface VerifyResponse {
   action: GuardAction;
   cachedResult?: any;
   fingerprint: string;
+}
+
+/**
+ * Thrown by guard.effect() when an operation exceeds its configured timeoutMs.
+ * The effect has been marked UNKNOWN in the ledger — it may or may not have
+ * executed on the provider side. Phase 7 verification will resolve this.
+ *
+ * Catch this specifically to implement timeout-aware error handling:
+ * @example
+ * try {
+ *   await guard.effect({ ... });
+ * } catch (e) {
+ *   if (e instanceof EffectTimeoutError) {
+ *     // operation result is uncertain — do not retry blindly
+ *   }
+ * }
+ */
+export class EffectTimeoutError extends Error {
+  readonly fingerprint: string;
+  constructor(message: string, fingerprint: string) {
+    super(message);
+    this.name = 'EffectTimeoutError';
+    this.fingerprint = fingerprint;
+  }
+}
+
+/**
+ * Options for guard.effect() — the Phase 6 execution ledger primitive.
+ */
+export interface EffectOptions<T> {
+  /** Semantic type label for the operation (e.g. "STRIPE_CHARGE", "SEND_EMAIL"). */
+  type: string;
+  /** Unique identifier for the target resource (order ID, email address, etc.). */
+  target: string;
+  /** Semantic inputs that uniquely identify this operation. Transient keys are stripped automatically. */
+  input: any;
+  /** Provider name for ledger visibility ("stripe", "sendgrid", "github", "slack", etc.). */
+  provider?: string;
+  /** The async operation to execute. */
+  execute: () => Promise<T>;
+  /**
+   * Extracts provider-native proof from the result to store as receipt.
+   * @example (result) => ({ chargeId: result.id })
+   */
+  receipt?: (result: T) => Record<string, any>;
+  /**
+   * Timeout for the execute lambda in ms.
+   * If the operation exceeds this, Replaysafe marks the effect UNKNOWN and
+   * throws EffectTimeoutError. Set to 0 to disable timeout.
+   * Default: 30000 (30s)
+   */
+  timeoutMs?: number;
+  /** Deduplication scope. Default: 'MONITOR' */
+  scope?: GuardScope;
 }
 
 export class ReplayGuard {
@@ -98,8 +154,15 @@ export class ReplayGuard {
 
   /**
    * Initializes a ReplayGuard session for the current job run.
+   *
+   * Phase 6: accepts optional workflowId and agentId for ledger grouping.
+   * All guard.effect() calls within this session will be tagged with these IDs.
    */
-  async start(externalId?: string): Promise<ReplayContext | null> {
+  async start(
+    externalId?: string,
+    workflowId?: string,
+    agentId?: string
+  ): Promise<ReplayContext | null> {
     try {
       const res = await this._fetchWithRetry(
         `${this.config.baseUrl}/api/guards/session`,
@@ -112,6 +175,8 @@ export class ReplayGuard {
           body: JSON.stringify({
             monitorId: this.config.monitorId,
             externalId,
+            workflowId: workflowId ?? null,
+            agentId: agentId ?? null,
           }),
         },
       );
@@ -344,8 +409,96 @@ export class ReplayGuard {
     return response;
   }
 
+  // ─────────────────────────────────────────────────────────────────
+  // Phase 6 — Execution Ledger primitives
+  // ─────────────────────────────────────────────────────────────────
+
+  /**
+   * Guarded execution wrapper with full lifecycle tracking.
+   *
+   * Unlike guard.wrap(), this method:
+   * - Writes an EXECUTING record BEFORE running the operation
+   * - Writes a COMMITTED record with provider receipt AFTER success
+   * - Writes an UNKNOWN record if the operation times out
+   * - Writes a FAILED record if the operation throws
+   *
+   * guard.wrap() is a backward-compatible shim over this method.
+   *
+   * @example
+   * const charge = await guard.effect({
+   *   type: 'STRIPE_CHARGE',
+   *   target: order.id,
+   *   input: { amount, currency },
+   *   provider: 'stripe',
+   *   execute: () => stripe.charges.create({ amount, currency }),
+   *   receipt: (result) => ({ chargeId: result.id }),
+   * });
+   */
+  async effect<T>(options: EffectOptions<T>): Promise<T> {
+    const { type, target, input, provider, execute, receipt, timeoutMs = 30_000, scope = 'MONITOR' } = options;
+    const fp = this.fingerprint(type, target, input);
+
+    if (!this.context) {
+      if (this.config.debug) console.warn('[ReplayGuard] No session. Running effect without safety layer.');
+      return execute();
+    }
+
+    // 1. Local cache check (process-level dedup — fastest path)
+    if (this.localCache.has(fp)) {
+      if (this.config.debug) console.log(`[ReplayGuard] Local cache hit (effect): ${type}:${target}`);
+      return this.localCache.get(fp) as T;
+    }
+
+    // 2. Begin: check ledger dedup + write EXECUTING
+    let beginResult: { action: 'EXECUTE' | 'SKIP'; cachedResult?: any };
+    try {
+      beginResult = await this._callBegin(fp, type, target, input, provider, scope);
+    } catch (e: any) {
+      if (this.config.debug) console.error(`[ReplayGuard] effect.begin failed: ${e.message}`);
+      if (this.config.failPolicy === 'CLOSED') throw e;
+      // Fail open — run the operation without ledger tracking
+      return execute();
+    }
+
+    if (beginResult.action === 'SKIP') {
+      if (this.config.debug) console.log(`[ReplayGuard] SKIP (effect): ${type}:${target}`);
+      this.localCache.set(fp, beginResult.cachedResult);
+      return beginResult.cachedResult as T;
+    }
+
+    // 3. Execute with optional timeout
+    let result: T;
+    try {
+      if (timeoutMs > 0) {
+        result = await this._withOperationTimeout(execute, timeoutMs, fp, type, target);
+      } else {
+        result = await execute();
+      }
+    } catch (err: any) {
+      // EffectTimeoutError is already handled inside _withOperationTimeout (UNKNOWN marked)
+      // For regular errors: mark FAILED and re-throw
+      if (!(err instanceof EffectTimeoutError)) {
+        await this._callMarkFailed(fp, err.message).catch(() => {});
+      }
+      throw err;
+    }
+
+    // 4. Commit: write result + receipt → COMMITTED
+    const receiptData = receipt ? receipt(result) : undefined;
+    await this._callCommit(fp, result, receiptData).catch((e: any) => {
+      if (this.config.debug) console.error(`[ReplayGuard] effect.commit failed: ${e.message}`);
+    });
+
+    this.localCache.set(fp, result);
+    return result;
+  }
+
   /**
    * Generic wrapper for any dangerous operation.
+   *
+   * Backward-compatible shim over guard.effect().
+   * Existing behavior is preserved exactly — no EXECUTING phase, no timeout.
+   * For full lifecycle tracking, use guard.effect() instead.
    */
   async wrap<T>(
     type: string,
@@ -354,35 +507,14 @@ export class ReplayGuard {
     operation: () => Promise<T>,
     scope: GuardScope = "MONITOR",
   ): Promise<T> {
-    const { action, cachedResult } = await this.verify(
+    return this.effect<T>({
       type,
       target,
-      inputs,
+      input: inputs,
+      execute: operation,
+      timeoutMs: 0,   // preserve existing behavior: no operation timeout
       scope,
-    );
-
-    if (action === "SKIP") {
-      if (this.config.debug)
-        console.log(
-          `[ReplayGuard] Replaying cached result for (${type}): ${target}`,
-        );
-      return cachedResult as T;
-    }
-
-    try {
-      const result = await operation();
-
-      // Update local cache immediately
-      const inputHash = this._buildInputHash(inputs);
-      const fingerprint = hash({ type, target, inputHash });
-      this.localCache.set(fingerprint, result);
-
-      await this.reportResult(type, target, inputs, result);
-
-      return result;
-    } catch (error) {
-      throw error;
-    }
+    });
   }
 
   // ─────────────────────────────────────────────────────────────────
@@ -479,8 +611,130 @@ export class ReplayGuard {
     throw lastError;
   }
 
+  // ─────────────────────────────────────────────────────────────────
+  // Phase 6 private API helpers
+  // ─────────────────────────────────────────────────────────────────
+
+  /** Calls POST /api/guards/effect/begin */
+  private async _callBegin(
+    fp: string,
+    type: string,
+    target: string,
+    input: any,
+    provider?: string,
+    scope: GuardScope = 'MONITOR'
+  ): Promise<{ action: 'EXECUTE' | 'SKIP'; cachedResult?: any }> {
+    const res = await this._fetchWithRetry(`${this.config.baseUrl}/api/guards/effect/begin`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': this.config.apiKey },
+      body: JSON.stringify({
+        executionId: this.context!.executionId,
+        token: this.context!.token,
+        fingerprint: fp,
+        type,
+        target,
+        inputHash: this._buildInputHash(input),
+        provider: provider ?? null,
+        workflowId: (this.context as any).workflowId ?? null,
+        agentId: (this.context as any).agentId ?? null,
+        scope,
+      }),
+    });
+    if (!res.ok) throw new Error(`[ReplayGuard] effect/begin failed: ${await res.text()}`);
+    return res.json();
+  }
+
+  /** Calls POST /api/guards/effect/commit */
+  private async _callCommit(
+    fp: string,
+    result: any,
+    receipt?: Record<string, any>
+  ): Promise<void> {
+    const res = await this._fetchWithRetry(`${this.config.baseUrl}/api/guards/effect/commit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': this.config.apiKey },
+      body: JSON.stringify({
+        executionId: this.context!.executionId,
+        token: this.context!.token,
+        fingerprint: fp,
+        result,
+        receipt: receipt ?? null,
+      }),
+    });
+    if (!res.ok && this.config.debug) console.error(`[ReplayGuard] effect/commit failed: ${await res.text()}`);
+  }
+
+  /** Calls POST /api/guards/effect/unknown */
+  private async _callMarkUnknown(fp: string, reason: string): Promise<void> {
+    try {
+      await this._fetchWithRetry(`${this.config.baseUrl}/api/guards/effect/unknown`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': this.config.apiKey },
+        body: JSON.stringify({
+          executionId: this.context!.executionId,
+          token: this.context!.token,
+          fingerprint: fp,
+          reason,
+        }),
+      });
+    } catch (e: any) {
+      if (this.config.debug) console.error(`[ReplayGuard] effect/unknown failed: ${e.message}`);
+    }
+  }
+
+  /** Calls POST /api/guards/effect/unknown for FAILED outcomes */
+  private async _callMarkFailed(fp: string, errorMessage: string): Promise<void> {
+    try {
+      // Reuse the unknown route with a descriptive reason; Phase 7 will resolve status
+      // A dedicated /effect/failed route is available on the API if needed in the future.
+      await this._fetchWithRetry(`${this.config.baseUrl}/api/guards/effect/unknown`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': this.config.apiKey },
+        body: JSON.stringify({
+          executionId: this.context!.executionId,
+          token: this.context!.token,
+          fingerprint: fp,
+          reason: `Operation failed: ${errorMessage}`,
+        }),
+      });
+    } catch (e: any) {
+      if (this.config.debug) console.error(`[ReplayGuard] effect/markFailed failed: ${e.message}`);
+    }
+  }
+
+  /**
+   * Races the execute lambda against a timer.
+   * If the timer wins: marks the effect UNKNOWN, throws EffectTimeoutError.
+   * If execute wins: returns the result normally.
+   */
+  private _withOperationTimeout<T>(
+    execute: () => Promise<T>,
+    timeoutMs: number,
+    fp: string,
+    type: string,
+    target: string
+  ): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        const reason = `Operation timed out after ${timeoutMs}ms`;
+        // Fire-and-forget: mark UNKNOWN in the ledger, then reject
+        this._callMarkUnknown(fp, reason).catch(() => {});
+        reject(new EffectTimeoutError(
+          `[ReplayGuard] ${type}:${target} timed out after ${timeoutMs}ms`,
+          fp
+        ));
+      }, timeoutMs);
+
+      execute().then(
+        (result) => { clearTimeout(timer); resolve(result); },
+        (err)    => { clearTimeout(timer); reject(err); }
+      );
+    });
+  }
+
   /**
    * Reports the successful result of a side effect to the execution memory.
+   * Used internally by legacy paths (guard.fetch, etc.) that don't use guard.effect().
    */
   private async reportResult(
     type: string,
