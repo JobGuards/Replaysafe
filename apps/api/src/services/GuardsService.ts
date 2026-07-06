@@ -8,7 +8,11 @@ export class GuardsService {
    * Initializes a new guarded execution session.
    * If externalId is provided, it detects if this is a retry and increments the attempt counter.
    */
-  static async createSession(monitorId: string, projectId: string, externalId?: string) {
+  static async createSession(
+    monitorId: string,
+    projectId: string,
+    externalId?: string,
+  ) {
     const monitor = await prisma.monitor.findUnique({
       where: { id: monitorId },
     });
@@ -21,7 +25,7 @@ export class GuardsService {
       throw new Error("Unauthorized: Monitor does not belong to this project");
     }
 
-    const cacheKey = externalId ?? '__no_external_id__';
+    const cacheKey = externalId ?? "__no_external_id__";
 
     // 1. Fast-path: Check in-memory circuit breaker before touching the DB.
     //    If the breaker is hot, we fail immediately without a query.
@@ -29,34 +33,40 @@ export class GuardsService {
     if (breakerState.broken) {
       throw new Error(
         `Circuit Breaker Tripped: Excessive retries detected for this monitor. ` +
-        `Cooldown active for another ${Math.ceil(breakerState.cooldownRemainingMs / 60000)} minute(s). ` +
-        `New executions are temporarily blocked to prevent infinite loops.`
+          `Cooldown active for another ${Math.ceil(breakerState.cooldownRemainingMs / 60000)} minute(s). ` +
+          `New executions are temporarily blocked to prevent infinite loops.`,
       );
     }
 
     // 2. Also check the DB for an active STREAK pattern (survives process restarts).
     const activeStreak = await prisma.failurePattern.findFirst({
-      where: { monitorId, type: 'STREAK', active: true }
+      where: { monitorId, type: "STREAK", active: true },
     });
 
     if (activeStreak) {
-      const lastSeen = new Date(activeStreak.lastSeenAt || activeStreak.createdAt);
+      const lastSeen = new Date(
+        activeStreak.lastSeenAt || activeStreak.createdAt,
+      );
       const minutesSinceStreak = (Date.now() - lastSeen.getTime()) / 60000;
       const cooldownMinutes = 60;
 
       if (minutesSinceStreak < cooldownMinutes) {
         // Warm the in-memory cache so future calls skip the DB query.
-        LoopDetectionCache.tripBreaker(monitorId, cacheKey, (cooldownMinutes - minutesSinceStreak) * 60000);
+        LoopDetectionCache.tripBreaker(
+          monitorId,
+          cacheKey,
+          (cooldownMinutes - minutesSinceStreak) * 60000,
+        );
         throw new Error(
           `Circuit Breaker Tripped: Excessive recursive retries detected for this monitor. ` +
-          `New executions are temporarily blocked to prevent infinite loops. ` +
-          `Cooldown active for another ${Math.ceil(cooldownMinutes - minutesSinceStreak)} minute(s).`
+            `New executions are temporarily blocked to prevent infinite loops. ` +
+            `Cooldown active for another ${Math.ceil(cooldownMinutes - minutesSinceStreak)} minute(s).`,
         );
       } else {
         // Cooldown elapsed — deactivate in DB and clear in-memory state.
         await prisma.failurePattern.update({
           where: { id: activeStreak.id },
-          data: { active: false }
+          data: { active: false },
         });
       }
     }
@@ -87,38 +97,42 @@ export class GuardsService {
       LoopDetectionCache.tripBreaker(monitorId, cacheKey, cooldownMs);
 
       const existingStreak = await prisma.failurePattern.findFirst({
-        where: { monitorId, type: 'STREAK', active: true }
+        where: { monitorId, type: "STREAK", active: true },
       });
 
       if (!existingStreak) {
         await prisma.failurePattern.create({
           data: {
             monitorId,
-            type: 'STREAK',
+            type: "STREAK",
             description: `Monitor "${monitor.name}" is experiencing excessive retries (Attempt #${attempt}/${retryBudget}). Potential recursive failure detected.`,
             confidence: 0.9,
             metadata: { attempt, retryBudget, externalId },
             active: true,
-            lastSeenAt: new Date()
-          }
+            lastSeenAt: new Date(),
+          },
         });
 
-        await alertService.sendEmergencyAlert(
-          projectId,
-          monitorId,
-          'RETRY_LOOP_DETECTED',
-          `🚨 EMERGENCY: Infinite Retry Loop Blocked!\n\nMonitor "${monitor.name}" hit retry budget (Attempt #${attempt}/${retryBudget}) for Job ID "${externalId}".\n\nReplaysafe has automatically tripped the circuit breaker and blocked new executions for this monitor to protect downstream infrastructure.`
-        ).catch(err => console.error("Failed to send emergency alert:", err));
+        await alertService
+          .sendEmergencyAlert(
+            projectId,
+            monitorId,
+            "RETRY_LOOP_DETECTED",
+            `🚨 EMERGENCY: Infinite Retry Loop Blocked!\n\nMonitor "${monitor.name}" hit retry budget (Attempt #${attempt}/${retryBudget}) for Job ID "${externalId}".\n\nReplaysafe has automatically tripped the circuit breaker and blocked new executions for this monitor to protect downstream infrastructure.`,
+          )
+          .catch((err) =>
+            console.error("Failed to send emergency alert:", err),
+          );
       } else {
         await prisma.failurePattern.update({
           where: { id: existingStreak.id },
-          data: { lastSeenAt: new Date() }
+          data: { lastSeenAt: new Date() },
         });
       }
 
       throw new Error(
         `Circuit Breaker Tripped: Excessive recursive retries detected (Attempt #${attempt}/${retryBudget}). ` +
-        `Executions for this monitor are temporarily blocked to prevent infinite loops.`
+          `Executions for this monitor are temporarily blocked to prevent infinite loops.`,
       );
     }
 
@@ -151,11 +165,11 @@ export class GuardsService {
     target: string,
     inputHash: string,
     metadata: any = null,
-    scope: "MONITOR" | "PROJECT" = "MONITOR"
+    scope: "MONITOR" | "PROJECT" = "MONITOR",
   ) {
     const currentExecution = await prisma.guardExecution.findUnique({
       where: { id: executionId },
-      include: { monitor: true }
+      include: { monitor: true },
     });
 
     if (!currentExecution) {
@@ -176,9 +190,9 @@ export class GuardsService {
             execution: {
               externalId: currentExecution.externalId,
               monitorId: currentExecution.monitorId,
-            }
+            },
           },
-          orderBy: { executedAt: "desc" }
+          orderBy: { executedAt: "desc" },
         });
 
         if (lastSnapshot && lastSnapshot.inputHash !== inputHash) {
@@ -195,12 +209,12 @@ export class GuardsService {
           target,
           inputHash,
           status: "COMPLETED",
-          metadata: { 
+          metadata: {
             ...(metadata || {}),
             driftDetected,
-            previousHash: driftDetected ? "mismatch" : "consistent"
-          }
-        }
+            previousHash: driftDetected ? "mismatch" : "consistent",
+          },
+        },
       });
 
       return { action: "EXECUTE" as const };
@@ -219,7 +233,7 @@ export class GuardsService {
       if (currentExecution.externalId) {
         searchCriteria.execution = {
           externalId: currentExecution.externalId,
-          monitorId: currentExecution.monitorId
+          monitorId: currentExecution.monitorId,
         };
       } else {
         searchCriteria.executionId = executionId;
@@ -228,7 +242,7 @@ export class GuardsService {
 
     const priorEffect = await prisma.guardSideEffect.findFirst({
       where: searchCriteria,
-      orderBy: { executedAt: "desc" }
+      orderBy: { executedAt: "desc" },
     });
 
     if (priorEffect) {
@@ -236,7 +250,14 @@ export class GuardsService {
       if (priorEffect.executionId === executionId) {
         await prisma.guardSideEffect.update({
           where: { id: priorEffect.id },
-          data: { metadata: { ...(typeof priorEffect.metadata === 'object' ? (priorEffect.metadata as any) : {}), ...metadata } }
+          data: {
+            metadata: {
+              ...(typeof priorEffect.metadata === "object"
+                ? (priorEffect.metadata as any)
+                : {}),
+              ...metadata,
+            },
+          },
         });
         return { action: "EXECUTE" as const };
       }
@@ -251,16 +272,18 @@ export class GuardsService {
           target,
           inputHash,
           status: "SKIPPED",
-          metadata: { 
+          metadata: {
             originalExecutionId: priorEffect.executionId,
-            message: `Bypassed via ${scope === "PROJECT" ? "Global" : "Execution"} Memory`
-          }
+            message: `Bypassed via ${scope === "PROJECT" ? "Global" : "Execution"} Memory`,
+          },
         },
       });
 
-      return { 
-        action: "SKIP" as const, 
-        cachedResult: priorEffect.metadata || { message: "Already executed successfully" } 
+      return {
+        action: "SKIP" as const,
+        cachedResult: priorEffect.metadata || {
+          message: "Already executed successfully",
+        },
       };
     }
 
@@ -275,21 +298,23 @@ export class GuardsService {
           target,
           inputHash,
           status: "COMPLETED",
-          metadata
+          metadata,
         },
       });
     } catch (error: any) {
-      // Handle P2002 (Unique constraint failed) - this means another thread/process 
+      // Handle P2002 (Unique constraint failed) - this means another thread/process
       // just registered this side effect. We should treat it as a SKIP.
-      if (error.code === 'P2002') {
+      if (error.code === "P2002") {
         const raceEffect = await prisma.guardSideEffect.findFirst({
           where: searchCriteria,
-          orderBy: { executedAt: "desc" }
+          orderBy: { executedAt: "desc" },
         });
-        
-        return { 
-          action: "SKIP" as const, 
-          cachedResult: raceEffect?.metadata || { message: "Already executed (race condition handled)" } 
+
+        return {
+          action: "SKIP" as const,
+          cachedResult: raceEffect?.metadata || {
+            message: "Already executed (race condition handled)",
+          },
         };
       }
       throw error;
@@ -306,10 +331,10 @@ export class GuardsService {
     fingerprint: string,
     type: string,
     target: string,
-    payload: any = null
+    payload: any = null,
   ) {
     const sideEffect = await prisma.guardSideEffect.findUnique({
-      where: { executionId_fingerprint: { executionId, fingerprint } }
+      where: { executionId_fingerprint: { executionId, fingerprint } },
     });
 
     if (!sideEffect) {
@@ -324,15 +349,19 @@ export class GuardsService {
         target,
         payload,
         status: "PENDING",
-      }
+      },
     });
   }
 
   /**
-   * Finalizes the execution status. 
+   * Finalizes the execution status.
    * If FAILED, it optionally triggers all registered rollbacks.
    */
-  static async completeExecution(executionId: string, status: "SUCCESS" | "FAILED", shouldRollback: boolean = false) {
+  static async completeExecution(
+    executionId: string,
+    status: "SUCCESS" | "FAILED",
+    shouldRollback: boolean = false,
+  ) {
     const execution = await prisma.guardExecution.update({
       where: { id: executionId },
       data: {
@@ -348,7 +377,7 @@ export class GuardsService {
 
     return {
       ...execution,
-      rollbacks: triggeredRollbacks
+      rollbacks: triggeredRollbacks,
     };
   }
 
@@ -359,15 +388,20 @@ export class GuardsService {
   static async triggerRollbacks(executionId: string) {
     const rollbacks = await prisma.guardRollback.findMany({
       where: { executionId, status: "PENDING" },
-      include: { sideEffect: true }
+      include: { sideEffect: true },
     });
 
-    console.log(`[ReplayGuard] Triggering ${rollbacks.length} rollbacks for execution ${executionId}`);
+    console.log(
+      `[ReplayGuard] Triggering ${rollbacks.length} rollbacks for execution ${executionId}`,
+    );
 
     for (const rb of rollbacks) {
       try {
         // Execute actual rollback logic if the target is an HTTP URL
-        if (rb.target && (rb.target.startsWith("http://") || rb.target.startsWith("https://"))) {
+        if (
+          rb.target &&
+          (rb.target.startsWith("http://") || rb.target.startsWith("https://"))
+        ) {
           const method = rb.type === "HTTP_DELETE" ? "DELETE" : "POST";
           await axios({
             method,
@@ -386,17 +420,22 @@ export class GuardsService {
           data: {
             status: "COMPLETED",
             executedAt: new Date(),
-          }
+          },
         });
-        console.log(`[ReplayGuard] Rollback COMPLETED for ${rb.sideEffect?.target || rb.target} (${rb.type})`);
+        console.log(
+          `[ReplayGuard] Rollback COMPLETED for ${rb.sideEffect?.target || rb.target} (${rb.type})`,
+        );
       } catch (error: any) {
-        console.error(`[ReplayGuard] Rollback FAILED for ${rb.id}:`, error.message);
+        console.error(
+          `[ReplayGuard] Rollback FAILED for ${rb.id}:`,
+          error.message,
+        );
         await prisma.guardRollback.update({
           where: { id: rb.id },
           data: {
             status: "FAILED",
-            error: error.message
-          }
+            error: error.message,
+          },
         });
       }
     }
@@ -446,8 +485,8 @@ export class GuardsService {
             executedAt: "asc",
           },
           include: {
-            rollback: true
-          }
+            rollback: true,
+          },
         },
         rollbacks: true,
       },

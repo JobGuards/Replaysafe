@@ -11,8 +11,8 @@ const eslintConfig = defineConfig([
       "@typescript-eslint/no-unused-vars": "warn",
       "react/no-unescaped-entities": "off",
       "react-hooks/set-state-in-effect": "warn",
-      "react-hooks/purity": "warn"
-    }
+      "react-hooks/purity": "warn",
+    },
   },
   // Override default ignores of eslint-config-next.
   globalIgnores([

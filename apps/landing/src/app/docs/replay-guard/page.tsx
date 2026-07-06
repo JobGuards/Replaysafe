@@ -1,42 +1,72 @@
-'use client'
+"use client";
 
-import React from 'react'
-import { ShieldCheck, Zap, Repeat, ShieldAlert, ArrowRight, Code } from 'lucide-react'
-import { DocLayout } from '@/components/docs/DocLayout'
+import React from "react";
+import {
+  ShieldCheck,
+  Zap,
+  Repeat,
+  ShieldAlert,
+  ArrowRight,
+  Code,
+} from "lucide-react";
+import { DocLayout } from "@/components/docs/DocLayout";
 
 export default function ReplayGuardDoc() {
   return (
-    <DocLayout 
-      title="ReplayGuard SDK" 
-      subtitle="Execution Safety Layer" 
+    <DocLayout
+      title="ReplayGuard SDK"
+      subtitle="Execution Safety Layer"
       category="Advanced Safety"
     >
       <div className="space-y-16">
         <p className="text-xl leading-relaxed text-foreground/80">
-          ReplayGuard makes retrying failed background jobs safe by preventing duplicate side effects like double payments, emails, or data corruption.
+          ReplayGuard makes retrying failed background jobs safe by preventing
+          duplicate side effects like double payments, emails, or data
+          corruption.
         </p>
 
         <section className="glass-panel border border-border/10 rounded-[3rem] p-12 bg-acid-lime/[0.02]">
-          <h3 className="text-2xl font-black uppercase tracking-tight mb-8 text-foreground italic">The Safety Guarantee</h3>
+          <h3 className="text-2xl font-black uppercase tracking-tight mb-8 text-foreground italic">
+            The Safety Guarantee
+          </h3>
           <p className="mb-10 leading-relaxed text-muted-foreground">
-            ReplayGuard sits between your job logic and its side effects. It fingerprints every operation and ensures they happen **exactly once**, regardless of how many times you press "Retry".
+            ReplayGuard sits between your job logic and its side effects. It
+            fingerprints every operation and ensures they happen **exactly
+            once**, regardless of how many times you press "Retry".
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <FeatureItem icon={<Repeat className="w-5 h-5" />} title="Idempotency Enforcement" />
-            <FeatureItem icon={<ShieldAlert className="w-5 h-5" />} title="Rollback-Aware Workflows" />
-            <FeatureItem icon={<Zap className="w-5 h-5" />} title="Replay-Safe Deduplication" />
-            <FeatureItem icon={<ShieldCheck className="w-5 h-5" />} title="Safety ROI Tracking" />
+            <FeatureItem
+              icon={<Repeat className="w-5 h-5" />}
+              title="Idempotency Enforcement"
+            />
+            <FeatureItem
+              icon={<ShieldAlert className="w-5 h-5" />}
+              title="Rollback-Aware Workflows"
+            />
+            <FeatureItem
+              icon={<Zap className="w-5 h-5" />}
+              title="Replay-Safe Deduplication"
+            />
+            <FeatureItem
+              icon={<ShieldCheck className="w-5 h-5" />}
+              title="Safety ROI Tracking"
+            />
           </div>
         </section>
 
         <section className="space-y-12">
-          <h2 className="text-4xl font-black uppercase tracking-tight text-foreground italic">Rollback-Aware Workflows</h2>
+          <h2 className="text-4xl font-black uppercase tracking-tight text-foreground italic">
+            Rollback-Aware Workflows
+          </h2>
           <p className="leading-relaxed text-muted-foreground">
-            Sometimes a job fails mid-way, leaving your system in an inconsistent state. ReplayGuard allows you to register **Compensation Hooks** that run automatically if the job terminates unsuccessfully.
+            Sometimes a job fails mid-way, leaving your system in an
+            inconsistent state. ReplayGuard allows you to register
+            **Compensation Hooks** that run automatically if the job terminates
+            unsuccessfully.
           </p>
           <div className="glass-panel border border-border/10 rounded-[2.5rem] p-8 bg-foreground/[0.02]">
             <pre className="text-sm font-mono text-foreground/80 leading-relaxed overflow-x-auto">
-{`await guard.compensate('PAYMENT', 'stripe-charge', inputs, {
+              {`await guard.compensate('PAYMENT', 'stripe-charge', inputs, {
   type: 'HTTP_DELETE',
   target: \`https://api.stripe.com/v1/refunds/\${paymentId}\`,
   payload: { reason: 'Job failed' }
@@ -46,7 +76,9 @@ export default function ReplayGuardDoc() {
         </section>
 
         <section className="space-y-12">
-          <h2 className="text-4xl font-black uppercase tracking-tight text-foreground italic">Installation</h2>
+          <h2 className="text-4xl font-black uppercase tracking-tight text-foreground italic">
+            Installation
+          </h2>
           <div className="group relative p-10 bg-foreground/[0.02] rounded-[2.5rem] border border-border/10 hover:border-acid-lime/30 transition-all overflow-hidden">
             <div className="absolute top-0 left-0 w-1 h-full bg-acid-lime/20"></div>
             <code className="text-sm font-mono text-acid-lime block selection:bg-acid-lime/30">
@@ -56,18 +88,25 @@ export default function ReplayGuardDoc() {
         </section>
 
         <section className="space-y-8">
-          <h2 className="text-4xl font-black uppercase tracking-tight text-foreground italic">Usage</h2>
+          <h2 className="text-4xl font-black uppercase tracking-tight text-foreground italic">
+            Usage
+          </h2>
           <p className="leading-relaxed text-muted-foreground">
-            Wrap your job with <code className="text-acid-lime font-mono">withReplayGuard</code> and use the <code className="text-acid-lime font-mono">guard</code> instance for side effects.
+            Wrap your job with{" "}
+            <code className="text-acid-lime font-mono">withReplayGuard</code>{" "}
+            and use the <code className="text-acid-lime font-mono">guard</code>{" "}
+            instance for side effects.
           </p>
-          
+
           <div className="glass-panel border border-border/10 rounded-[2.5rem] overflow-hidden">
             <div className="p-4 bg-foreground/5 border-b border-border/5 flex items-center gap-2">
               <Code className="w-4 h-4 text-muted-foreground" />
-              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">payment-job.ts</span>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                payment-job.ts
+              </span>
             </div>
             <pre className="p-8 text-sm font-mono text-foreground/80 leading-relaxed overflow-x-auto">
-{`import { withReplayGuard } from '@replaysafe/guard-sdk'
+              {`import { withReplayGuard } from '@replaysafe/guard-sdk'
 
 export const processPayment = async (orderId: string) => {
   return await withReplayGuard(config, async (guard) => {
@@ -88,42 +127,84 @@ export const processPayment = async (orderId: string) => {
         </section>
 
         <section className="space-y-8 pt-16 border-t border-border/5">
-          <h2 className="text-4xl font-black uppercase tracking-tight text-foreground italic">Deduplication Scope & Boundaries</h2>
+          <h2 className="text-4xl font-black uppercase tracking-tight text-foreground italic">
+            Deduplication Scope & Boundaries
+          </h2>
           <p className="leading-relaxed text-muted-foreground">
-            To ensure execution safety without sacrificing flexibility, the ReplayGuard deduplication engine operates under strict guarantees and boundaries:
+            To ensure execution safety without sacrificing flexibility, the
+            ReplayGuard deduplication engine operates under strict guarantees
+            and boundaries:
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="p-6 rounded-2xl bg-foreground/[0.02] border border-border/10">
-              <h4 className="font-bold text-foreground mb-2">1. Scope Boundaries</h4>
+              <h4 className="font-bold text-foreground mb-2">
+                1. Scope Boundaries
+              </h4>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Deduplication is session-scoped by default using a unique <code className="text-acid-lime font-mono">externalId</code>. To share execution memory across monitors or sessions (e.g. unique user creation webhooks), configure your checks with <code className="text-acid-lime font-mono">scope: &apos;PROJECT&apos;</code>.
+                Deduplication is session-scoped by default using a unique{" "}
+                <code className="text-acid-lime font-mono">externalId</code>. To
+                share execution memory across monitors or sessions (e.g. unique
+                user creation webhooks), configure your checks with{" "}
+                <code className="text-acid-lime font-mono">
+                  scope: &apos;PROJECT&apos;
+                </code>
+                .
               </p>
             </div>
             <div className="p-6 rounded-2xl bg-foreground/[0.02] border border-border/10">
-              <h4 className="font-bold text-foreground mb-2">2. Fingerprint Determinism</h4>
+              <h4 className="font-bold text-foreground mb-2">
+                2. Fingerprint Determinism
+              </h4>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Fingerprints are generated via <code className="text-acid-lime font-mono">hash(type, target, hash(inputs))</code>. Transient noise (timestamps, traceIds) is stripped automatically. If semantic business inputs change, a new fingerprint is generated, executing the action again.
+                Fingerprints are generated via{" "}
+                <code className="text-acid-lime font-mono">
+                  hash(type, target, hash(inputs))
+                </code>
+                . Transient noise (timestamps, traceIds) is stripped
+                automatically. If semantic business inputs change, a new
+                fingerprint is generated, executing the action again.
               </p>
             </div>
             <div className="p-6 rounded-2xl bg-foreground/[0.02] border border-border/10">
-              <h4 className="font-bold text-foreground mb-2">3. Storage & Durability</h4>
+              <h4 className="font-bold text-foreground mb-2">
+                3. Storage & Durability
+              </h4>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                All completed side effects are stored durably in the PostgreSQL database. Caching layers are used for fast inline loop detection, but the persistent database guarantees idempotency even if retries occur days or weeks later.
+                All completed side effects are stored durably in the PostgreSQL
+                database. Caching layers are used for fast inline loop
+                detection, but the persistent database guarantees idempotency
+                even if retries occur days or weeks later.
               </p>
             </div>
             <div className="p-6 rounded-2xl bg-foreground/[0.02] border border-border/10">
-              <h4 className="font-bold text-foreground mb-2">4. State Drift Mitigations</h4>
+              <h4 className="font-bold text-foreground mb-2">
+                4. State Drift Mitigations
+              </h4>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                ReplayGuard is a safety layer for execution, not database replication. Use <code className="text-acid-lime font-mono">guard.snapshot()</code> to track external state shifts, or register compensation rollbacks with <code className="text-acid-lime font-mono">guard.compensate()</code>.
+                ReplayGuard is a safety layer for execution, not database
+                replication. Use{" "}
+                <code className="text-acid-lime font-mono">
+                  guard.snapshot()
+                </code>{" "}
+                to track external state shifts, or register compensation
+                rollbacks with{" "}
+                <code className="text-acid-lime font-mono">
+                  guard.compensate()
+                </code>
+                .
               </p>
             </div>
           </div>
         </section>
 
         <section className="space-y-8 pt-16 border-t border-border/5">
-          <h2 className="text-4xl font-black uppercase tracking-tight text-foreground italic">Integration with Replaysafe</h2>
+          <h2 className="text-4xl font-black uppercase tracking-tight text-foreground italic">
+            Integration with Replaysafe
+          </h2>
           <p className="leading-relaxed text-muted-foreground">
-            Once integrated, your job executions will appear in the **Sentinel Hub Dashboard** under "Guarded Replays", where you can audit every side effect and safely trigger retries.
+            Once integrated, your job executions will appear in the **Sentinel
+            Hub Dashboard** under "Guarded Replays", where you can audit every
+            side effect and safely trigger retries.
           </p>
           <div className="flex gap-4">
             <button className="flex items-center gap-2 bg-acid-lime text-black px-8 py-3 rounded-full font-black uppercase tracking-widest text-[10px] hover:scale-105 transition-all">
@@ -133,14 +214,20 @@ export const processPayment = async (orderId: string) => {
         </section>
       </div>
     </DocLayout>
-  )
+  );
 }
 
-function FeatureItem({ icon, title }: { icon: React.ReactNode, title: string }) {
+function FeatureItem({
+  icon,
+  title,
+}: {
+  icon: React.ReactNode;
+  title: string;
+}) {
   return (
     <div className="flex items-center gap-3">
       <div className="text-acid-lime">{icon}</div>
       <span className="text-sm font-bold text-foreground/80">{title}</span>
     </div>
-  )
+  );
 }

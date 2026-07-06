@@ -1,42 +1,32 @@
-import { z } from 'zod'
+import { z } from "zod";
 
 /**
  * Signup validation schema
  */
 export const signupSchema = z.object({
-  email: z
-    .string()
-    .email('Invalid email address')
-    .toLowerCase()
-    .trim(),
+  email: z.string().email("Invalid email address").toLowerCase().trim(),
   password: z
     .string()
-    .min(8, 'Password must be at least 8 characters')
-    .max(100, 'Password must be less than 100 characters')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number'),
+    .min(8, "Password must be at least 8 characters")
+    .max(100, "Password must be less than 100 characters")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number"),
   fullName: z
     .string()
-    .min(1, 'Full name is required')
-    .max(100, 'Full name must be less than 100 characters')
+    .min(1, "Full name is required")
+    .max(100, "Full name must be less than 100 characters")
     .trim(),
-})
+});
 
-export type SignupInput = z.infer<typeof signupSchema>
+export type SignupInput = z.infer<typeof signupSchema>;
 
 /**
  * Signin validation schema
  */
 export const signinSchema = z.object({
-  email: z
-    .string()
-    .email('Invalid email address')
-    .toLowerCase()
-    .trim(),
-  password: z
-    .string()
-    .min(1, 'Password is required'),
-})
+  email: z.string().email("Invalid email address").toLowerCase().trim(),
+  password: z.string().min(1, "Password is required"),
+});
 
-export type SigninInput = z.infer<typeof signinSchema>
+export type SigninInput = z.infer<typeof signinSchema>;

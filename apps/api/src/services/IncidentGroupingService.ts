@@ -1,4 +1,4 @@
-import { prisma } from '@replaysafe/db'
+import { prisma } from "@replaysafe/db";
 
 /**
  * PR #43: Smart Incident Grouping Service
@@ -15,10 +15,10 @@ export const incidentGroupingService = {
   async groupNewIncident(incidentId: string): Promise<void> {
     const incident = await (prisma as any).incident.findUnique({
       where: { id: incidentId },
-    })
-    if (!incident) return
+    });
+    if (!incident) return;
 
-    const oneHourAgo = new Date(incident.startedAt.getTime() - 60 * 60 * 1000)
+    const oneHourAgo = new Date(incident.startedAt.getTime() - 60 * 60 * 1000);
 
     // Look for open incidents on the same monitor in the last hour
     const related = await (prisma as any).incident.findFirst({
@@ -28,8 +28,8 @@ export const incidentGroupingService = {
         resolvedAt: null,
         id: { not: incidentId },
       },
-      orderBy: { startedAt: 'desc' },
-    })
+      orderBy: { startedAt: "desc" },
+    });
 
     if (related) {
       // If the related incident already has a group, join it
@@ -37,19 +37,19 @@ export const incidentGroupingService = {
         await (prisma as any).incident.update({
           where: { id: incidentId },
           data: { groupId: related.groupId },
-        })
+        });
       } else {
         // Create a new group and link both incidents
         const group = await (prisma as any).incidentGroup.create({
           data: {
             title: `Outage cluster on monitor ${incident.monitorId}`,
-            patternType: 'cascade',
+            patternType: "cascade",
           },
-        })
+        });
         await (prisma as any).incident.updateMany({
           where: { id: { in: [incidentId, related.id] } },
           data: { groupId: group.id },
-        })
+        });
       }
     }
   },
@@ -59,9 +59,9 @@ export const incidentGroupingService = {
    * Run periodically (e.g., every 5 minutes).
    */
   async detectCascadeFailures(): Promise<void> {
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000)
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
 
-    const recentOpenIncidents = await (prisma as any).incident.findMany({
+    const recentOpenIncidents = (await (prisma as any).incident.findMany({
       where: {
         startedAt: { gte: fiveMinutesAgo },
         resolvedAt: null,
@@ -70,14 +70,14 @@ export const incidentGroupingService = {
       include: {
         monitor: { select: { projectId: true, name: true } },
       },
-    }) as any[]
+    })) as any[];
 
     // Group by projectId
-    const byProject: Record<string, typeof recentOpenIncidents> = {}
+    const byProject: Record<string, typeof recentOpenIncidents> = {};
     for (const inc of recentOpenIncidents) {
-      const pid = inc.monitor.projectId
-      if (!byProject[pid]) byProject[pid] = []
-      byProject[pid].push(inc)
+      const pid = inc.monitor.projectId;
+      if (!byProject[pid]) byProject[pid] = [];
+      byProject[pid].push(inc);
     }
 
     // If 2+ monitors in same project failed at the same time, create a cascade group
@@ -86,16 +86,18 @@ export const incidentGroupingService = {
         const group = await (prisma as any).incidentGroup.create({
           data: {
             title: `Cascade failure across ${incidents.length} monitors`,
-            description: `Monitors affected: ${incidents.map((i: any) => i.monitor.name).join(', ')}`,
-            patternType: 'cascade',
+            description: `Monitors affected: ${incidents.map((i: any) => i.monitor.name).join(", ")}`,
+            patternType: "cascade",
           },
-        })
+        });
         await (prisma as any).incident.updateMany({
           where: { id: { in: incidents.map((i: any) => i.id) } },
           data: { groupId: group.id },
-        })
-        console.log(`[IncidentGrouping] Created cascade group ${group.id} for project ${projectId}`)
+        });
+        console.log(
+          `[IncidentGrouping] Created cascade group ${group.id} for project ${projectId}`,
+        );
       }
     }
   },
-}
+};

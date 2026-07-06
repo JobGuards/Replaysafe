@@ -1,8 +1,14 @@
-import React from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Mail, ArrowLeft } from 'lucide-react'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
+import React from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Mail, ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default function VerifyRequestPage() {
   return (
@@ -21,8 +27,8 @@ export default function VerifyRequestPage() {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">
-            Please check your inbox and click the link to sign in.
-            If you don't see it, check your spam folder.
+            Please check your inbox and click the link to sign in. If you don't
+            see it, check your spam folder.
           </p>
         </CardContent>
         <div className="p-6 pt-0">
@@ -34,5 +40,5 @@ export default function VerifyRequestPage() {
         </div>
       </Card>
     </div>
-  )
+  );
 }

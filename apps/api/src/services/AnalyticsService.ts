@@ -15,16 +15,16 @@ export class AnalyticsService {
       where: {
         projectId,
         status: "SKIPPED",
-        executedAt: { gte: startDate }
-      }
+        executedAt: { gte: startDate },
+      },
     });
 
     // 2. Execution Recovery Stats
     const totalExecutions = await prisma.guardExecution.count({
       where: {
         monitor: { projectId },
-        startedAt: { gte: startDate }
-      }
+        startedAt: { gte: startDate },
+      },
     });
 
     const recoveryExecutions = await prisma.guardExecution.count({
@@ -32,14 +32,14 @@ export class AnalyticsService {
         monitor: { projectId },
         attempt: { gt: 1 },
         status: "SUCCESS",
-        startedAt: { gte: startDate }
-      }
+        startedAt: { gte: startDate },
+      },
     });
 
     // 3. Estimated Savings (ROI)
     // Constants for estimation - in a real app, these could be configurable
-    const DOLLARS_PER_SKIP = 5.00; // Estimated cost of a duplicate side effect (support/refunds/API costs)
-    const MINUTES_PER_SKIP = 2;    // Estimated engineer time saved per automatic deduplication
+    const DOLLARS_PER_SKIP = 5.0; // Estimated cost of a duplicate side effect (support/refunds/API costs)
+    const MINUTES_PER_SKIP = 2; // Estimated engineer time saved per automatic deduplication
 
     return {
       preventedDuplicates,
@@ -47,9 +47,10 @@ export class AnalyticsService {
       recoveryExecutions,
       estimatedDollarsSaved: preventedDuplicates * DOLLARS_PER_SKIP,
       estimatedMinutesSaved: preventedDuplicates * MINUTES_PER_SKIP,
-      retrySuccessRate: totalExecutions > 0 
-        ? Math.round((recoveryExecutions / totalExecutions) * 100) 
-        : 0
+      retrySuccessRate:
+        totalExecutions > 0
+          ? Math.round((recoveryExecutions / totalExecutions) * 100)
+          : 0,
     };
   }
 
@@ -60,25 +61,27 @@ export class AnalyticsService {
     const startDate = subDays(startOfDay(new Date()), days);
 
     const skips = await prisma.guardSideEffect.groupBy({
-      by: ['executedAt'],
+      by: ["executedAt"],
       where: {
         projectId,
         status: "SKIPPED",
-        executedAt: { gte: startDate }
+        executedAt: { gte: startDate },
       },
-      _count: true
+      _count: true,
     });
 
     // Map to simple daily format
     const trendMap = new Map<string, number>();
-    skips.forEach(s => {
-      const dateStr = s.executedAt.toISOString().split('T')[0];
+    skips.forEach((s) => {
+      const dateStr = s.executedAt.toISOString().split("T")[0];
       trendMap.set(dateStr, (trendMap.get(dateStr) || 0) + s._count);
     });
 
-    return Array.from(trendMap.entries()).map(([date, count]) => ({
-      date,
-      count
-    })).sort((a, b) => a.date.localeCompare(b.date));
+    return Array.from(trendMap.entries())
+      .map(([date, count]) => ({
+        date,
+        count,
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date));
   }
 }

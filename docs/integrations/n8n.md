@@ -23,39 +23,42 @@ Or if you're self-hosting n8n with a custom Docker image, add it to your `packag
 
 ```javascript
 // n8n Code Node (JavaScript)
-const { withReplayGuard } = require('@replaysafe/guard-sdk');
+const { withReplayGuard } = require("@replaysafe/guard-sdk");
 
 const inputItem = $input.item.json;
 
 const result = await withReplayGuard(
   {
     apiKey: process.env.REPLAYSAFE_API_KEY,
-    monitorId: 'n8n-crm-sync-workflow',
-    baseUrl: process.env.REPLAYSAFE_API_URL || 'http://localhost:4040',
+    monitorId: "n8n-crm-sync-workflow",
+    baseUrl: process.env.REPLAYSAFE_API_URL || "http://localhost:4040",
   },
   async (guard) => {
     // ✅ This HubSpot contact is created exactly once, even if the workflow re-runs
     const contact = await guard.n8n(
-      'hubspot-create-contact',
+      "hubspot-create-contact",
       { email: inputItem.email, name: inputItem.name },
       async () => {
-        const response = await fetch('https://api.hubspot.com/crm/v3/objects/contacts', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${process.env.HUBSPOT_TOKEN}`,
-            'Content-Type': 'application/json',
+        const response = await fetch(
+          "https://api.hubspot.com/crm/v3/objects/contacts",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${process.env.HUBSPOT_TOKEN}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              properties: { email: inputItem.email, firstname: inputItem.name },
+            }),
           },
-          body: JSON.stringify({
-            properties: { email: inputItem.email, firstname: inputItem.name },
-          }),
-        });
+        );
         return response.json();
-      }
+      },
     );
 
     return contact;
   },
-  { externalId: `crm-sync-${inputItem.id}` }  // Use your record ID for idempotency
+  { externalId: `crm-sync-${inputItem.id}` }, // Use your record ID for idempotency
 );
 
 return [{ json: result }];
@@ -66,12 +69,12 @@ return [{ json: result }];
 ## Protecting Multiple Steps in One Code Node
 
 ```javascript
-const { ReplayGuard } = require('@replaysafe/guard-sdk');
+const { ReplayGuard } = require("@replaysafe/guard-sdk");
 
 const item = $input.item.json;
 const guard = new ReplayGuard({
   apiKey: process.env.REPLAYSAFE_API_KEY,
-  monitorId: 'order-fulfillment',
+  monitorId: "order-fulfillment",
   debug: true,
 });
 
@@ -80,39 +83,39 @@ await guard.start(`order-${item.orderId}`);
 try {
   // Step 1: Reserve inventory
   const reservation = await guard.n8n(
-    'reserve-inventory',
+    "reserve-inventory",
     { orderId: item.orderId, skuId: item.skuId, qty: item.quantity },
     async () => {
       const res = await fetch(`${process.env.INVENTORY_API}/reserve`, {
-        method: 'POST',
+        method: "POST",
         body: JSON.stringify({ orderId: item.orderId, skuId: item.skuId }),
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
       });
       return res.json();
-    }
+    },
   );
 
   // Step 2: Send shipping label (only if inventory was reserved)
   await guard.n8n(
-    'send-shipping-label',
+    "send-shipping-label",
     { reservationId: reservation.id, email: item.customerEmail },
     async () => {
       const res = await fetch(`${process.env.SHIPPING_API}/label`, {
-        method: 'POST',
+        method: "POST",
         body: JSON.stringify({ reservationId: reservation.id }),
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
       });
       return res.json();
-    }
+    },
   );
 
-  await guard.complete('SUCCESS');
+  await guard.complete("SUCCESS");
 } catch (e) {
-  await guard.complete('FAILED', true);
+  await guard.complete("FAILED", true);
   throw e;
 }
 
-return [{ json: { status: 'fulfilled', orderId: item.orderId } }];
+return [{ json: { status: "fulfilled", orderId: item.orderId } }];
 ```
 
 ---
@@ -122,19 +125,25 @@ return [{ json: { status: 'fulfilled', orderId: item.orderId } }];
 For simple HTTP calls, use `guard.fetch()` which wraps the native fetch with replay protection:
 
 ```javascript
-const { ReplayGuard } = require('@replaysafe/guard-sdk');
+const { ReplayGuard } = require("@replaysafe/guard-sdk");
 
-const guard = new ReplayGuard({ apiKey: process.env.REPLAYSAFE_API_KEY, monitorId: 'slack-notifier' });
+const guard = new ReplayGuard({
+  apiKey: process.env.REPLAYSAFE_API_KEY,
+  monitorId: "slack-notifier",
+});
 await guard.start(`notify-${$input.item.json.eventId}`);
 
 // This Slack message will only be sent once, even if the node re-runs
-const response = await guard.fetch('https://hooks.slack.com/services/YOUR/WEBHOOK/URL', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ text: `New signup: ${$input.item.json.email}` }),
-});
+const response = await guard.fetch(
+  "https://hooks.slack.com/services/YOUR/WEBHOOK/URL",
+  {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text: `New signup: ${$input.item.json.email}` }),
+  },
+);
 
-await guard.complete('SUCCESS');
+await guard.complete("SUCCESS");
 return [{ json: { notified: true } }];
 ```
 

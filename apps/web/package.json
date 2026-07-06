@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "test": "echo \"No tests yet\"",
-    "check-lint": "eslint . --max-warnings 1000"
+    "check-lint": "eslint . --max-warnings 1000",
+    "check-type": "tsc --noEmit"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",

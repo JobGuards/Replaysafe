@@ -1,20 +1,23 @@
-import { prisma } from '@replaysafe/db'
-import { CreateMonitorInput, UpdateMonitorInput } from '../validators/monitor.js'
-import crypto from 'crypto'
+import { prisma } from "@replaysafe/db";
+import {
+  CreateMonitorInput,
+  UpdateMonitorInput,
+} from "../validators/monitor.js";
+import crypto from "crypto";
 
 export class MonitorRepository {
   /**
    * Create a new monitor
    */
   async create(data: CreateMonitorInput & { projectId: string }) {
-    const heartbeatToken = crypto.randomBytes(16).toString('hex')
+    const heartbeatToken = crypto.randomBytes(16).toString("hex");
 
     return (prisma.monitor as any).create({
       data: {
         ...data,
         heartbeatToken,
       },
-    })
+    });
   }
 
   /**
@@ -23,7 +26,7 @@ export class MonitorRepository {
   async findByToken(heartbeatToken: string) {
     return (prisma.monitor as any).findUnique({
       where: { heartbeatToken },
-    })
+    });
   }
 
   /**
@@ -39,24 +42,24 @@ export class MonitorRepository {
       include: {
         heartbeats: {
           take: 1,
-          orderBy: { receivedAt: 'desc' },
+          orderBy: { receivedAt: "desc" },
         },
         failurePatterns: {
           where: { active: true },
-          orderBy: { lastSeenAt: 'desc' },
-        }
-      }
-    })
+          orderBy: { lastSeenAt: "desc" },
+        },
+      },
+    });
 
     if (monitor && monitor.heartbeats) {
-      (monitor as any).lastHeartbeat = monitor.heartbeats[0] || null
+      (monitor as any).lastHeartbeat = monitor.heartbeats[0] || null;
     }
 
     if (monitor) {
-      delete (monitor as any).heartbeatToken
+      delete (monitor as any).heartbeatToken;
     }
 
-    return monitor
+    return monitor;
   }
 
   /**
@@ -71,19 +74,19 @@ export class MonitorRepository {
       include: {
         heartbeats: {
           take: 1,
-          orderBy: { receivedAt: 'desc' },
-        }
+          orderBy: { receivedAt: "desc" },
+        },
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
-    })
+    });
 
     return monitors.map((m: any) => {
-      m.lastHeartbeat = m.heartbeats?.[0] || null
-      delete m.heartbeatToken
-      return m
-    })
+      m.lastHeartbeat = m.heartbeats?.[0] || null;
+      delete m.heartbeatToken;
+      return m;
+    });
   }
 
   /**
@@ -93,21 +96,21 @@ export class MonitorRepository {
     // We use updateMany to ensure we only update if it belongs to the project
     // and is not deleted, though update() is usually preferred if we have the ID.
     // However, for multi-tenancy, a check is safer.
-    const monitor = await this.findById(id, projectId)
-    if (!monitor) return null
+    const monitor = await this.findById(id, projectId);
+    if (!monitor) return null;
 
     return (prisma.monitor as any).update({
       where: { id },
       data,
-    })
+    });
   }
 
   /**
    * Soft delete a monitor
    */
   async delete(id: string, projectId: string) {
-    const monitor = await this.findById(id, projectId)
-    if (!monitor) return null
+    const monitor = await this.findById(id, projectId);
+    if (!monitor) return null;
 
     return (prisma.monitor as any).update({
       where: { id },
@@ -115,8 +118,8 @@ export class MonitorRepository {
         deletedAt: new Date(),
         enabled: false,
       },
-    })
+    });
   }
 }
 
-export const monitorRepository = new MonitorRepository()
+export const monitorRepository = new MonitorRepository();

@@ -1,22 +1,22 @@
-import { prisma } from '@replaysafe/db'
-import { alertService } from './AlertService.js'
-import { selfHealingService } from './SelfHealingService.js'
+import { prisma } from "@replaysafe/db";
+import { alertService } from "./AlertService.js";
+import { selfHealingService } from "./SelfHealingService.js";
 
 export class IncidentService {
   /**
    * Create a new incident for a monitor
    */
-  async createIncident(monitorId: string, type: 'missed' | 'failed' | 'late') {
+  async createIncident(monitorId: string, type: "missed" | "failed" | "late") {
     // Check if there is already an open incident for this monitor to prevent duplicates
     const openIncident = await (prisma.incident as any).findFirst({
       where: {
         monitorId,
         resolvedAt: null,
       },
-    })
+    });
 
     if (openIncident) {
-      return openIncident
+      return openIncident;
     }
 
     const incident = await (prisma.incident as any).create({
@@ -27,19 +27,19 @@ export class IncidentService {
       include: {
         monitor: true,
       },
-    })
+    });
 
     // Trigger alerting
-    alertService.sendIncidentAlert(incident).catch(err => {
-      console.error('[IncidentService] Failed to send incident alert:', err)
-    })
+    alertService.sendIncidentAlert(incident).catch((err) => {
+      console.error("[IncidentService] Failed to send incident alert:", err);
+    });
 
     // Phase 5: Trigger self-healing
-    selfHealingService.attemptHeal(monitorId, incident.id).catch(err => {
-      console.error('[IncidentService] Self-healing attempt failed:', err)
-    })
+    selfHealingService.attemptHeal(monitorId, incident.id).catch((err) => {
+      console.error("[IncidentService] Self-healing attempt failed:", err);
+    });
 
-    return incident
+    return incident;
   }
 
   /**
@@ -52,14 +52,14 @@ export class IncidentService {
         resolvedAt: new Date(),
         resolutionNotes: notes,
       },
-    })
+    });
 
     // Trigger alerting
-    alertService.sendResolutionAlert(incident).catch(err => {
-      console.error('[IncidentService] Failed to send resolution alert:', err)
-    })
+    alertService.sendResolutionAlert(incident).catch((err) => {
+      console.error("[IncidentService] Failed to send resolution alert:", err);
+    });
 
-    return incident
+    return incident;
   }
 
   /**
@@ -71,9 +71,9 @@ export class IncidentService {
         monitorId,
         resolvedAt: null,
       },
-    })
+    });
 
-    if (openIncidents.length === 0) return
+    if (openIncidents.length === 0) return;
 
     const result = await (prisma.incident as any).updateMany({
       where: {
@@ -83,18 +83,21 @@ export class IncidentService {
       data: {
         resolvedAt: new Date(),
         autoResolved: true,
-        resolutionNotes: 'Auto-resolved on monitor recovery.',
+        resolutionNotes: "Auto-resolved on monitor recovery.",
       },
-    })
+    });
 
     // Trigger alerts for each resolved incident
     for (const incident of openIncidents) {
-      alertService.sendResolutionAlert(incident).catch(err => {
-        console.error('[IncidentService] Failed to send resolution alert:', err)
-      })
+      alertService.sendResolutionAlert(incident).catch((err) => {
+        console.error(
+          "[IncidentService] Failed to send resolution alert:",
+          err,
+        );
+      });
     }
 
-    return result
+    return result;
   }
 
   /**
@@ -112,10 +115,10 @@ export class IncidentService {
         monitor: true,
       },
       orderBy: {
-        startedAt: 'desc',
+        startedAt: "desc",
       },
-    })
+    });
   }
 }
 
-export const incidentService = new IncidentService()
+export const incidentService = new IncidentService();

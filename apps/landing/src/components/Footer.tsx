@@ -14,22 +14,73 @@ export function Footer() {
           </p>
         </div>
         <div className="flex flex-col gap-sm">
-          <h4 className="font-outfit font-black text-foreground uppercase text-[10px] tracking-[0.2em] mb-2">Product</h4>
-          <Link href="/dashboard" className="text-body-md text-muted-foreground hover:text-acid-lime transition-colors">Dashboard</Link>
-          <Link href="/pricing" className="text-body-md text-muted-foreground hover:text-acid-lime transition-colors">Pricing</Link>
-          <Link href="/docs" className="text-body-md text-muted-foreground hover:text-acid-lime transition-colors">Documentation</Link>
+          <h4 className="font-outfit font-black text-foreground uppercase text-[10px] tracking-[0.2em] mb-2">
+            Product
+          </h4>
+          <Link
+            href="/dashboard"
+            className="text-body-md text-muted-foreground hover:text-acid-lime transition-colors"
+          >
+            Dashboard
+          </Link>
+          <Link
+            href="/pricing"
+            className="text-body-md text-muted-foreground hover:text-acid-lime transition-colors"
+          >
+            Pricing
+          </Link>
+          <Link
+            href="/docs"
+            className="text-body-md text-muted-foreground hover:text-acid-lime transition-colors"
+          >
+            Documentation
+          </Link>
         </div>
         <div className="flex flex-col gap-sm">
-          <h4 className="font-outfit font-black text-foreground uppercase text-[10px] tracking-[0.2em] mb-2">Company</h4>
-          <Link href="/about" className="text-body-md text-muted-foreground hover:text-acid-lime transition-colors">About</Link>
-          <Link href="/blog" className="text-body-md text-muted-foreground hover:text-acid-lime transition-colors">Blog</Link>
-          <Link href="/privacy" className="text-body-md text-muted-foreground hover:text-acid-lime transition-colors">Privacy</Link>
+          <h4 className="font-outfit font-black text-foreground uppercase text-[10px] tracking-[0.2em] mb-2">
+            Company
+          </h4>
+          <Link
+            href="/about"
+            className="text-body-md text-muted-foreground hover:text-acid-lime transition-colors"
+          >
+            About
+          </Link>
+          <Link
+            href="/blog"
+            className="text-body-md text-muted-foreground hover:text-acid-lime transition-colors"
+          >
+            Blog
+          </Link>
+          <Link
+            href="/privacy"
+            className="text-body-md text-muted-foreground hover:text-acid-lime transition-colors"
+          >
+            Privacy
+          </Link>
         </div>
         <div className="flex flex-col gap-sm">
-          <h4 className="font-outfit font-black text-foreground uppercase text-[10px] tracking-[0.2em] mb-2">Connect</h4>
-          <Link href="https://twitter.com/Replaysafe" className="text-body-md text-muted-foreground hover:text-acid-lime transition-colors">Twitter</Link>
-          <Link href="https://github.com/Replaysafe" className="text-body-md text-muted-foreground hover:text-acid-lime transition-colors">GitHub</Link>
-          <Link href="https://discord.gg/Replaysafe" className="text-body-md text-muted-foreground hover:text-acid-lime transition-colors">Discord</Link>
+          <h4 className="font-outfit font-black text-foreground uppercase text-[10px] tracking-[0.2em] mb-2">
+            Connect
+          </h4>
+          <Link
+            href="https://twitter.com/Replaysafe"
+            className="text-body-md text-muted-foreground hover:text-acid-lime transition-colors"
+          >
+            Twitter
+          </Link>
+          <Link
+            href="https://github.com/Replaysafe"
+            className="text-body-md text-muted-foreground hover:text-acid-lime transition-colors"
+          >
+            GitHub
+          </Link>
+          <Link
+            href="https://discord.gg/Replaysafe"
+            className="text-body-md text-muted-foreground hover:text-acid-lime transition-colors"
+          >
+            Discord
+          </Link>
         </div>
       </div>
       <div className="max-w-7xl mx-auto mt-xl pt-lg border-t border-outline-variant/10 text-center md:text-left">

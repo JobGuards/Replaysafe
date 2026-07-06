@@ -1,64 +1,72 @@
-'use client'
+"use client";
 
-import React from 'react'
-import Link from 'next/link'
-import { Logo } from '@/components/Logo'
-import { Check, Shield, Zap, Globe, Cpu, Lock, ShieldAlert } from 'lucide-react'
-import { ModeToggle } from '@/components/ModeToggle'
-import { Button } from '@/components/ui/button'
+import React from "react";
+import Link from "next/link";
+import { Logo } from "@/components/Logo";
+import {
+  Check,
+  Shield,
+  Zap,
+  Globe,
+  Cpu,
+  Lock,
+  ShieldAlert,
+} from "lucide-react";
+import { ModeToggle } from "@/components/ModeToggle";
+import { Button } from "@/components/ui/button";
 
-import { InterestForm } from '@/components/InterestForm'
+import { InterestForm } from "@/components/InterestForm";
 
 export default function PricingPage() {
   const plans = [
     {
-      name: 'Self-Hosted',
-      price: '$0',
-      description: 'The core Replaysafe engine. Free forever.',
+      name: "Self-Hosted",
+      price: "$0",
+      description: "The core Replaysafe engine. Free forever.",
       features: [
-        'Unlimited Heartbeat Monitors',
-        'Unlimited Guarded Sessions',
-        'Your Own Database & Infrastructure',
-        'Full Source Code Access',
-        'Community Support',
-        'No Data Retention Limits',
+        "Unlimited Heartbeat Monitors",
+        "Unlimited Guarded Sessions",
+        "Your Own Database & Infrastructure",
+        "Full Source Code Access",
+        "Community Support",
+        "No Data Retention Limits",
       ],
-      cta: 'View GitHub',
+      cta: "View GitHub",
       highlight: false,
     },
     {
-      name: 'Cloud Pro',
-      price: '$29',
-      description: 'Managed Replaysafe Cloud for teams.',
+      name: "Cloud Pro",
+      price: "$29",
+      description: "Managed Replaysafe Cloud for teams.",
       features: [
-        'Up to 50 Managed Monitors',
-        'Global Edge Distribution',
-        'Replay-Safe Retries',
-        '30 Second High-Res Checks',
-        '90 Day Managed Retention',
-        'Slack & Discord Integrations',
-        'No Infrastructure Maintenance',
+        "Up to 50 Managed Monitors",
+        "Global Edge Distribution",
+        "Replay-Safe Retries",
+        "30 Second High-Res Checks",
+        "90 Day Managed Retention",
+        "Slack & Discord Integrations",
+        "No Infrastructure Maintenance",
       ],
-      cta: 'Start 14-Day Trial',
+      cta: "Start 14-Day Trial",
       highlight: true,
     },
     {
-      name: 'Cloud Enterprise',
-      price: 'Custom',
-      description: 'The complete Sentinel suite, managed.',
+      name: "Cloud Enterprise",
+      price: "Custom",
+      description: "The complete Sentinel suite, managed.",
       features: [
-        'Unlimited Managed Monitors',
-        'Side-Effect Auditing',
-        'Key & Certificate Safety',
-        'Real-time Telemetry',
-        'Custom Secret Rotation',
-        'White-label Portal',
-        'Dedicated 24/7 Support',
+        "Unlimited Managed Monitors",
+        "Side-Effect Auditing",
+        "Key & Certificate Safety",
+        "Real-time Telemetry",
+        "Custom Secret Rotation",
+        "White-label Portal",
+        "Dedicated 24/7 Support",
       ],
-      cta: 'Contact Sales',
+      cta: "Contact Sales",
       highlight: false,
     },
-  ]
+  ];
 
   return (
     <div className="min-h-screen bg-background bg-tech-grid p-6 sm:p-24 selection:bg-acid-lime selection:text-primary-foreground relative overflow-hidden font-inter">
@@ -75,13 +83,16 @@ export default function PricingPage() {
         <div className="text-center space-y-8">
           <div className="inline-flex items-center gap-3 px-6 py-2 rounded-full bg-acid-lime/5 border border-acid-lime/20 shadow-[0_0_20px_rgba(var(--theme-lime-rgb),0.1)]">
             <Shield className="w-4 h-4 text-acid-lime" />
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-acid-lime italic">Pricing_Protocol: Alpha</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-acid-lime italic">
+              Pricing_Protocol: Alpha
+            </span>
           </div>
           <h1 className="text-7xl md:text-8xl font-black tracking-tighter text-foreground uppercase italic leading-[0.85]">
             Scale your <br /> <span className="glow-lime">Reliability</span>
           </h1>
           <p className="text-muted-foreground text-xl max-w-2xl mx-auto font-medium opacity-80">
-            Deploy the Sentinel that fits your scale. From basic crons to global encrypted tunnel networks and <b>idempotent background jobs</b>.
+            Deploy the Sentinel that fits your scale. From basic crons to global
+            encrypted tunnel networks and <b>idempotent background jobs</b>.
           </p>
         </div>
 
@@ -148,12 +159,18 @@ export default function PricingPage() {
         <div className="glass-panel border-acid-lime/20 bg-acid-lime/[0.02] rounded-[3rem] p-12 text-center space-y-6 max-w-4xl mx-auto">
           <div className="inline-flex items-center gap-3 px-4 py-1 rounded-full bg-acid-lime/10 border border-acid-lime/20">
             <Cpu className="w-3.5 h-3.5 text-acid-lime" />
-            <span className="text-[9px] font-black uppercase tracking-widest text-acid-lime italic">Community_First_Protocol</span>
+            <span className="text-[9px] font-black uppercase tracking-widest text-acid-lime italic">
+              Community_First_Protocol
+            </span>
           </div>
-          <h2 className="text-3xl font-black uppercase tracking-tight italic">Focused on Open Source.</h2>
+          <h2 className="text-3xl font-black uppercase tracking-tight italic">
+            Focused on Open Source.
+          </h2>
           <p className="text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-            Replaysafe is currently focused on empowering the developer community through our <b>OSS Version</b>.
-            While we plan to offer managed Cloud plans in the future, our expansion into global infrastructure and specialized Cloud support will be
+            Replaysafe is currently focused on empowering the developer
+            community through our <b>OSS Version</b>. While we plan to offer
+            managed Cloud plans in the future, our expansion into global
+            infrastructure and specialized Cloud support will be
             <b> 100% driven by community demand</b>.
           </p>
 
@@ -163,7 +180,10 @@ export default function PricingPage() {
 
           <div className="flex flex-wrap justify-center gap-4 pt-4">
             <Link href="https://github.com/JobGuards/Replaysafe/issues">
-              <Button variant="outline" className="rounded-full border-border/20 text-xs font-bold uppercase tracking-widest px-8">
+              <Button
+                variant="outline"
+                className="rounded-full border-border/20 text-xs font-bold uppercase tracking-widest px-8"
+              >
                 Join the Discussion
               </Button>
             </Link>
@@ -176,31 +196,40 @@ export default function PricingPage() {
             <div className="w-16 h-16 rounded-2xl bg-acid-lime/5 flex items-center justify-center border border-acid-lime/10 group-hover:scale-110 transition-transform duration-500">
               <Lock className="w-8 h-8 text-acid-lime" />
             </div>
-            <h3 className="text-2xl font-black uppercase tracking-tight italic">Secure Telemetry</h3>
+            <h3 className="text-2xl font-black uppercase tracking-tight italic">
+              Secure Telemetry
+            </h3>
             <p className="text-muted-foreground leading-relaxed">
-              Every sentinel communication is protected with enterprise-grade encryption. We never intercept or store your private traffic.
+              Every sentinel communication is protected with enterprise-grade
+              encryption. We never intercept or store your private traffic.
             </p>
           </div>
           <div className="space-y-6 group">
             <div className="w-16 h-16 rounded-2xl bg-acid-lime/5 flex items-center justify-center border border-acid-lime/10 group-hover:scale-110 transition-transform duration-500">
               <ShieldAlert className="w-8 h-8 text-acid-lime" />
             </div>
-            <h3 className="text-2xl font-black uppercase tracking-tight italic">Silent Failure Alerts</h3>
+            <h3 className="text-2xl font-black uppercase tracking-tight italic">
+              Silent Failure Alerts
+            </h3>
             <p className="text-muted-foreground leading-relaxed">
-              Detect network degradation and stale handshakes before your users do. Replaysafe is the first to know when pipes go dry.
+              Detect network degradation and stale handshakes before your users
+              do. Replaysafe is the first to know when pipes go dry.
             </p>
           </div>
           <div className="space-y-6 group">
             <div className="w-16 h-16 rounded-2xl bg-acid-lime/5 flex items-center justify-center border border-acid-lime/10 group-hover:scale-110 transition-transform duration-500">
               <Zap className="w-8 h-8 text-acid-lime" />
             </div>
-            <h3 className="text-2xl font-black uppercase tracking-tight italic">Instant Response</h3>
+            <h3 className="text-2xl font-black uppercase tracking-tight italic">
+              Instant Response
+            </h3>
             <p className="text-muted-foreground leading-relaxed">
-              Our edge-native engine triggers alerts in milliseconds across Slack, PagerDuty, and custom webhooks for immediate recovery.
+              Our edge-native engine triggers alerts in milliseconds across
+              Slack, PagerDuty, and custom webhooks for immediate recovery.
             </p>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

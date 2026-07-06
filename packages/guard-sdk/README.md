@@ -11,73 +11,88 @@ npm install @replaysafe/guard-sdk
 ## Basic Usage
 
 ```typescript
-import { withReplayGuard } from '@replaysafe/guard-sdk';
+import { withReplayGuard } from "@replaysafe/guard-sdk";
 
 const config = {
   apiKey: process.env.REPLAYSAFE_API_KEY,
-  monitorId: 'your-monitor-id',
-  debug: true
+  monitorId: "your-monitor-id",
+  debug: true,
 };
 
-await withReplayGuard(config, async (guard) => {
-  const inputs = { amount: 5000, customerId: 'customer_123' };
+await withReplayGuard(
+  config,
+  async (guard) => {
+    const inputs = { amount: 5000, customerId: "customer_123" };
 
-  // 1. Guard a Stripe operation with defense-in-depth idempotency
-  const charge = await guard.stripe('customer_123', inputs, async () => {
-    return await stripe.charges.create(
-      { amount: 5000, customer: 'customer_123' },
-      { idempotencyKey: guard.fingerprint('STRIPE_OPERATION', 'customer_123', inputs) }
-    );
-  });
+    // 1. Guard a Stripe operation with defense-in-depth idempotency
+    const charge = await guard.stripe("customer_123", inputs, async () => {
+      return await stripe.charges.create(
+        { amount: 5000, customer: "customer_123" },
+        {
+          idempotencyKey: guard.fingerprint(
+            "STRIPE_OPERATION",
+            "customer_123",
+            inputs,
+          ),
+        },
+      );
+    });
 
-  // 2. Register a compensation action for automatic rollback
-  await guard.compensate('STRIPE_OPERATION', 'customer_123', inputs, {
-    type: 'STRIPE_REFUND',
-    target: charge.id,
-    payload: { reason: 'Job failed' }
-  });
+    // 2. Register a compensation action for automatic rollback
+    await guard.compensate("STRIPE_OPERATION", "customer_123", inputs, {
+      type: "STRIPE_REFUND",
+      target: charge.id,
+      payload: { reason: "Job failed" },
+    });
 
-  // If this code fails, the rollback hook below will be triggered
-  throw new Error("Job crashed!");
-}, {
-  // 3. Handle rollbacks locally
-  onRollback: async (rollback) => {
-    console.log(`Executing local cleanup: ${rollback.type}`);
-    if (rollback.type === 'STRIPE_REFUND') {
-      await stripe.refunds.create({ charge: rollback.target });
-    }
-  }
-});
+    // If this code fails, the rollback hook below will be triggered
+    throw new Error("Job crashed!");
+  },
+  {
+    // 3. Handle rollbacks locally
+    onRollback: async (rollback) => {
+      console.log(`Executing local cleanup: ${rollback.type}`);
+      if (rollback.type === "STRIPE_REFUND") {
+        await stripe.refunds.create({ charge: rollback.target });
+      }
+    },
+  },
+);
 ```
 
 ## 🚀 Production Safety Features
 
 ### 1. Fail-Safe Policies
+
 Choose how the SDK behaves if the Replaysafe API is unreachable.
+
 - `OPEN` (Default): Proceed with execution if safety cannot be verified (High availability).
 - `CLOSED`: Block execution if safety cannot be verified (High integrity).
 
 ```typescript
 const guard = new ReplayGuard({
-  apiKey: '...',
-  monitorId: '...',
-  failPolicy: 'CLOSED' // Block on API failure
+  apiKey: "...",
+  monitorId: "...",
+  failPolicy: "CLOSED", // Block on API failure
 });
 ```
 
 ### 2. State Drift Detection (Phase 2)
+
 Capture snapshots of infrastructure state to detect unexpected changes between job attempts.
 
 ```typescript
-await guard.snapshot('k8s-deployment', currentDeploymentState);
+await guard.snapshot("k8s-deployment", currentDeploymentState);
 ```
 
 ### 3. Project-Wide Deduplication
+
 Prevent duplicate side effects across different monitors or workers in the same project.
 
 ```typescript
-await guard.verify('AI_ACTION', 'llm-summarize', inputs, 'PROJECT');
+await guard.verify("AI_ACTION", "llm-summarize", inputs, "PROJECT");
 ```
 
 ## 📈 Replay Intelligence
+
 Every "SKIPPED" action is tracked in the **Replaysafe Dashboard**, calculating your **Safety ROI** (Prevented double-charges and engineering hours saved).

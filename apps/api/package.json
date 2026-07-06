@@ -11,7 +11,8 @@
     "start": "tsx src/index.ts",
     "test": "vitest run",
     "lint": "echo \"No lint yet\"",
-    "check-lint": "echo \"No lint yet\""
+    "check-lint": "echo \"No lint yet\"",
+    "check-type": "tsc --noEmit"
   },
   "keywords": [],
   "author": "pallavi",

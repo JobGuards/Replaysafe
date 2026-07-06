@@ -1,24 +1,24 @@
-import { prisma, HeartbeatType, MonitorStatus } from '@replaysafe/db'
+import { prisma, HeartbeatType, MonitorStatus } from "@replaysafe/db";
 
 export class HeartbeatRepository {
   /**
    * Record a new heartbeat and update monitor status
    */
   async record(data: {
-    type: HeartbeatType
-    monitorId: string
-    duration?: number
-    exitCode?: number
-    output?: string
-    latency?: number
-    handshakeAge?: number
-    isLate?: boolean
-    region?: string
+    type: HeartbeatType;
+    monitorId: string;
+    duration?: number;
+    exitCode?: number;
+    output?: string;
+    latency?: number;
+    handshakeAge?: number;
+    isLate?: boolean;
+    region?: string;
   }) {
-    const { monitorId, type, isLate, ...rest } = data
+    const { monitorId, type, isLate, ...rest } = data;
 
     // Determine new monitor status
-    const status = type === 'SUCCESS' ? MonitorStatus.UP : MonitorStatus.DOWN
+    const status = type === "SUCCESS" ? MonitorStatus.UP : MonitorStatus.DOWN;
 
     // Use a transaction to ensure atomic update of monitor and heartbeat record
     return (prisma as any).$transaction(async (tx: any) => {
@@ -30,7 +30,7 @@ export class HeartbeatRepository {
           isLate,
           ...rest,
         },
-      })
+      });
 
       // 2. Update monitor
       const monitor = await tx.monitor.update({
@@ -40,12 +40,12 @@ export class HeartbeatRepository {
           status,
           totalHeartbeats: { increment: 1 },
           // Reset consecutiveFailures on success, increment on failure
-          consecutiveFailures: type === 'SUCCESS' ? 0 : { increment: 1 },
+          consecutiveFailures: type === "SUCCESS" ? 0 : { increment: 1 },
         },
-      })
+      });
 
-      return { heartbeat, monitor }
-    })
+      return { heartbeat, monitor };
+    });
   }
 
   /**
@@ -58,10 +58,10 @@ export class HeartbeatRepository {
         deletedAt: null,
       },
       orderBy: {
-        receivedAt: 'desc',
+        receivedAt: "desc",
       },
       take: limit,
-    })
+    });
   }
 
   /**
@@ -70,8 +70,8 @@ export class HeartbeatRepository {
   async findById(id: string) {
     return prisma.heartbeat.findUnique({
       where: { id },
-    })
+    });
   }
 }
 
-export const heartbeatRepository = new HeartbeatRepository()
+export const heartbeatRepository = new HeartbeatRepository();

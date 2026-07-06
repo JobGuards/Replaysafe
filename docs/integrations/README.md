@@ -4,15 +4,15 @@ ReplayGuard is a **framework-agnostic safety proxy**. Drop it in front of any ex
 
 ## Supported Frameworks
 
-| Framework | Adapter Method | Guide |
-|---|---|---|
-| **LangGraph** | `guard.langGraph(nodeId, inputs, fn)` | [LangGraph Integration →](./langgraph.md) |
-| **Temporal** | `guard.temporal(activityName, inputs, fn)` | [Temporal Integration →](./temporal.md) |
-| **Inngest** | `guard.inngest(functionId, inputs, fn)` | [Inngest Integration →](./inngest.md) |
-| **n8n** | `guard.n8n(nodeName, inputs, fn)` | [n8n Integration →](./n8n.md) |
-| **CrewAI** | `guard.crewai(toolName, inputs, fn)` | [CrewAI Integration →](./crewai.md) |
-| **Apache Airflow** | `guard.airflow(taskId, inputs, fn)` | See [LangGraph guide](./langgraph.md) for pattern |
-| **Raw Python / Any** | HTTP API | See [API Reference](../api-reference.md) |
+| Framework            | Adapter Method                             | Guide                                             |
+| -------------------- | ------------------------------------------ | ------------------------------------------------- |
+| **LangGraph**        | `guard.langGraph(nodeId, inputs, fn)`      | [LangGraph Integration →](./langgraph.md)         |
+| **Temporal**         | `guard.temporal(activityName, inputs, fn)` | [Temporal Integration →](./temporal.md)           |
+| **Inngest**          | `guard.inngest(functionId, inputs, fn)`    | [Inngest Integration →](./inngest.md)             |
+| **n8n**              | `guard.n8n(nodeName, inputs, fn)`          | [n8n Integration →](./n8n.md)                     |
+| **CrewAI**           | `guard.crewai(toolName, inputs, fn)`       | [CrewAI Integration →](./crewai.md)               |
+| **Apache Airflow**   | `guard.airflow(taskId, inputs, fn)`        | See [LangGraph guide](./langgraph.md) for pattern |
+| **Raw Python / Any** | HTTP API                                   | See [API Reference](../api-reference.md)          |
 
 ## How It Works
 
@@ -47,10 +47,10 @@ If your framework isn't listed, use `guard.wrap()` directly:
 
 ```typescript
 const result = await guard.wrap(
-  'MY_FRAMEWORK_STEP',      // Type label (appears in dashboard)
-  'my-step-identifier',     // Unique step name
-  { ...inputs },            // Input hash for fingerprinting
-  () => mySideEffect()      // The operation to protect
+  "MY_FRAMEWORK_STEP", // Type label (appears in dashboard)
+  "my-step-identifier", // Unique step name
+  { ...inputs }, // Input hash for fingerprinting
+  () => mySideEffect(), // The operation to protect
 );
 ```
 

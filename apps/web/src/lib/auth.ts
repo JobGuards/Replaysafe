@@ -1,7 +1,7 @@
-import { NextAuthOptions } from 'next-auth'
-import { PrismaAdapter } from '@auth/prisma-adapter'
-import EmailProvider from 'next-auth/providers/email'
-import { prisma } from '@replaysafe/db'
+import { NextAuthOptions } from "next-auth";
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import EmailProvider from "next-auth/providers/email";
+import { prisma } from "@replaysafe/db";
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as any,
@@ -19,15 +19,15 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   pages: {
-    signIn: '/auth/signin',
-    verifyRequest: '/auth/verify-request',
+    signIn: "/auth/signin",
+    verifyRequest: "/auth/verify-request",
   },
   callbacks: {
     async session({ session, user }) {
       if (session.user) {
-        (session.user as any).id = user.id
+        (session.user as any).id = user.id;
       }
-      return session
+      return session;
     },
   },
-}
+};
