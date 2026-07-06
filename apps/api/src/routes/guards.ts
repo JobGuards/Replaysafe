@@ -254,12 +254,10 @@ router.post("/effect/unknown", apiKeyMiddleware, async (req, res) => {
     res.json({ ok: true });
   } catch (error: any) {
     console.error("[Guards] Effect unknown error:", error.message);
-    res
-      .status(500)
-      .json({
-        error: "Failed to mark side effect unknown",
-        details: error.message,
-      });
+    res.status(500).json({
+      error: "Failed to mark side effect unknown",
+      details: error.message,
+    });
   }
 });
 

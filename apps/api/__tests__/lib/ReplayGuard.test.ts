@@ -543,13 +543,11 @@ describe("ReplayGuard SDK (existing tests — must not regress)", () => {
     });
 
     it("should inject Idempotency-Key header in guard.fetch()", async () => {
-      const mockFetch = vi
-        .fn()
-        .mockResolvedValue({
-          ok: true,
-          status: 200,
-          json: async () => ({ success: true }),
-        });
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ success: true }),
+      });
       vi.stubGlobal("fetch", mockFetch);
       const guard = makeGuard();
       await guard.fetch("https://api.stripe.com/v1/charges", {
