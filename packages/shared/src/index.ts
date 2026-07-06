@@ -1,1 +1,1 @@
-export * from './schemas/monitor'
+export * from "./schemas/monitor";

@@ -1,5 +1,5 @@
-@import 'tailwindcss';
-@import 'tw-animate-css';
+@import "tailwindcss";
+@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -33,7 +33,11 @@
   --theme-lime-border: rgba(10, 82, 48, 0.2);
   --theme-lime-rgb: 10, 82, 48;
   --theme-grid-color: rgba(15, 26, 20, 0.04);
-  --theme-radial-glow: radial-gradient(circle at 50% 30%, rgba(10, 82, 48, 0.06) 0%, transparent 60%);
+  --theme-radial-glow: radial-gradient(
+    circle at 50% 30%,
+    rgba(10, 82, 48, 0.06) 0%,
+    transparent 60%
+  );
   --theme-circuit-stroke: rgba(10, 82, 48, 0.3);
 }
 
@@ -66,14 +70,18 @@
   --theme-lime-border: rgba(217, 255, 0, 0.4);
   --theme-lime-rgb: 217, 255, 0;
   --theme-grid-color: rgba(255, 255, 255, 0.03);
-  --theme-radial-glow: radial-gradient(circle at 50% 30%, rgba(217, 255, 0, 0.15) 0%, transparent 60%);
+  --theme-radial-glow: radial-gradient(
+    circle at 50% 30%,
+    rgba(217, 255, 0, 0.15) 0%,
+    transparent 60%
+  );
   --theme-circuit-stroke: rgba(217, 255, 0, 0.5);
 }
 
 @theme inline {
   --font-inter: var(--font-inter);
   --font-outfit: var(--font-outfit);
-  
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -93,7 +101,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  
+
   --color-acid-lime: var(--acid-lime);
 
   --radius-sm: calc(var(--radius) - 4px);
@@ -118,78 +126,121 @@
   body {
     @apply bg-background text-foreground antialiased font-inter selection:bg-acid-lime/30;
   }
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-outfit tracking-tighter uppercase italic;
   }
 }
 
 @utility glass-panel {
-    background: var(--theme-glass-bg);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid var(--theme-glass-border);
-    box-shadow: 0 8px 32px 0 var(--theme-glass-shadow);
+  background: var(--theme-glass-bg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--theme-glass-border);
+  box-shadow: 0 8px 32px 0 var(--theme-glass-shadow);
 }
 @utility micro-border-lime {
-    border: 1px solid var(--theme-lime-border);
-    box-shadow: inset 0 0 15px rgba(var(--theme-lime-rgb), 0.1), 0 0 20px rgba(var(--theme-lime-rgb), 0.1);
+  border: 1px solid var(--theme-lime-border);
+  box-shadow:
+    inset 0 0 15px rgba(var(--theme-lime-rgb), 0.1),
+    0 0 20px rgba(var(--theme-lime-rgb), 0.1);
 }
-@utility glow-lime { 
-    color: var(--acid-lime);
-    text-shadow: 0 0 15px rgba(var(--theme-lime-rgb), 0.6), 0 0 30px rgba(var(--theme-lime-rgb), 0.4), 0 0 45px rgba(var(--theme-lime-rgb), 0.2); 
+@utility glow-lime {
+  color: var(--acid-lime);
+  text-shadow:
+    0 0 15px rgba(var(--theme-lime-rgb), 0.6),
+    0 0 30px rgba(var(--theme-lime-rgb), 0.4),
+    0 0 45px rgba(var(--theme-lime-rgb), 0.2);
 }
-@utility bg-tech-grid { 
-    background-image: 
-        linear-gradient(to right, var(--theme-grid-color) 1px, transparent 1px),
-        linear-gradient(to bottom, var(--theme-grid-color) 1px, transparent 1px);
-    background-size: 40px 40px;
+@utility bg-tech-grid {
+  background-image:
+    linear-gradient(to right, var(--theme-grid-color) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--theme-grid-color) 1px, transparent 1px);
+  background-size: 40px 40px;
 }
 
 .radial-glow-hero {
-    background: var(--theme-radial-glow);
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
+  background: var(--theme-radial-glow);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
 }
 
 @keyframes dataFlow {
-    0% { transform: translateY(-100%); opacity: 0; }
-    10% { opacity: 1; }
-    90% { opacity: 1; }
-    100% { transform: translateY(100vh); opacity: 0; }
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh);
+    opacity: 0;
+  }
 }
 
 .particle {
-    position: absolute;
-    top: 0;
-    width: 2px;
-    height: 100px;
-    background: linear-gradient(to bottom, transparent, rgba(var(--theme-lime-rgb), 0.8), transparent);
-    animation: dataFlow 4s linear infinite;
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 100px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(var(--theme-lime-rgb), 0.8),
+    transparent
+  );
+  animation: dataFlow 4s linear infinite;
 }
 
 @keyframes circuitPulse {
-    0% { stroke-dashoffset: 100; opacity: 0.5; }
-    50% { opacity: 1; }
-    100% { stroke-dashoffset: 0; opacity: 0.5; }
+  0% {
+    stroke-dashoffset: 100;
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0.5;
+  }
 }
 
 .circuit-line {
-    stroke: var(--theme-circuit-stroke);
-    stroke-width: 2;
-    stroke-dasharray: 10 20;
-    animation: circuitPulse 2s linear infinite;
+  stroke: var(--theme-circuit-stroke);
+  stroke-width: 2;
+  stroke-dasharray: 10 20;
+  animation: circuitPulse 2s linear infinite;
 }
 
 .tactile-btn {
-    background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%), #1f1f27;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 2px 4px rgba(0,0,0,0.5);
-    transition: all 0.1s ease;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.1) 0%,
+      rgba(255, 255, 255, 0) 100%
+    ),
+    #1f1f27;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.5);
+  transition: all 0.1s ease;
 }
 
 .tactile-btn:active {
-    transform: translateY(2px);
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.4), 0 0px 0px rgba(0,0,0,0.5);
-    background: #1b1b23;
+  transform: translateY(2px);
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.4),
+    0 0px 0px rgba(0, 0, 0, 0.5);
+  background: #1b1b23;
 }

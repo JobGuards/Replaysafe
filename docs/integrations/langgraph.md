@@ -17,13 +17,13 @@ npm install @replaysafe/guard-sdk
 ## Quick Start
 
 ```typescript
-import { withReplayGuard } from '@replaysafe/guard-sdk';
+import { withReplayGuard } from "@replaysafe/guard-sdk";
 
 // Wrap your entire LangGraph graph run
 const result = await withReplayGuard(
   {
     apiKey: process.env.REPLAYSAFE_API_KEY!,
-    monitorId: 'langgraph-customer-onboarding',
+    monitorId: "langgraph-customer-onboarding",
     baseUrl: process.env.REPLAYSAFE_API_URL,
   },
   async (guard) => {
@@ -31,10 +31,10 @@ const result = await withReplayGuard(
     // for runtime context. A bare second arg is silently ignored.
     return await graph.invoke(
       { customerId },
-      { configurable: { guard } }  // ← nodes receive this via RunnableConfig
+      { configurable: { guard } }, // ← nodes receive this via RunnableConfig
     );
   },
-  { externalId: `onboarding-${customerId}` }  // Tie to your run ID
+  { externalId: `onboarding-${customerId}` }, // Tie to your run ID
 );
 ```
 
@@ -46,39 +46,39 @@ The `guard.langGraph()` adapter is a thin, semantically-named wrapper. Pass it t
 
 ```typescript
 // nodes/chargeNode.ts
-import { ReplayGuard } from '@replaysafe/guard-sdk';
+import { ReplayGuard } from "@replaysafe/guard-sdk";
 
-export async function chargeNode(
-  state: OnboardingState,
-  guard: ReplayGuard
-) {
+export async function chargeNode(state: OnboardingState, guard: ReplayGuard) {
   const inputs = { customerId: state.customerId, amount: state.planAmount };
 
   // ✅ This charge will NOT be duplicated during retries (replay-safe deduplication)
-  const charge = await guard.langGraph(
-    'charge_customer_node',
-    inputs,
-    () => stripe.charges.create(
+  const charge = await guard.langGraph("charge_customer_node", inputs, () =>
+    stripe.charges.create(
       {
         amount: state.planAmount,
-        currency: 'usd',
+        currency: "usd",
         customer: state.customerId,
       },
       {
-        idempotencyKey: guard.fingerprint('LANGGRAPH_NODE', 'charge_customer_node', inputs)
-      }
-    )
+        idempotencyKey: guard.fingerprint(
+          "LANGGRAPH_NODE",
+          "charge_customer_node",
+          inputs,
+        ),
+      },
+    ),
   );
 
   // ✅ The welcome email is also protected
   await guard.langGraph(
-    'send_welcome_email_node',
+    "send_welcome_email_node",
     { to: state.email, chargeId: charge.id },
-    () => resend.emails.send({
-      from: 'hello@yourapp.com',
-      to: state.email,
-      subject: 'Welcome!',
-    })
+    () =>
+      resend.emails.send({
+        from: "hello@yourapp.com",
+        to: state.email,
+        subject: "Welcome!",
+      }),
   );
 
   return { ...state, chargeId: charge.id };
@@ -98,14 +98,14 @@ If `chargeNode` succeeds but a downstream node fails, you can automatically trig
 // After the charge succeeds, register a compensation hook.
 // Use the SAME type/target/inputs as the langGraph() call above.
 await guard.compensate(
-  'LANGGRAPH_NODE',                                                // ← must match langGraph() type internally
-  'charge_customer_node',                                          // ← must match nodeId
-  { customerId: state.customerId, amount: state.planAmount },      // ← must match inputs exactly
+  "LANGGRAPH_NODE", // ← must match langGraph() type internally
+  "charge_customer_node", // ← must match nodeId
+  { customerId: state.customerId, amount: state.planAmount }, // ← must match inputs exactly
   {
-    type: 'WEBHOOK',
-    target: 'https://your-api.com/refund',
+    type: "WEBHOOK",
+    target: "https://your-api.com/refund",
     payload: { chargeId: charge.id },
-  }
+  },
 );
 ```
 
@@ -138,7 +138,7 @@ export async function chargeNode(
   config: RunnableConfig
 ) {
   const guard = config.configurable?.guard as ReplayGuard;
-  
+
   if (!guard) {
     // Fallback: execute without safety layer (or throw if CLOSED policy)
     return await stripe.charges.create({ ... });
@@ -159,13 +159,13 @@ await withReplayGuard({ apiKey, monitorId }, async (guard) => {
 
 ## Fail Policies
 
-| Policy | Behavior when Replaysafe is unreachable |
-|---|---|
+| Policy           | Behavior when Replaysafe is unreachable                       |
+| ---------------- | ------------------------------------------------------------- |
 | `OPEN` (default) | Proceeds without safety layer. Side effects execute normally. |
-| `CLOSED` | Throws an error. The graph node fails and LangGraph retries. |
+| `CLOSED`         | Throws an error. The graph node fails and LangGraph retries.  |
 
 ```typescript
-new ReplayGuard({ apiKey, monitorId, failPolicy: 'CLOSED' });
+new ReplayGuard({ apiKey, monitorId, failPolicy: "CLOSED" });
 ```
 
 ---

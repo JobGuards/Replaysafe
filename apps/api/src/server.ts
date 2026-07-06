@@ -18,7 +18,11 @@ import stripeRoutes from "./routes/stripe.js";
 import guardRoutes from "./routes/guards.js";
 import apiKeyRoutes from "./routes/api-keys.js";
 import projectRoutes from "./routes/projects.js";
-import { apiRateLimiter, authRateLimiter, heartbeatRateLimiter } from "./middleware/rateLimit.js";
+import {
+  apiRateLimiter,
+  authRateLimiter,
+  heartbeatRateLimiter,
+} from "./middleware/rateLimit.js";
 import { authMiddleware, projectAccessMiddleware } from "./middleware/auth.js";
 import { prisma } from "@replaysafe/db";
 import { auditService } from "./services/AuditService.js";
@@ -38,7 +42,7 @@ export function createApp() {
   app.use(
     helmet({
       crossOriginResourcePolicy: { policy: "cross-origin" },
-    })
+    }),
   );
 
   // 2. Request Logging
@@ -48,7 +52,7 @@ export function createApp() {
   // Supports multiple origins: dashboard + landing page (separate deployments)
   const allowedOrigins = [
     process.env.FRONTEND_URL || "http://localhost:3000",
-    process.env.LANDING_URL  || "http://localhost:3001",
+    process.env.LANDING_URL || "http://localhost:3001",
   ].filter(Boolean);
 
   app.use(
@@ -60,14 +64,18 @@ export function createApp() {
         callback(new Error(`CORS: origin '${origin}' is not allowed`));
       },
       credentials: true,
-    })
+    }),
   );
 
   // 4. Raw body capture for Stripe webhook signature verification (must be before JSON parser)
-  app.use('/api/stripe/webhook', express.raw({ type: 'application/json', limit: '10kb' }), (req, _res, next) => {
-    (req as any).rawBody = req.body
-    next()
-  })
+  app.use(
+    "/api/stripe/webhook",
+    express.raw({ type: "application/json", limit: "10kb" }),
+    (req, _res, next) => {
+      (req as any).rawBody = req.body;
+      next();
+    },
+  );
 
   // 5. Body parsing and cookie parsing
   app.use(express.json({ limit: "10kb" })); // Request size limit
@@ -106,7 +114,6 @@ export function createApp() {
   // 14. Project management
   app.use("/api/projects", projectRoutes);
 
-
   // 15. Billing routes
   app.use("/api/stripe", stripeRoutes);
 
@@ -125,7 +132,5 @@ export function createApp() {
 export function startServer() {
   const app = createApp();
   const port = process.env.PORT || 4040;
-  app.listen(port, () =>
-    console.log(`Replaysafe API running on port ${port}`)
-  );
+  app.listen(port, () => console.log(`Replaysafe API running on port ${port}`));
 }

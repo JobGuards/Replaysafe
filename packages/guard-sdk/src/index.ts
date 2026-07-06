@@ -1,4 +1,4 @@
-import hash from 'object-hash';
+import hash from "object-hash";
 
 /**
  * Safe default fields to strip from inputs before fingerprinting.
@@ -7,16 +7,21 @@ import hash from 'object-hash';
  * Override via `ignoreKeys`, or disable entirely via `disableDefaultIgnoreKeys`.
  */
 const DEFAULT_IGNORE_KEYS = new Set<string>([
-  'timestamp', 'createdAt', 'updatedAt',
-  'requestId', 'traceId', 'nonce',
-  'idempotencyKey', 'x-request-id',
+  "timestamp",
+  "createdAt",
+  "updatedAt",
+  "requestId",
+  "traceId",
+  "nonce",
+  "idempotencyKey",
+  "x-request-id",
 ]);
 
 export interface GuardConfig {
   apiKey: string;
   monitorId: string;
   baseUrl?: string;
-  failPolicy?: 'OPEN' | 'CLOSED';
+  failPolicy?: "OPEN" | "CLOSED";
   debug?: boolean;
   /**
    * Additional input keys to strip from fingerprint hashing beyond the safe defaults.
@@ -57,8 +62,8 @@ export interface ReplayContext {
   };
 }
 
-export type GuardAction = 'EXECUTE' | 'SKIP';
-export type GuardScope = 'MONITOR' | 'PROJECT';
+export type GuardAction = "EXECUTE" | "SKIP";
+export type GuardScope = "MONITOR" | "PROJECT";
 
 export interface GuardOptions {
   externalId?: string;
@@ -78,8 +83,8 @@ export class ReplayGuard {
 
   constructor(config: GuardConfig) {
     this.config = {
-      baseUrl: process.env.REPLAYSAFE_API_URL || 'http://localhost:4040',
-      failPolicy: 'OPEN',
+      baseUrl: process.env.REPLAYSAFE_API_URL || "http://localhost:4040",
+      failPolicy: "OPEN",
       debug: false,
       ...config,
       network: {
@@ -96,17 +101,20 @@ export class ReplayGuard {
    */
   async start(externalId?: string): Promise<ReplayContext | null> {
     try {
-      const res = await this._fetchWithRetry(`${this.config.baseUrl}/api/guards/session`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': this.config.apiKey,
+      const res = await this._fetchWithRetry(
+        `${this.config.baseUrl}/api/guards/session`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": this.config.apiKey,
+          },
+          body: JSON.stringify({
+            monitorId: this.config.monitorId,
+            externalId,
+          }),
         },
-        body: JSON.stringify({
-          monitorId: this.config.monitorId,
-          externalId,
-        }),
-      });
+      );
 
       if (!res.ok) {
         throw new Error(`Failed to initialize session: ${await res.text()}`);
@@ -115,13 +123,17 @@ export class ReplayGuard {
       this.context = await res.json();
       return this.context!;
     } catch (error: any) {
-      if (this.config.debug) console.error(`[ReplayGuard] Session initialization failed: ${error.message}`);
-      
-      if (this.config.failPolicy === 'CLOSED') {
+      if (this.config.debug)
+        console.error(
+          `[ReplayGuard] Session initialization failed: ${error.message}`,
+        );
+
+      if (this.config.failPolicy === "CLOSED") {
         throw error;
       }
 
-      if (this.config.debug) console.warn('[ReplayGuard] Proceeding without session (Fail Open)');
+      if (this.config.debug)
+        console.warn("[ReplayGuard] Proceeding without session (Fail Open)");
       return null;
     }
   }
@@ -139,41 +151,52 @@ export class ReplayGuard {
    * Verifies if a side effect should be executed or skipped based on history.
    */
   async verify(
-    type: string, 
-    target: string, 
-    inputs: any, 
-    scope: GuardScope = 'MONITOR'
+    type: string,
+    target: string,
+    inputs: any,
+    scope: GuardScope = "MONITOR",
   ): Promise<VerifyResponse> {
     const fp = this.fingerprint(type, target, inputs);
 
     if (!this.context) {
-      if (this.config.debug) console.warn('[ReplayGuard] No active session. Executing without safety layer.');
-      return { action: 'EXECUTE', fingerprint: fp };
+      if (this.config.debug)
+        console.warn(
+          "[ReplayGuard] No active session. Executing without safety layer.",
+        );
+      return { action: "EXECUTE", fingerprint: fp };
     }
 
     // 1. Check local cache (Process-level deduplication)
     if (this.localCache.has(fp)) {
-      if (this.config.debug) console.log(`[ReplayGuard] Local cache hit for: ${target}`);
-      return { action: 'SKIP', cachedResult: this.localCache.get(fp), fingerprint: fp };
+      if (this.config.debug)
+        console.log(`[ReplayGuard] Local cache hit for: ${target}`);
+      return {
+        action: "SKIP",
+        cachedResult: this.localCache.get(fp),
+        fingerprint: fp,
+      };
     }
 
     try {
-      const res = await this._fetchWithRetry(`${this.config.baseUrl}/api/guards/verify`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': this.config.apiKey,
+      const res = await this._fetchWithRetry(
+        `${this.config.baseUrl}/api/guards/verify`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": this.config.apiKey,
+          },
+          body: JSON.stringify({
+            executionId: this.context.executionId,
+            token: this.context.token,
+            fingerprint: fp,
+            type,
+            target,
+            inputHash: this._buildInputHash(inputs),
+            scope,
+          }),
         },
-        body: JSON.stringify({
-          executionId: this.context.executionId,
-          token: this.context.token,
-          fingerprint: fp,
-          type,
-          target,
-          inputHash: this._buildInputHash(inputs),
-          scope,
-        }),
-      });
+      );
 
       if (!res.ok) {
         throw new Error(`Verification failed: ${await res.text()}`);
@@ -181,50 +204,60 @@ export class ReplayGuard {
 
       const result: VerifyResponse = await res.json();
       result.fingerprint = fp;
-      
+
       // Update local cache if skipped
-      if (result.action === 'SKIP') {
+      if (result.action === "SKIP") {
         this.localCache.set(fp, result.cachedResult);
       }
 
       return result;
     } catch (error: any) {
       if (this.config.debug) console.error(`[ReplayGuard] ${error.message}`);
-      
-      if (this.config.failPolicy === 'CLOSED') {
-        throw new Error(`[ReplayGuard] Safety check failed and failPolicy is CLOSED: ${error.message}`);
+
+      if (this.config.failPolicy === "CLOSED") {
+        throw new Error(
+          `[ReplayGuard] Safety check failed and failPolicy is CLOSED: ${error.message}`,
+        );
       }
 
-      if (this.config.debug) console.warn('[ReplayGuard] Defaulting to EXECUTE (Fail Open)');
-      return { action: 'EXECUTE', fingerprint: fp };
+      if (this.config.debug)
+        console.warn("[ReplayGuard] Defaulting to EXECUTE (Fail Open)");
+      return { action: "EXECUTE", fingerprint: fp };
     }
   }
 
   /**
    * Finalizes the guarded execution.
    */
-  async complete(status: 'SUCCESS' | 'FAILED', shouldRollback: boolean = false): Promise<any> {
+  async complete(
+    status: "SUCCESS" | "FAILED",
+    shouldRollback: boolean = false,
+  ): Promise<any> {
     if (!this.context) return;
 
     try {
-      const res = await this._fetchWithRetry(`${this.config.baseUrl}/api/guards/execution/${this.context.executionId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': this.config.apiKey,
+      const res = await this._fetchWithRetry(
+        `${this.config.baseUrl}/api/guards/execution/${this.context.executionId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": this.config.apiKey,
+          },
+          body: JSON.stringify({
+            status,
+            token: this.context.token,
+            shouldRollback,
+          }),
         },
-        body: JSON.stringify({ 
-          status,
-          token: this.context.token,
-          shouldRollback
-        }),
-      });
+      );
 
       if (res.ok) {
         return await res.json();
       }
     } catch (e: any) {
-      if (this.config.debug) console.error('[ReplayGuard] Failed to complete session', e.message);
+      if (this.config.debug)
+        console.error("[ReplayGuard] Failed to complete session", e.message);
     } finally {
       this.context = null;
     }
@@ -233,19 +266,34 @@ export class ReplayGuard {
   /**
    * Guarded wrapper for HTTP fetch requests.
    */
-  async fetch(url: string, options?: RequestInit, scope: GuardScope = 'MONITOR'): Promise<Response> {
+  async fetch(
+    url: string,
+    options?: RequestInit,
+    scope: GuardScope = "MONITOR",
+  ): Promise<Response> {
     const inputs = {
-      method: options?.method || 'GET',
+      method: options?.method || "GET",
       body: options?.body,
     };
 
-    const { action, cachedResult, fingerprint } = await this.verify('HTTP', url, inputs, scope);
+    const { action, cachedResult, fingerprint } = await this.verify(
+      "HTTP",
+      url,
+      inputs,
+      scope,
+    );
 
-    if (action === 'SKIP') {
-      if (this.config.debug) console.log(`[ReplayGuard] Skipping dangerous side effect (HTTP): ${url}`);
-      return new Response(JSON.stringify(cachedResult), { 
+    if (action === "SKIP") {
+      if (this.config.debug)
+        console.log(
+          `[ReplayGuard] Skipping dangerous side effect (HTTP): ${url}`,
+        );
+      return new Response(JSON.stringify(cachedResult), {
         status: 200,
-        headers: { 'Content-Type': 'application/json', 'x-replay-guard': 'HIT' }
+        headers: {
+          "Content-Type": "application/json",
+          "x-replay-guard": "HIT",
+        },
       });
     }
 
@@ -253,36 +301,41 @@ export class ReplayGuard {
     const modifiedOptions = { ...options };
     const rawHeaders = modifiedOptions.headers || {};
     let hasIdempotencyKey = false;
-    
-    if (typeof Headers !== 'undefined' && rawHeaders instanceof Headers) {
-      hasIdempotencyKey = rawHeaders.has('Idempotency-Key') || rawHeaders.has('idempotency-key');
+
+    if (typeof Headers !== "undefined" && rawHeaders instanceof Headers) {
+      hasIdempotencyKey =
+        rawHeaders.has("Idempotency-Key") || rawHeaders.has("idempotency-key");
       if (!hasIdempotencyKey) {
-        rawHeaders.set('Idempotency-Key', fingerprint);
+        rawHeaders.set("Idempotency-Key", fingerprint);
       }
     } else if (Array.isArray(rawHeaders)) {
-      hasIdempotencyKey = (rawHeaders as string[][]).some(([k]) => k.toLowerCase() === 'idempotency-key');
+      hasIdempotencyKey = (rawHeaders as string[][]).some(
+        ([k]) => k.toLowerCase() === "idempotency-key",
+      );
       if (!hasIdempotencyKey) {
-        (rawHeaders as string[][]).push(['Idempotency-Key', fingerprint]);
+        (rawHeaders as string[][]).push(["Idempotency-Key", fingerprint]);
       }
     } else {
       // Record<string, string>
-      const lowerKeys = Object.keys(rawHeaders as Record<string, string>).map(k => k.toLowerCase());
-      hasIdempotencyKey = lowerKeys.includes('idempotency-key');
+      const lowerKeys = Object.keys(rawHeaders as Record<string, string>).map(
+        (k) => k.toLowerCase(),
+      );
+      hasIdempotencyKey = lowerKeys.includes("idempotency-key");
       if (!hasIdempotencyKey) {
         modifiedOptions.headers = {
           ...(rawHeaders as Record<string, string>),
-          'Idempotency-Key': fingerprint
+          "Idempotency-Key": fingerprint,
         };
       }
     }
 
     const response = await fetch(url, modifiedOptions);
-    
+
     // Report result if successful
     if (response.ok) {
       try {
         const body = await response.clone().json();
-        await this.reportResult('HTTP', url, inputs, body);
+        await this.reportResult("HTTP", url, inputs, body);
       } catch (e) {
         // Fallback for non-JSON bodies
       }
@@ -295,29 +348,37 @@ export class ReplayGuard {
    * Generic wrapper for any dangerous operation.
    */
   async wrap<T>(
-    type: string, 
-    target: string, 
-    inputs: any, 
+    type: string,
+    target: string,
+    inputs: any,
     operation: () => Promise<T>,
-    scope: GuardScope = 'MONITOR'
+    scope: GuardScope = "MONITOR",
   ): Promise<T> {
-    const { action, cachedResult } = await this.verify(type, target, inputs, scope);
+    const { action, cachedResult } = await this.verify(
+      type,
+      target,
+      inputs,
+      scope,
+    );
 
-    if (action === 'SKIP') {
-      if (this.config.debug) console.log(`[ReplayGuard] Replaying cached result for (${type}): ${target}`);
+    if (action === "SKIP") {
+      if (this.config.debug)
+        console.log(
+          `[ReplayGuard] Replaying cached result for (${type}): ${target}`,
+        );
       return cachedResult as T;
     }
 
     try {
       const result = await operation();
-      
+
       // Update local cache immediately
       const inputHash = this._buildInputHash(inputs);
       const fingerprint = hash({ type, target, inputHash });
       this.localCache.set(fingerprint, result);
 
       await this.reportResult(type, target, inputs, result);
-      
+
       return result;
     } catch (error) {
       throw error;
@@ -338,7 +399,11 @@ export class ReplayGuard {
    * Debug mode logs which fields were stripped so you can audit fingerprint behavior.
    */
   private _buildInputHash(inputs: any): string {
-    if (typeof inputs !== 'object' || inputs === null || Array.isArray(inputs)) {
+    if (
+      typeof inputs !== "object" ||
+      inputs === null ||
+      Array.isArray(inputs)
+    ) {
       return hash(inputs);
     }
 
@@ -347,13 +412,15 @@ export class ReplayGuard {
       : new Set([...DEFAULT_IGNORE_KEYS, ...(this.config.ignoreKeys ?? [])]);
 
     const normalized = Object.fromEntries(
-      Object.entries(inputs).filter(([k]) => !ignoreSet.has(k))
+      Object.entries(inputs).filter(([k]) => !ignoreSet.has(k)),
     );
 
     if (this.config.debug) {
-      const stripped = Object.keys(inputs).filter(k => ignoreSet.has(k));
+      const stripped = Object.keys(inputs).filter((k) => ignoreSet.has(k));
       if (stripped.length > 0) {
-        console.debug(`[ReplayGuard] Stripped transient fields from fingerprint: [${stripped.join(', ')}]`);
+        console.debug(
+          `[ReplayGuard] Stripped transient fields from fingerprint: [${stripped.join(", ")}]`,
+        );
       }
     }
 
@@ -364,7 +431,10 @@ export class ReplayGuard {
    * Wraps a fetch call with a configurable AbortSignal timeout.
    * Prevents the SDK from hanging indefinitely when the Replaysafe API is slow or unresponsive.
    */
-  private async _fetchWithTimeout(url: string, options: RequestInit): Promise<Response> {
+  private async _fetchWithTimeout(
+    url: string,
+    options: RequestInit,
+  ): Promise<Response> {
     const timeoutMs = this.config.network?.timeoutMs ?? 3000;
     const controller = new AbortController();
     const id = setTimeout(() => controller.abort(), timeoutMs);
@@ -382,7 +452,10 @@ export class ReplayGuard {
    * Default: 3 retries, 200ms base delay, jitter capped at 1600ms.
    * Transient faults that resolve within ~4s will never surface to your job.
    */
-  private async _fetchWithRetry(url: string, options: RequestInit): Promise<Response> {
+  private async _fetchWithRetry(
+    url: string,
+    options: RequestInit,
+  ): Promise<Response> {
     const maxRetries = this.config.network?.maxRetries ?? 3;
     const baseDelayMs = this.config.network?.baseDelayMs ?? 200;
     let lastError: Error | undefined;
@@ -395,9 +468,11 @@ export class ReplayGuard {
           const cap = baseDelayMs * Math.pow(2, attempt);
           const jitter = Math.random() * Math.min(cap, 1600);
           if (this.config.debug) {
-            console.debug(`[ReplayGuard] SDK retry ${attempt + 1}/${maxRetries} in ${Math.round(jitter)}ms — ${err.message}`);
+            console.debug(
+              `[ReplayGuard] SDK retry ${attempt + 1}/${maxRetries} in ${Math.round(jitter)}ms — ${err.message}`,
+            );
           }
-          await new Promise(r => setTimeout(r, jitter));
+          await new Promise((r) => setTimeout(r, jitter));
         }
       }
     }
@@ -407,7 +482,12 @@ export class ReplayGuard {
   /**
    * Reports the successful result of a side effect to the execution memory.
    */
-  private async reportResult(type: string, target: string, inputs: any, result: any): Promise<void> {
+  private async reportResult(
+    type: string,
+    target: string,
+    inputs: any,
+    result: any,
+  ): Promise<void> {
     if (!this.context) return;
 
     const inputHash = this._buildInputHash(inputs);
@@ -418,10 +498,10 @@ export class ReplayGuard {
 
     try {
       await this._fetchWithRetry(`${this.config.baseUrl}/api/guards/verify`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': this.config.apiKey,
+          "Content-Type": "application/json",
+          "x-api-key": this.config.apiKey,
         },
         body: JSON.stringify({
           executionId: this.context.executionId,
@@ -434,7 +514,8 @@ export class ReplayGuard {
         }),
       });
     } catch (e: any) {
-      if (this.config.debug) console.error(`[ReplayGuard] Failed to report result: ${e.message}`);
+      if (this.config.debug)
+        console.error(`[ReplayGuard] Failed to report result: ${e.message}`);
     }
   }
 
@@ -442,16 +523,26 @@ export class ReplayGuard {
    * High-level AI/LLM wrapper for expensive model calls.
    * Automatically handles fingerprinting of model parameters.
    */
-  async ai<T>(model: string, params: any, operation: () => Promise<T>, scope: GuardScope = 'MONITOR'): Promise<T> {
-    return this.wrap('AI_GENERATION', model, params, operation, scope);
+  async ai<T>(
+    model: string,
+    params: any,
+    operation: () => Promise<T>,
+    scope: GuardScope = "MONITOR",
+  ): Promise<T> {
+    return this.wrap("AI_GENERATION", model, params, operation, scope);
   }
 
   /**
    * Specialized wrapper for outbound webhooks.
    * Ensures idempotency for external service notifications.
    */
-  async webhook<T>(target: string, payload: any, operation: () => Promise<T>, scope: GuardScope = 'MONITOR'): Promise<T> {
-    return this.wrap('WEBHOOK', target, payload, operation, scope);
+  async webhook<T>(
+    target: string,
+    payload: any,
+    operation: () => Promise<T>,
+    scope: GuardScope = "MONITOR",
+  ): Promise<T> {
+    return this.wrap("WEBHOOK", target, payload, operation, scope);
   }
 
   /**
@@ -459,10 +550,10 @@ export class ReplayGuard {
    * This action will be triggered if the execution is completed with shouldRollback: true.
    */
   async compensate(
-    type: string, 
-    target: string, 
-    inputs: any, 
-    rollbackData: { type: string, target: string, payload?: any }
+    type: string,
+    target: string,
+    inputs: any,
+    rollbackData: { type: string; target: string; payload?: any },
   ): Promise<void> {
     if (!this.context) return;
 
@@ -470,22 +561,29 @@ export class ReplayGuard {
     const fingerprint = hash({ type, target, inputHash });
 
     try {
-      await this._fetchWithRetry(`${this.config.baseUrl}/api/guards/rollback/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': this.config.apiKey,
+      await this._fetchWithRetry(
+        `${this.config.baseUrl}/api/guards/rollback/register`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": this.config.apiKey,
+          },
+          body: JSON.stringify({
+            executionId: this.context.executionId,
+            token: this.context.token,
+            fingerprint,
+            rollback: rollbackData,
+          }),
         },
-        body: JSON.stringify({
-          executionId: this.context.executionId,
-          token: this.context.token,
-          fingerprint,
-          rollback: rollbackData
-        }),
-      });
-      if (this.config.debug) console.log(`[ReplayGuard] Rollback registered for: ${target}`);
+      );
+      if (this.config.debug)
+        console.log(`[ReplayGuard] Rollback registered for: ${target}`);
     } catch (e: any) {
-      if (this.config.debug) console.error(`[ReplayGuard] Failed to register rollback: ${e.message}`);
+      if (this.config.debug)
+        console.error(
+          `[ReplayGuard] Failed to register rollback: ${e.message}`,
+        );
     }
   }
 
@@ -497,26 +595,26 @@ export class ReplayGuard {
     if (!this.context) return;
 
     const inputHash = hash(state);
-    
+
     try {
       await this._fetchWithRetry(`${this.config.baseUrl}/api/guards/verify`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': this.config.apiKey,
+          "Content-Type": "application/json",
+          "x-api-key": this.config.apiKey,
         },
         body: JSON.stringify({
           executionId: this.context.executionId,
           token: this.context.token,
-          fingerprint: hash({ type: 'STATE_SNAPSHOT', key, inputHash }),
-          type: 'STATE_SNAPSHOT',
+          fingerprint: hash({ type: "STATE_SNAPSHOT", key, inputHash }),
+          type: "STATE_SNAPSHOT",
           target: key,
           inputHash,
           metadata: state,
         }),
       });
     } catch (e) {
-      console.error('[ReplayGuard] Failed to record snapshot', e);
+      console.error("[ReplayGuard] Failed to record snapshot", e);
     }
   }
 
@@ -543,9 +641,9 @@ export class ReplayGuard {
     nodeId: string,
     inputs: any,
     operation: () => Promise<T>,
-    scope: GuardScope = 'MONITOR'
+    scope: GuardScope = "MONITOR",
   ): Promise<T> {
-    return this.wrap('LANGGRAPH_NODE', nodeId, inputs, operation, scope);
+    return this.wrap("LANGGRAPH_NODE", nodeId, inputs, operation, scope);
   }
 
   /**
@@ -566,9 +664,9 @@ export class ReplayGuard {
     functionId: string,
     inputs: any,
     operation: () => Promise<T>,
-    scope: GuardScope = 'MONITOR'
+    scope: GuardScope = "MONITOR",
   ): Promise<T> {
-    return this.wrap('INNGEST_STEP', functionId, inputs, operation, scope);
+    return this.wrap("INNGEST_STEP", functionId, inputs, operation, scope);
   }
 
   /**
@@ -587,9 +685,9 @@ export class ReplayGuard {
     nodeName: string,
     inputs: any,
     operation: () => Promise<T>,
-    scope: GuardScope = 'MONITOR'
+    scope: GuardScope = "MONITOR",
   ): Promise<T> {
-    return this.wrap('N8N_NODE', nodeName, inputs, operation, scope);
+    return this.wrap("N8N_NODE", nodeName, inputs, operation, scope);
   }
 
   /**
@@ -608,9 +706,9 @@ export class ReplayGuard {
     taskId: string,
     inputs: any,
     operation: () => Promise<T>,
-    scope: GuardScope = 'MONITOR'
+    scope: GuardScope = "MONITOR",
   ): Promise<T> {
-    return this.wrap('AIRFLOW_TASK', taskId, inputs, operation, scope);
+    return this.wrap("AIRFLOW_TASK", taskId, inputs, operation, scope);
   }
 
   /**
@@ -629,9 +727,9 @@ export class ReplayGuard {
     toolName: string,
     inputs: any,
     operation: () => Promise<T>,
-    scope: GuardScope = 'MONITOR'
+    scope: GuardScope = "MONITOR",
   ): Promise<T> {
-    return this.wrap('CREWAI_TOOL', toolName, inputs, operation, scope);
+    return this.wrap("CREWAI_TOOL", toolName, inputs, operation, scope);
   }
 
   /**
@@ -649,9 +747,9 @@ export class ReplayGuard {
     operationId: string,
     inputs: any,
     operation: () => Promise<T>,
-    scope: GuardScope = 'MONITOR'
+    scope: GuardScope = "MONITOR",
   ): Promise<T> {
-    return this.wrap('STRIPE_OPERATION', operationId, inputs, operation, scope);
+    return this.wrap("STRIPE_OPERATION", operationId, inputs, operation, scope);
   }
 }
 
@@ -661,13 +759,12 @@ export class ReplayGuard {
 export async function withReplayGuard<T>(
   config: GuardConfig,
   job: (guard: ReplayGuard) => Promise<T>,
-  options?: string | GuardOptions
+  options?: string | GuardOptions,
 ): Promise<T> {
   const guard = new ReplayGuard(config);
-  
-  const opt: GuardOptions = typeof options === 'string' 
-    ? { externalId: options } 
-    : options || {};
+
+  const opt: GuardOptions =
+    typeof options === "string" ? { externalId: options } : options || {};
 
   try {
     await guard.start(opt.externalId);
@@ -677,24 +774,31 @@ export async function withReplayGuard<T>(
 
   try {
     const result = await job(guard);
-    await guard.complete('SUCCESS');
+    await guard.complete("SUCCESS");
     return result;
   } catch (error) {
     // Automatically trigger rollback on failure (best-effort — never masks original error)
     try {
-      const completion = await guard.complete('FAILED', true);
+      const completion = await guard.complete("FAILED", true);
       if (completion?.rollbacks && opt.onRollback) {
-        if (config.debug) console.log(`[ReplayGuard] Executing ${completion.rollbacks.length} rollback hooks`);
+        if (config.debug)
+          console.log(
+            `[ReplayGuard] Executing ${completion.rollbacks.length} rollback hooks`,
+          );
         for (const rb of completion.rollbacks) {
           await Promise.resolve(opt.onRollback(rb)).catch((e: any) => {
-            if (config.debug) console.error(`[ReplayGuard] Rollback hook failed: ${e.message}`);
+            if (config.debug)
+              console.error(`[ReplayGuard] Rollback hook failed: ${e.message}`);
           });
         }
       }
     } catch (completeErr) {
-      if (config.debug) console.error(`[ReplayGuard] Session completion failed (original error preserved): ${completeErr}`);
+      if (config.debug)
+        console.error(
+          `[ReplayGuard] Session completion failed (original error preserved): ${completeErr}`,
+        );
     }
-    
+
     throw error;
   }
 }

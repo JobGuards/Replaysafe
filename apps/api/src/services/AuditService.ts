@@ -1,30 +1,30 @@
-import { prisma } from '@replaysafe/db'
+import { prisma } from "@replaysafe/db";
 
-export type AuditAction = 
-  | 'USER_SIGNUP'
-  | 'USER_LOGIN'
-  | 'USER_LOGOUT'
-  | 'MONITOR_CREATE'
-  | 'MONITOR_UPDATE'
-  | 'MONITOR_DELETE'
-  | 'PROJECT_CREATE'
-  | 'PROJECT_UPDATE'
-  | 'PROJECT_DELETE'
-  | 'ALERT_CHANNEL_CREATE'
-  | 'ALERT_CHANNEL_DELETE'
-  | 'API_KEY_CREATE'
-  | 'API_KEY_DELETE'
-  | 'GUARD_SESSION_CREATE'
+export type AuditAction =
+  | "USER_SIGNUP"
+  | "USER_LOGIN"
+  | "USER_LOGOUT"
+  | "MONITOR_CREATE"
+  | "MONITOR_UPDATE"
+  | "MONITOR_DELETE"
+  | "PROJECT_CREATE"
+  | "PROJECT_UPDATE"
+  | "PROJECT_DELETE"
+  | "ALERT_CHANNEL_CREATE"
+  | "ALERT_CHANNEL_DELETE"
+  | "API_KEY_CREATE"
+  | "API_KEY_DELETE"
+  | "GUARD_SESSION_CREATE";
 
 export interface AuditLogOptions {
-  userId?: string
-  projectId?: string
-  action: AuditAction
-  resourceType: string
-  resourceId?: string
-  metadata?: any
-  ipAddress?: string
-  userAgent?: string
+  userId?: string;
+  projectId?: string;
+  action: AuditAction;
+  resourceType: string;
+  resourceId?: string;
+  metadata?: any;
+  ipAddress?: string;
+  userAgent?: string;
 }
 
 export class AuditService {
@@ -41,10 +41,10 @@ export class AuditService {
           ipAddress: options.ipAddress,
           userAgent: options.userAgent,
         },
-      })
+      });
     } catch (error) {
       // We don't want to fail the main request if audit logging fails
-      console.error('[AuditService] Failed to record audit log:', error)
+      console.error("[AuditService] Failed to record audit log:", error);
     }
   }
 
@@ -52,20 +52,20 @@ export class AuditService {
    * Helper to log monitor changes
    */
   async logMonitorAction(
-    action: 'MONITOR_CREATE' | 'MONITOR_UPDATE' | 'MONITOR_DELETE',
+    action: "MONITOR_CREATE" | "MONITOR_UPDATE" | "MONITOR_DELETE",
     monitor: any,
     userId?: string,
-    metadata?: any
+    metadata?: any,
   ) {
     return this.log({
       action,
-      resourceType: 'MONITOR',
+      resourceType: "MONITOR",
       resourceId: monitor.id,
       userId,
       projectId: monitor.projectId,
       metadata,
-    })
+    });
   }
 }
 
-export const auditService = new AuditService()
+export const auditService = new AuditService();

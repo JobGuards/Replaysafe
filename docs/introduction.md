@@ -13,10 +13,10 @@ Replaysafe solves the **"Dangerous Retry"** problem by providing replay-safe exe
 1. **ReplayGuard (Replay-Safe Execution)**: The core safety engine. ReplayGuard tracks side effects using cryptographic fingerprints. If a job retries, Replaysafe intercepts duplicate actions and replays the original successful result instead.
 2. **Execution Memory**: Replaysafe remembers every side effect, API call, and state change your agents make. It acts as a shared brain for your infrastructure, ensuring idempotency even for third-party APIs that don't support it natively.
 3. **Infrastructure Telemetry**: Visibility for the replay engine. We monitor the health of the underlying services your agents depend on (Crons, VPN Tunnels, Webhooks) so you know when infrastructure degrades before a retry turns into a disaster.
-4. **Security-First Architecture**: Built with security at the core. 
-    - **HMAC Signing**: All job sessions are cryptographically signed.
-    - **Encryption**: Field-level AES-256-GCM encryption for all secrets at rest.
-    - **Audit Logs**: Comprehensive tracking of every sensitive action.
+4. **Security-First Architecture**: Built with security at the core.
+   - **HMAC Signing**: All job sessions are cryptographically signed.
+   - **Encryption**: Field-level AES-256-GCM encryption for all secrets at rest.
+   - **Audit Logs**: Comprehensive tracking of every sensitive action.
 
 ## How it Works
 
@@ -29,6 +29,7 @@ Replaysafe operates as a lightweight wrapper around your existing functions or a
 ## Roadmap
 
 Replaysafe is evolving rapidly. Our current roadmap includes:
+
 - [x] Phase 1: Security Hardening (RBAC, Audit Logs, Encryption)
 - [x] Phase 2: Intelligence UI & Alerting (Health Scores, Pattern Detection)
 - [x] Phase 3: ReplayGuard (Replay-Safe Job Retries & SDK)

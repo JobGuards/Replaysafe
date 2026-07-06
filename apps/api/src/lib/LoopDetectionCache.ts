@@ -20,7 +20,7 @@ interface CacheEntry {
   attempt: number;
   circuitBroken: boolean;
   cooldownUntil?: number; // unix ms — when the breaker auto-resets
-  expiresAt: number;     // unix ms — full entry eviction time
+  expiresAt: number; // unix ms — full entry eviction time
 }
 
 const TTL_MS = 5 * 60 * 1000; // 5 minutes
@@ -40,7 +40,7 @@ const _evictionInterval = setInterval(() => {
 }, 60_000);
 
 // Allow the process to exit cleanly even if this interval is running.
-if (typeof (_evictionInterval as any).unref === 'function') {
+if (typeof (_evictionInterval as any).unref === "function") {
   (_evictionInterval as any).unref();
 }
 
@@ -78,7 +78,11 @@ export const LoopDetectionCache = {
    * Trips the circuit breaker for a (monitorId, externalId) pair.
    * @param cooldownMs  How long to block new executions (default: 60 minutes)
    */
-  tripBreaker(monitorId: string, externalId: string, cooldownMs: number = 60 * 60 * 1000): void {
+  tripBreaker(
+    monitorId: string,
+    externalId: string,
+    cooldownMs: number = 60 * 60 * 1000,
+  ): void {
     const k = cacheKey(monitorId, externalId);
     const existing = store.get(k);
     store.set(k, {
@@ -95,7 +99,10 @@ export const LoopDetectionCache = {
    *
    * @returns { broken: boolean, cooldownRemainingMs: number }
    */
-  isBroken(monitorId: string, externalId: string): { broken: boolean; cooldownRemainingMs: number } {
+  isBroken(
+    monitorId: string,
+    externalId: string,
+  ): { broken: boolean; cooldownRemainingMs: number } {
     const k = cacheKey(monitorId, externalId);
     const entry = store.get(k);
     if (!entry?.circuitBroken) return { broken: false, cooldownRemainingMs: 0 };

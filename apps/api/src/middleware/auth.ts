@@ -1,21 +1,21 @@
-import { Request, Response, NextFunction } from 'express'
-import { verifyToken } from '../utils/jwt.js'
-import { prisma } from '@replaysafe/db'
-import crypto from 'node:crypto'
+import { Request, Response, NextFunction } from "express";
+import { verifyToken } from "../utils/jwt.js";
+import { prisma } from "@replaysafe/db";
+import crypto from "node:crypto";
 
 // Extend Express Request type to include user and project
 declare global {
   namespace Express {
     interface Request {
       user?: {
-        id: string
-        email: string
-        fullName: string | null
-      }
+        id: string;
+        email: string;
+        fullName: string | null;
+      };
       project?: {
-        id: string
-        role: 'OWNER' | 'ADMIN' | 'MEMBER'
-      }
+        id: string;
+        role: "OWNER" | "ADMIN" | "MEMBER";
+      };
     }
   }
 }
@@ -27,22 +27,22 @@ declare global {
 export async function unifiedAuth(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> {
   try {
     // 1. Try Session Cookie (JWT)
-    const token = req.cookies?.token
+    const token = req.cookies?.token;
     if (token) {
       try {
-        const payload = verifyToken(token)
+        const payload = verifyToken(token);
         const user = await prisma.user.findUnique({
           where: { id: payload.userId },
           select: { id: true, email: true, name: true },
-        })
+        });
 
         if (user) {
-          req.user = { id: user.id, email: user.email!, fullName: user.name }
-          return next()
+          req.user = { id: user.id, email: user.email!, fullName: user.name };
+          return next();
         }
       } catch (err) {
         // Token invalid, fall through to API key check
@@ -50,33 +50,40 @@ export async function unifiedAuth(
     }
 
     // 2. Try API Key
-    const apiKey = req.headers['x-api-key']
-    if (apiKey && typeof apiKey === 'string') {
-      const hashedKey = crypto.createHash('sha256').update(apiKey).digest('hex')
+    const apiKey = req.headers["x-api-key"];
+    if (apiKey && typeof apiKey === "string") {
+      const hashedKey = crypto
+        .createHash("sha256")
+        .update(apiKey)
+        .digest("hex");
       const keyData = await prisma.apiKey.findUnique({
         where: { key: hashedKey },
         select: { projectId: true, id: true },
-      })
+      });
 
       if (keyData) {
         // Attach project to request
-        req.project = { id: keyData.projectId, role: 'ADMIN' } // API keys act as ADMIN
-        
+        req.project = { id: keyData.projectId, role: "ADMIN" }; // API keys act as ADMIN
+
         // Asynchronously update lastUsed
-        prisma.apiKey.update({
-          where: { id: keyData.id },
-          data: { lastUsed: new Date() },
-        }).catch(e => console.error('Error updating api key lastUsed:', e))
-        
-        return next()
+        prisma.apiKey
+          .update({
+            where: { id: keyData.id },
+            data: { lastUsed: new Date() },
+          })
+          .catch((e) => console.error("Error updating api key lastUsed:", e));
+
+        return next();
       }
     }
 
     // 3. Both failed
-    res.status(401).json({ error: 'Authentication required (Session or API Key)' })
+    res
+      .status(401)
+      .json({ error: "Authentication required (Session or API Key)" });
   } catch (error) {
-    console.error('Unified Auth error:', error)
-    res.status(500).json({ error: 'Internal server error' })
+    console.error("Unified Auth error:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 }
 
@@ -84,36 +91,47 @@ export async function unifiedAuth(
  * Project Access Middleware
  * Ensures the user has access to a specific project and has the required role
  */
-export function projectAccessMiddleware(requiredRole: 'OWNER' | 'ADMIN' | 'MEMBER' = 'MEMBER') {
-  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export function projectAccessMiddleware(
+  requiredRole: "OWNER" | "ADMIN" | "MEMBER" = "MEMBER",
+) {
+  return async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       // If req.project is already set (e.g. by unifiedAuth/apiKeyMiddleware), we can skip user check
       if (req.project) {
         // Still verify role if it was set
-        const roles = ['MEMBER', 'ADMIN', 'OWNER']
-        const userRoleIndex = roles.indexOf(req.project.role)
-        const requiredRoleIndex = roles.indexOf(requiredRole)
+        const roles = ["MEMBER", "ADMIN", "OWNER"];
+        const userRoleIndex = roles.indexOf(req.project.role);
+        const requiredRoleIndex = roles.indexOf(requiredRole);
 
         if (userRoleIndex < requiredRoleIndex) {
-          res.status(403).json({ error: `Insufficient permissions. Required role: ${requiredRole}` })
-          return
+          res
+            .status(403)
+            .json({
+              error: `Insufficient permissions. Required role: ${requiredRole}`,
+            });
+          return;
         }
-        return next()
+        return next();
       }
 
       if (!req.user) {
-        res.status(401).json({ error: 'Authentication required' })
-        return
+        res.status(401).json({ error: "Authentication required" });
+        return;
       }
 
       // Project ID can be in params, query, or body
-      const projectId = (req.params?.projectId as string) || 
-                       (req.query?.projectId as string) || 
-                       (req.body?.projectId as string)
+      const projectId =
+        (req.params?.projectId as string) ||
+        (req.query?.projectId as string) ||
+        (req.body?.projectId as string);
 
-      if (!projectId || typeof projectId !== 'string') {
-        res.status(400).json({ error: 'Project ID is required' })
-        return
+      if (!projectId || typeof projectId !== "string") {
+        res.status(400).json({ error: "Project ID is required" });
+        return;
       }
 
       const membership = await (prisma.projectMember as any).findUnique({
@@ -123,81 +141,99 @@ export function projectAccessMiddleware(requiredRole: 'OWNER' | 'ADMIN' | 'MEMBE
             userId: req.user.id,
           },
         },
-      })
+      });
 
       if (!membership) {
-        res.status(403).json({ error: 'You do not have access to this project' })
-        return
+        res
+          .status(403)
+          .json({ error: "You do not have access to this project" });
+        return;
       }
 
       // Role hierarchy: OWNER > ADMIN > MEMBER
-      const roles = ['MEMBER', 'ADMIN', 'OWNER']
-      const userRoleIndex = roles.indexOf(membership.role)
-      const requiredRoleIndex = roles.indexOf(requiredRole)
+      const roles = ["MEMBER", "ADMIN", "OWNER"];
+      const userRoleIndex = roles.indexOf(membership.role);
+      const requiredRoleIndex = roles.indexOf(requiredRole);
 
       if (userRoleIndex < requiredRoleIndex) {
-        res.status(403).json({ error: `Insufficient permissions. Required role: ${requiredRole}` })
-        return
+        res
+          .status(403)
+          .json({
+            error: `Insufficient permissions. Required role: ${requiredRole}`,
+          });
+        return;
       }
 
       // Attach project and role to request
       req.project = {
         id: projectId,
         role: membership.role as any,
-      }
+      };
 
-      next()
+      next();
     } catch (error) {
-      console.error('Project Access error:', error)
-      res.status(500).json({ error: 'Internal server error' })
+      console.error("Project Access error:", error);
+      res.status(500).json({ error: "Internal server error" });
     }
-  }
+  };
 }
 
 /**
  * Monitor Access Middleware
  * Ensures the user has access to the project that owns the monitor
  */
-export function monitorAccessMiddleware(requiredRole: 'OWNER' | 'ADMIN' | 'MEMBER' = 'MEMBER') {
-  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export function monitorAccessMiddleware(
+  requiredRole: "OWNER" | "ADMIN" | "MEMBER" = "MEMBER",
+) {
+  return async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
-      const { monitorId } = req.params
+      const { monitorId } = req.params;
       if (!monitorId) {
-        res.status(400).json({ error: 'Monitor ID is required' })
-        return
+        res.status(400).json({ error: "Monitor ID is required" });
+        return;
       }
 
       // Find the monitor and its project
       const monitor = await (prisma.monitor as any).findUnique({
         where: { id: monitorId },
         select: { projectId: true },
-      })
+      });
 
       if (!monitor) {
-        res.status(404).json({ error: 'Monitor not found' })
-        return
+        res.status(404).json({ error: "Monitor not found" });
+        return;
       }
 
       // If project context is already set (from API key auth), verify it matches
       if (req.project) {
         if (req.project.id !== monitor.projectId) {
-          res.status(403).json({ error: 'You do not have access to this monitor' })
-          return
+          res
+            .status(403)
+            .json({ error: "You do not have access to this monitor" });
+          return;
         }
-        const roles = ['MEMBER', 'ADMIN', 'OWNER']
-        const userRoleIndex = roles.indexOf(req.project.role)
-        const requiredRoleIndex = roles.indexOf(requiredRole)
+        const roles = ["MEMBER", "ADMIN", "OWNER"];
+        const userRoleIndex = roles.indexOf(req.project.role);
+        const requiredRoleIndex = roles.indexOf(requiredRole);
         if (userRoleIndex < requiredRoleIndex) {
-          res.status(403).json({ error: `Insufficient permissions. Required role: ${requiredRole}` })
-          return
+          res
+            .status(403)
+            .json({
+              error: `Insufficient permissions. Required role: ${requiredRole}`,
+            });
+          return;
         }
-        return next()
+        return next();
       }
 
       // Require user for non-API-key auth
       if (!req.user) {
-        res.status(401).json({ error: 'Authentication required' })
-        return
+        res.status(401).json({ error: "Authentication required" });
+        return;
       }
 
       // Check membership
@@ -208,29 +244,35 @@ export function monitorAccessMiddleware(requiredRole: 'OWNER' | 'ADMIN' | 'MEMBE
             userId: req.user.id,
           },
         },
-      })
+      });
 
       if (!membership) {
-        res.status(403).json({ error: 'You do not have access to this monitor' })
-        return
+        res
+          .status(403)
+          .json({ error: "You do not have access to this monitor" });
+        return;
       }
 
       // Role hierarchy check
-      const roles = ['MEMBER', 'ADMIN', 'OWNER']
-      const userRoleIndex = roles.indexOf(membership.role)
-      const requiredRoleIndex = roles.indexOf(requiredRole)
+      const roles = ["MEMBER", "ADMIN", "OWNER"];
+      const userRoleIndex = roles.indexOf(membership.role);
+      const requiredRoleIndex = roles.indexOf(requiredRole);
 
       if (userRoleIndex < requiredRoleIndex) {
-        res.status(403).json({ error: `Insufficient permissions. Required role: ${requiredRole}` })
-        return
+        res
+          .status(403)
+          .json({
+            error: `Insufficient permissions. Required role: ${requiredRole}`,
+          });
+        return;
       }
 
-      next()
+      next();
     } catch (error) {
-      console.error('Monitor Access error:', error)
-      res.status(500).json({ error: 'Internal server error' })
+      console.error("Monitor Access error:", error);
+      res.status(500).json({ error: "Internal server error" });
     }
-  }
+  };
 }
 
 /**
@@ -240,19 +282,19 @@ export function monitorAccessMiddleware(requiredRole: 'OWNER' | 'ADMIN' | 'MEMBE
 export async function authMiddleware(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> {
   try {
     // Extract token from cookie
-    const token = req.cookies?.token
+    const token = req.cookies?.token;
 
     if (!token) {
-      res.status(401).json({ error: 'Authentication required' })
-      return
+      res.status(401).json({ error: "Authentication required" });
+      return;
     }
 
     // Verify token
-    const payload = verifyToken(token)
+    const payload = verifyToken(token);
 
     // Fetch user from database
     const user = await prisma.user.findUnique({
@@ -262,22 +304,22 @@ export async function authMiddleware(
         email: true,
         name: true,
       },
-    })
+    });
 
     if (!user) {
-      res.status(401).json({ error: 'User not found' })
-      return
+      res.status(401).json({ error: "User not found" });
+      return;
     }
 
     // Attach user to request
-    req.user = { id: user.id, email: user.email!, fullName: user.name }
+    req.user = { id: user.id, email: user.email!, fullName: user.name };
 
-    next()
+    next();
   } catch (error) {
     if (error instanceof Error) {
-      res.status(401).json({ error: error.message })
+      res.status(401).json({ error: error.message });
     } else {
-      res.status(401).json({ error: 'Authentication failed' })
+      res.status(401).json({ error: "Authentication failed" });
     }
   }
 }
@@ -289,13 +331,13 @@ export async function authMiddleware(
 export async function optionalAuthMiddleware(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> {
   try {
-    const token = req.cookies?.token
+    const token = req.cookies?.token;
 
     if (token) {
-      const payload = verifyToken(token)
+      const payload = verifyToken(token);
       const user = await prisma.user.findUnique({
         where: { id: payload.userId },
         select: {
@@ -303,17 +345,17 @@ export async function optionalAuthMiddleware(
           email: true,
           name: true,
         },
-      })
+      });
 
       if (user) {
-        req.user = { id: user.id, email: user.email!, fullName: user.name }
+        req.user = { id: user.id, email: user.email!, fullName: user.name };
       }
     }
 
-    next()
+    next();
   } catch (error) {
     // Silently fail for optional auth
-    next()
+    next();
   }
 }
 
@@ -324,33 +366,33 @@ export async function optionalAuthMiddleware(
 export async function apiKeyMiddleware(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> {
   try {
-    const apiKey = req.headers['x-api-key']
+    const apiKey = req.headers["x-api-key"];
 
-    if (!apiKey || typeof apiKey !== 'string') {
-      res.status(401).json({ error: 'X-API-Key header is missing' })
-      return
+    if (!apiKey || typeof apiKey !== "string") {
+      res.status(401).json({ error: "X-API-Key header is missing" });
+      return;
     }
 
     // Find the project associated with this API key
-    const hashedKey = crypto.createHash('sha256').update(apiKey).digest('hex')
+    const hashedKey = crypto.createHash("sha256").update(apiKey).digest("hex");
     const keyData = await prisma.apiKey.findUnique({
       where: { key: hashedKey },
       select: {
         projectId: true,
         id: true,
       },
-    })
+    });
 
     if (!keyData) {
-      res.status(403).json({ error: 'Invalid API Key' })
-      return
+      res.status(403).json({ error: "Invalid API Key" });
+      return;
     }
 
     // Attach project to request — API keys map to ADMIN role
-    req.project = { id: keyData.projectId, role: 'ADMIN' }
+    req.project = { id: keyData.projectId, role: "ADMIN" };
 
     // Update lastUsed timestamp asynchronously (no need to wait for it)
     prisma.apiKey
@@ -358,11 +400,11 @@ export async function apiKeyMiddleware(
         where: { id: keyData.id },
         data: { lastUsed: new Date() },
       })
-      .catch((e) => console.error('Error updating api key lastUsed:', e))
+      .catch((e) => console.error("Error updating api key lastUsed:", e));
 
-    next()
+    next();
   } catch (error) {
-    console.error('API Key Auth error:', error)
-    res.status(500).json({ error: 'Internal server error' })
+    console.error("API Key Auth error:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 }

@@ -5,6 +5,7 @@ First off, thank you for considering contributing to Replaysafe! We are building
 Replaysafe is a **Privacy-First, Local-First** project. Every line of code we write should respect the user's sovereignty and data ownership.
 
 ## ⚖️ Our Ethos
+
 - **Privacy by Design**: No telemetry. No hidden tracking.
 - **Local Sovereignty**: Every feature must work 100% offline or in air-gapped environments.
 - **AGPL-3.0**: We believe in keeping the code open and free forever.
@@ -36,6 +37,7 @@ Replaysafe is a **Privacy-First, Local-First** project. Every line of code we wr
     ```
 
 ## 🛠️ Tech Stack
+
 - **Frontend**: Next.js (App Router), TailwindCSS, Lucide Icons.
 - **Backend**: Express (API), Prisma (ORM), PostgreSQL.
 - **CLI**: Commander.js.
@@ -44,14 +46,17 @@ Replaysafe is a **Privacy-First, Local-First** project. Every line of code we wr
 ## 📜 Development Guidelines
 
 ### 1. Privacy First
+
 Never add features that require external API calls unless they are strictly necessary and explicitly opt-in. Avoid any analytics or tracking libraries.
 
 ### 2. Code Quality
+
 - Use functional components and hooks for React.
 - Ensure all new API endpoints are protected by `projectAccessMiddleware`.
 - Write meaningful commit messages using [Conventional Commits](https://www.conventionalcommits.org/).
 
 ### 3. Documentation
+
 If you add a new feature, please update the corresponding guide in `/docs` and the `Self-Hosted Guide` if applicable.
 
 ## 📬 Submitting Changes
@@ -66,4 +71,5 @@ If you add a new feature, please update the corresponding guide in `/docs` and t
 Join our [GitHub Discussions](https://github.com/Replaysafe/Replaysafe/discussions) to talk about roadmap items or ask for help.
 
 ---
-*Built with 🖤 for the Sovereign Future.*
+
+_Built with 🖤 for the Sovereign Future._

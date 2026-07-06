@@ -1,20 +1,20 @@
-'use client'
+"use client";
 
-import * as React from 'react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { 
-  Activity, 
-  LayoutDashboard, 
-  Settings, 
+import * as React from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  Activity,
+  LayoutDashboard,
+  Settings,
   AlertTriangle,
   BarChart2,
   LogOut,
   ChevronRight,
-  MoreHorizontal
-} from 'lucide-react'
+  MoreHorizontal,
+} from "lucide-react";
 
-import { cn } from '@/lib/utils'
+import { cn } from "@/lib/utils";
 import {
   Sidebar,
   SidebarContent,
@@ -26,47 +26,47 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarGroupContent,
-} from '@/components/ui/sidebar'
+} from "@/components/ui/sidebar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { useAuth } from '@/contexts/AuthContext'
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from "@/contexts/AuthContext";
 
 const items = [
   {
-    title: 'Dashboard',
-    url: '/dashboard',
+    title: "Dashboard",
+    url: "/dashboard",
     icon: LayoutDashboard,
   },
   {
-    title: 'Monitors',
-    url: '/dashboard/monitors',
+    title: "Monitors",
+    url: "/dashboard/monitors",
     icon: Activity,
   },
   {
-    title: 'Incidents',
-    url: '/incidents',
+    title: "Incidents",
+    url: "/incidents",
     icon: AlertTriangle,
   },
   {
-    title: 'Analytics',
-    url: '/analytics',
+    title: "Analytics",
+    url: "/analytics",
     icon: BarChart2,
   },
   {
-    title: 'Settings',
-    url: '/settings',
+    title: "Settings",
+    url: "/settings",
     icon: Settings,
   },
-]
+];
 
 export function Navigation() {
-  const pathname = usePathname()
-  const { user, signout } = useAuth()
+  const pathname = usePathname();
+  const { user, signout } = useAuth();
 
   return (
     <Sidebar collapsible="icon">
@@ -93,8 +93,8 @@ export function Navigation() {
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton 
-                    asChild 
+                  <SidebarMenuButton
+                    asChild
                     tooltip={item.title}
                     isActive={pathname === item.url}
                   >
@@ -119,11 +119,18 @@ export function Navigation() {
                   className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                 >
                   <Avatar className="h-8 w-8 rounded-lg">
-                    <AvatarImage src={`https://avatar.vercel.sh/${user?.email}`} alt={user?.fullName || ''} />
-                    <AvatarFallback className="rounded-lg">{user?.fullName?.charAt(0) || 'U'}</AvatarFallback>
+                    <AvatarImage
+                      src={`https://avatar.vercel.sh/${user?.email}`}
+                      alt={user?.fullName || ""}
+                    />
+                    <AvatarFallback className="rounded-lg">
+                      {user?.fullName?.charAt(0) || "U"}
+                    </AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">{user?.fullName || 'User'}</span>
+                    <span className="truncate font-semibold">
+                      {user?.fullName || "User"}
+                    </span>
                     <span className="truncate text-xs">{user?.email}</span>
                   </div>
                   <MoreHorizontal className="ml-auto size-4" />
@@ -145,5 +152,5 @@ export function Navigation() {
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }

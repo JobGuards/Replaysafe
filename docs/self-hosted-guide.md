@@ -7,19 +7,27 @@ Replaysafe is built for the **Sovereign Homelab** and the **Next Generation of A
 Automation on consumer hardware is prone to "Silent Failures"—reboots, power cuts, and ISP drops. Replaysafe solves common homelab pain points:
 
 ### 1. Smart Home & Home Assistant Safety
-Home automation scripts can get stuck in "undefined" states if a network glitch happens mid-command. 
+
+Home automation scripts can get stuck in "undefined" states if a network glitch happens mid-command.
+
 - **The Solution**: Use `onRollback` to ensure that if a "Lock Doors" or "Turn Off Stove" command fails halfway through, the system reverts to a safe, known state.
 
 ### 2. Media Scraping & Download Stacks
+
 Automated downloaders (Radarr, Sonarr, Torrent stacks) can sometimes loop or spawn duplicate threads when a network glitch occurs.
+
 - **The Solution**: `ReplayGuard` ensures you don't accidentally hammer external metadata APIs (like TMDB) and get your IP banned, or spin up 50 duplicate download processes.
 
 ### 3. Local AI Stability (Ollama / LocalAI)
+
 Local LLM generation is slow and resource-heavy. Accidental loops in AI agent scripts can pin your CPU/GPU at 100% for hours.
+
 - **The Solution**: Prevent redundant AI loops by fingerprinting the agent's intent before it executes.
 
 ### 4. Autonomous Agent Reliability
-Building agents that *actually work* requires handling non-deterministic failures. If an agent fails mid-task, it shouldn't restart from scratch and repeat expensive or dangerous actions.
+
+Building agents that _actually work_ requires handling non-deterministic failures. If an agent fails mid-task, it shouldn't restart from scratch and repeat expensive or dangerous actions.
+
 - **The Solution**: Replaysafe provides the "Infrastructure Memory" needed for agents to resume tasks safely, preventing double-actions and ensuring state consistency.
 
 ---
@@ -29,8 +37,9 @@ Building agents that *actually work* requires handling non-deterministic failure
 Replaysafe is **100% locally hostable**. No telemetry, no external cloud dependencies, and 100% local data retention.
 
 ### `docker-compose.yml`
+
 ```yaml
-version: '3.8'
+version: "3.8"
 
 services:
   Replaysafe-db:
@@ -68,4 +77,5 @@ Replaysafe hb your-local-token
 ```
 
 ## ⚖️ License: AGPL-3.0
+
 Replaysafe is committed to the Open Source community. Our AGPL-3.0 license ensures that Replaysafe remains free and sovereign for the self-hosted community forever.

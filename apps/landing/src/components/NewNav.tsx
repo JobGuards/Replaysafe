@@ -22,13 +22,23 @@ export function NewNav({ userEmail }: Props) {
 
       {/* Central Navigation Pill */}
       <nav className="hidden md:flex items-center gap-1 bg-foreground/[0.03] border border-border/5 p-1 rounded-full">
-        <Link className="px-5 py-2 rounded-full text-sm font-bold text-acid-lime bg-acid-lime/[0.08] hover:bg-acid-lime/[0.15] border border-acid-lime/20 shadow-[0_0_15px_rgba(var(--theme-lime-rgb),0.1)] transition-all duration-300 tracking-widest uppercase text-[10px]" href={`${dashboardUrl}/dashboard`}>
+        <Link
+          className="px-5 py-2 rounded-full text-sm font-bold text-acid-lime bg-acid-lime/[0.08] hover:bg-acid-lime/[0.15] border border-acid-lime/20 shadow-[0_0_15px_rgba(var(--theme-lime-rgb),0.1)] transition-all duration-300 tracking-widest uppercase text-[10px]"
+          href={`${dashboardUrl}/dashboard`}
+        >
           Dashboard
         </Link>
-        <Link className="px-5 py-2 rounded-full text-sm font-bold text-muted-foreground hover:text-foreground hover:bg-foreground/[0.05] transition-all duration-300 tracking-widest uppercase text-[10px]" href="/docs">
+        <Link
+          className="px-5 py-2 rounded-full text-sm font-bold text-muted-foreground hover:text-foreground hover:bg-foreground/[0.05] transition-all duration-300 tracking-widest uppercase text-[10px]"
+          href="/docs"
+        >
           Docs
         </Link>
-        <Link className="px-5 py-2 rounded-full text-sm font-bold text-muted-foreground hover:text-foreground hover:bg-foreground/[0.05] transition-all duration-300 tracking-widest uppercase text-[10px]" href="/pricing" target="_blank">
+        <Link
+          className="px-5 py-2 rounded-full text-sm font-bold text-muted-foreground hover:text-foreground hover:bg-foreground/[0.05] transition-all duration-300 tracking-widest uppercase text-[10px]"
+          href="/pricing"
+          target="_blank"
+        >
           Managed
         </Link>
       </nav>
@@ -43,7 +53,9 @@ export function NewNav({ userEmail }: Props) {
               onClick={() => setIsProfileOpen(!isProfileOpen)}
               className="relative group focus:outline-none flex items-center justify-center ml-2"
             >
-              <div className={`w-10 h-10 rounded-full bg-surface-container-high border ${isProfileOpen ? 'border-acid-lime/50 ring-2 ring-acid-lime/20' : 'border-outline-variant/50'} flex items-center justify-center overflow-hidden hover:border-acid-lime/50 transition-colors duration-300 ring-2 ring-transparent hover:ring-acid-lime/20`}>
+              <div
+                className={`w-10 h-10 rounded-full bg-surface-container-high border ${isProfileOpen ? "border-acid-lime/50 ring-2 ring-acid-lime/20" : "border-outline-variant/50"} flex items-center justify-center overflow-hidden hover:border-acid-lime/50 transition-colors duration-300 ring-2 ring-transparent hover:ring-acid-lime/20`}
+              >
                 <User className="w-5 h-5 text-on-surface" />
               </div>
               <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-acid-lime rounded-full border-2 border-background animate-pulse"></span>
@@ -51,9 +63,16 @@ export function NewNav({ userEmail }: Props) {
 
             {isProfileOpen && (
               <div className="absolute right-0 mt-4 p-4 glass-panel rounded-2xl border border-outline-variant/30 flex flex-col items-end min-w-[240px] shadow-2xl z-50 bg-background/90 backdrop-blur-xl">
-                <span className="text-muted-foreground text-[10px] font-bold opacity-60 uppercase tracking-widest mb-2">Local Sovereign</span>
-                <span className="text-foreground text-sm font-bold mb-4">{userEmail}</span>
-                <Link href={`${dashboardUrl}/dashboard`} className="w-full text-center bg-acid-lime/10 hover:bg-acid-lime/20 text-acid-lime font-bold tracking-widest uppercase text-[10px] py-3 rounded-xl border border-acid-lime/20 transition-colors">
+                <span className="text-muted-foreground text-[10px] font-bold opacity-60 uppercase tracking-widest mb-2">
+                  Local Sovereign
+                </span>
+                <span className="text-foreground text-sm font-bold mb-4">
+                  {userEmail}
+                </span>
+                <Link
+                  href={`${dashboardUrl}/dashboard`}
+                  className="w-full text-center bg-acid-lime/10 hover:bg-acid-lime/20 text-acid-lime font-bold tracking-widest uppercase text-[10px] py-3 rounded-xl border border-acid-lime/20 transition-colors"
+                >
                   Open Hub
                 </Link>
               </div>
@@ -63,7 +82,10 @@ export function NewNav({ userEmail }: Props) {
           // <Link href={`${dashboardUrl}/auth/signin`} className="ml-2 bg-foreground text-background px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest hover:opacity-90 hover:scale-105 transition-all duration-300">
           //   Sign in
           // </Link>
-          <Link href="/pricing" className="ml-2 bg-foreground text-background px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest hover:opacity-90 hover:scale-105 transition-all duration-300">
+          <Link
+            href="/pricing"
+            className="ml-2 bg-foreground text-background px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest hover:opacity-90 hover:scale-105 transition-all duration-300"
+          >
             Waitlist
           </Link>
         )}

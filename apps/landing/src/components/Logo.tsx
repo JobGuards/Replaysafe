@@ -1,15 +1,15 @@
-'use client'
+"use client";
 
-import React from 'react'
-import Link from 'next/link'
-import { Shield } from 'lucide-react'
+import React from "react";
+import Link from "next/link";
+import { Shield } from "lucide-react";
 
 interface LogoProps {
-  className?: string
-  iconOnly?: boolean
+  className?: string;
+  iconOnly?: boolean;
 }
 
-export function Logo({ className = '', iconOnly = false }: LogoProps) {
+export function Logo({ className = "", iconOnly = false }: LogoProps) {
   return (
     <Link href="/" className={`flex items-center gap-3 group ${className}`}>
       <div className="w-8 h-8 rounded-lg bg-acid-lime flex items-center justify-center shadow-lg shadow-acid-lime/20 group-hover:scale-110 transition-transform">
@@ -21,5 +21,5 @@ export function Logo({ className = '', iconOnly = false }: LogoProps) {
         </span>
       )}
     </Link>
-  )
+  );
 }

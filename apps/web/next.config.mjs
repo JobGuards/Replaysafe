@@ -9,17 +9,17 @@ const nextConfig = {
   async redirects() {
     return [
       {
-        source: '/signin',
-        destination: '/auth/signin',
+        source: "/signin",
+        destination: "/auth/signin",
         permanent: true,
       },
       {
-        source: '/signup',
-        destination: '/auth/signup',
+        source: "/signup",
+        destination: "/auth/signup",
         permanent: true,
       },
-    ]
+    ];
   },
-}
+};
 
-export default nextConfig
+export default nextConfig;

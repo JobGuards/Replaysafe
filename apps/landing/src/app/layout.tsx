@@ -1,35 +1,38 @@
-import React from "react"
-import type { Metadata } from 'next'
-import { Outfit, Inter } from 'next/font/google'
-import { Analytics } from '@vercel/analytics/next'
-import { AuthProvider } from '@/contexts/AuthContext'
-import { ThemeProvider } from '@/components/ThemeProvider'
-import { Toaster } from 'sonner'
-import './globals.css'
+import React from "react";
+import type { Metadata } from "next";
+import { Outfit, Inter } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { Toaster } from "sonner";
+import "./globals.css";
 
 const outfit = Outfit({
   subsets: ["latin"],
-  variable: '--font-outfit',
+  variable: "--font-outfit",
 });
 
 const inter = Inter({
   subsets: ["latin"],
-  variable: '--font-inter',
+  variable: "--font-inter",
 });
 
 export const metadata: Metadata = {
-  title: 'Replaysafe',
-  description: 'Replay-Safe execution engine for autonomous agents and resilient background jobs.',
-}
+  title: "Replaysafe",
+  description:
+    "Replay-Safe execution engine for autonomous agents and resilient background jobs.",
+};
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${outfit.variable} ${inter.variable} font-inter antialiased bg-background text-foreground`}>
+      <body
+        className={`${outfit.variable} ${inter.variable} font-inter antialiased bg-background text-foreground`}
+      >
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <AuthProvider>
             {children}
@@ -39,5 +42,5 @@ export default function RootLayout({
         </ThemeProvider>
       </body>
     </html>
-  )
+  );
 }

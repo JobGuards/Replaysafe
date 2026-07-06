@@ -1,11 +1,12 @@
-import React from 'react';
-import type { Metadata } from 'next';
-import './globals.css';
-import Script from 'next/script';
+import React from "react";
+import type { Metadata } from "next";
+import "./globals.css";
+import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: 'Replaysafe Pay - Premium Razorpay & Replaysafe Demo',
-  description: 'A premium demonstration of replay-safe payment captures using Replaysafe and Razorpay.',
+  title: "Replaysafe Pay - Premium Razorpay & Replaysafe Demo",
+  description:
+    "A premium demonstration of replay-safe payment captures using Replaysafe and Razorpay.",
 };
 
 export default function RootLayout({
