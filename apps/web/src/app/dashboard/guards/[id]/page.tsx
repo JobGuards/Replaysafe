@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { api } from "@/lib/api";
@@ -24,6 +24,7 @@ import {
   FastForward,
   ChevronDown,
   ChevronUp,
+  ScanSearch,
 } from "lucide-react";
 import Link from "next/link";
 import { formatDistanceToNow, format } from "date-fns";
@@ -234,6 +235,15 @@ function EffectTimelineNode({ effect }: { effect: any }) {
                   State Drift Detected
                 </span>
               )}
+              {effect.failureType && (
+                <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border flex items-center gap-1 ${
+                  effect.failureType === "TRANSIENT"
+                    ? "bg-yellow-400/10 text-yellow-400 border-yellow-400/20"
+                    : "bg-red-500/10 text-red-400 border-red-500/20"
+                }`}>
+                  {effect.failureType}
+                </span>
+              )}
             </div>
             <h4 className="text-lg font-bold text-foreground tracking-tight">
               {effect.target}
@@ -286,10 +296,28 @@ export default function GuardExecutionDetailPage() {
   const { activeOrganization } = useAuth();
   const params = useParams();
   const id = params.id as string;
-  const { data: execution, isLoading } = useSWR(
+  const { data: execution, isLoading, mutate } = useSWR(
     activeOrganization ? [`/api/guards/${id}`, activeOrganization.id] : null,
     () => fetcher(id),
   );
+
+  const [verifying, setVerifying] = useState(false);
+  const [verifyResult, setVerifyResult] = useState<{ verified: number; failed: number; unknown: number; total: number } | null>(null);
+
+  const handleVerify = useCallback(async () => {
+    if (!execution || verifying) return;
+    setVerifying(true);
+    setVerifyResult(null);
+    try {
+      const result = await api.verifyExecution(id);
+      setVerifyResult(result);
+      await mutate();
+    } catch (e: any) {
+      console.error("[GuardDetail] Verification failed:", e.message);
+    } finally {
+      setVerifying(false);
+    }
+  }, [execution, id, mutate, verifying]);
 
   if (isLoading) {
     return (
@@ -356,6 +384,14 @@ export default function GuardExecutionDetailPage() {
                     {unknown} Unknown
                   </span>
                 )}
+
+                {/* Phase 7: verify result toast */}
+                {verifyResult && verifyResult.total > 0 && (
+                  <span className="px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border bg-emerald-400/10 border-emerald-400/30 text-emerald-400 flex items-center gap-1.5">
+                    <ShieldCheck className="w-3 h-3" />
+                    {verifyResult.verified} verified · {verifyResult.failed} failed
+                  </span>
+                )}
               </div>
               <p className="text-muted-foreground font-medium flex items-center gap-2">
                 <Activity className="w-4 h-4 text-acid-lime" />
@@ -368,8 +404,24 @@ export default function GuardExecutionDetailPage() {
               </p>
             </div>
 
-            {/* Phase 6: Status counters */}
-            <div className="flex flex-wrap gap-3">
+            {/* Phase 6: Status counters + Phase 7: Verify button */}
+            <div className="flex flex-wrap items-start gap-3">
+              {/* Phase 7: Run Verification button — only visible when UNKNOWN effects exist */}
+              {unknown > 0 && (
+                <button
+                  id="run-verification-btn"
+                  onClick={handleVerify}
+                  disabled={verifying}
+                  className="flex items-center gap-2 px-5 py-2 rounded-2xl bg-orange-400/10 border border-orange-400/20 text-orange-400 text-[10px] font-black uppercase tracking-widest hover:bg-orange-400/20 hover:border-orange-400/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {verifying ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <ScanSearch className="w-3.5 h-3.5" />
+                  )}
+                  {verifying ? "Verifying…" : "Run Verification"}
+                </button>
+              )}
               {committed > 0 && (
                 <div className="px-4 py-2 rounded-2xl bg-acid-lime/5 border border-acid-lime/10 text-center">
                   <div className="text-xl font-black text-acid-lime">

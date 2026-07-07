@@ -103,6 +103,45 @@ export class EffectTimeoutError extends Error {
 }
 
 /**
+ * Phase 7 — Custom Verifier Interface
+ *
+ * Implement this interface to build a custom verifier for any internal system
+ * that is not covered by the built-in providers (Stripe, SendGrid, GitHub, Slack,
+ * Twilio, S3). Custom verifiers are registered server-side in the API.
+ *
+ * @example
+ * class MyInternalVerifier implements Verifier {
+ *   async verify(entry) {
+ *     const res = await myInternalAPI.checkStatus(entry.receipt?.jobId);
+ *     if (res.status === 'done') return 'VERIFIED';
+ *     if (res.status === 'error') return 'FAILED';
+ *     return 'UNKNOWN';
+ *   }
+ * }
+ */
+export interface LedgerEntry {
+  id: string;
+  type: string;
+  provider: string | null;
+  receipt: Record<string, any> | null;
+  fingerprint: string;
+  target: string | null;
+  executionId: string;
+}
+
+export type VerificationOutcome = "VERIFIED" | "FAILED" | "UNKNOWN";
+export type FailureType = "TRANSIENT" | "SEMANTIC";
+
+export interface VerificationResult {
+  status: VerificationOutcome;
+  failureType?: FailureType | null;
+}
+
+export interface Verifier {
+  verify(entry: LedgerEntry): Promise<VerificationResult>;
+}
+
+/**
  * Options for guard.effect() — the Phase 6 execution ledger primitive.
  */
 export interface EffectOptions<T> {

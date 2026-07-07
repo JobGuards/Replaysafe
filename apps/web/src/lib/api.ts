@@ -194,6 +194,41 @@ class ApiClient {
       body: JSON.stringify(data),
     });
   }
+
+  // Phase 7: Verification
+  async verifyExecution(
+    executionId: string,
+  ): Promise<{ verified: number; failed: number; unknown: number; total: number }> {
+    return this.fetch(`/guards/execution/${executionId}/verify`, {
+      method: "POST",
+    });
+  }
+
+  // Phase 7: Provider configs
+  async getProviderConfigs(): Promise<any[]> {
+    return this.fetch<any[]>("/provider-configs");
+  }
+
+  async upsertProviderConfig(provider: string, config: any): Promise<any> {
+    return this.fetch<any>("/provider-configs", {
+      method: "POST",
+      body: JSON.stringify({ provider, config }),
+    });
+  }
+
+  async toggleProviderConfig(id: string, enabled: boolean): Promise<any> {
+    return this.fetch<any>(`/provider-configs/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ enabled }),
+    });
+  }
+
+  async deleteProviderConfig(id: string): Promise<void> {
+    return this.fetch<void>(`/provider-configs/${id}`, {
+      method: "DELETE",
+    });
+  }
 }
 
 export const api = new ApiClient();
+

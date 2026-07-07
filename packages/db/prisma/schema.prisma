@@ -26,6 +26,11 @@ enum SideEffectStatus {
   SKIPPED      // already ran in a prior attempt; cached result returned
 }
 
+enum SideEffectFailureType {
+  TRANSIENT
+  SEMANTIC
+}
+
 model User {
   id             String    @id @default(cuid())
   name           String?
@@ -65,6 +70,7 @@ model Project {
   alertChannels    AlertChannel[]
   auditLogs        AuditLog[]
   guardSideEffects GuardSideEffect[]
+  providerConfigs  ProjectProviderConfig[]
 }
 
 enum ProjectRole {
@@ -428,6 +434,8 @@ model GuardSideEffect {
   startedAt   DateTime?        // Set when status moves to EXECUTING
   finishedAt  DateTime?        // Set when status moves to COMMITTED/FAILED/UNKNOWN/VERIFIED
   executedAt  DateTime         @default(now()) // Creation timestamp — kept for backward compat
+  verifiedAt  DateTime?        // Phase 7: Set when verification resolves UNKNOWN → VERIFIED | FAILED
+  failureType SideEffectFailureType? // Phase 7: Classification of failure (TRANSIENT vs SEMANTIC)
 
   // Phase 6: provider-native proof and metadata
   receipt     Json?            // e.g. { chargeId: "ch_3P...", messageId: "msg_..." }
@@ -477,4 +485,24 @@ model CloudInterest {
   source    String   @default("pricing_page")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// =============================================================================
+// Phase 7 — Provider Configs
+// Stores encrypted API credentials for each provider verifier per project.
+// =============================================================================
+
+model ProjectProviderConfig {
+  id        String   @id @default(cuid())
+  projectId String
+  provider  String   // "stripe" | "sendgrid" | "github" | "slack" | "twilio" | "s3"
+  config    Json     // Encrypted provider-specific credentials
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, provider])
+  @@index([projectId])
 }

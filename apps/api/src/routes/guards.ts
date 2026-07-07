@@ -5,6 +5,7 @@ import {
   projectAccessMiddleware,
 } from "../middleware/auth.js";
 import { GuardsService } from "../services/GuardsService.js";
+import { VerificationService } from "../services/VerificationService.js";
 import { signToken, verifyToken } from "../utils/encryption.js";
 import { prisma } from "@replaysafe/db";
 import { auditService } from "../services/AuditService.js";
@@ -450,6 +451,36 @@ router.get(
     } catch (error) {
       console.error("[Guards] Detail error:", error);
       res.status(500).json({ error: "Internal server error" });
+    }
+  },
+);
+
+/**
+ * Phase 7: Manually trigger verification for all UNKNOWN effects on an execution.
+ * POST /api/guards/execution/:id/verify
+ */
+router.post(
+  "/execution/:id/verify",
+  unifiedAuth,
+  projectAccessMiddleware("MEMBER"),
+  async (req: any, res: any) => {
+    try {
+      const { project } = req;
+      if (!project)
+        return res.status(401).json({ error: "Project context missing" });
+
+      const result = await VerificationService.runExecutionPass(
+        req.params.id as string,
+        project.id,
+      );
+
+      res.json(result);
+    } catch (error: any) {
+      if (error.message?.includes("not found")) {
+        return res.status(404).json({ error: error.message });
+      }
+      console.error("[Guards] Verification trigger error:", error);
+      res.status(500).json({ error: "Failed to run verification pass" });
     }
   },
 );
