@@ -43,6 +43,21 @@ router.post("/session", apiKeyMiddleware, async (req, res) => {
     const { project } = req;
     if (!project) return res.status(401).json({ error: "Unauthorized" });
 
+    if (workflowId) {
+      const plan = await GuardsService.getContinuationPlan(
+        workflowId,
+        project.id,
+      );
+      if (plan.status === "BLOCKED") {
+        return res.status(403).json({
+          error:
+            "Workflow execution is blocked. One or more semantic failures require human approval.",
+          code: "WORKFLOW_BLOCKED",
+          plan,
+        });
+      }
+    }
+
     const execution = await GuardsService.createSession(
       monitorId,
       project.id,
@@ -481,6 +496,62 @@ router.post(
       }
       console.error("[Guards] Verification trigger error:", error);
       res.status(500).json({ error: "Failed to run verification pass" });
+    }
+  },
+);
+
+/**
+ * Phase 8: Reconcile and retrieve recovery plan for a workflow.
+ * POST /api/guards/resume/:workflowId
+ */
+router.post(
+  "/resume/:workflowId",
+  unifiedAuth,
+  projectAccessMiddleware("MEMBER"),
+  async (req: any, res: any) => {
+    try {
+      const { project } = req;
+      if (!project)
+        return res.status(401).json({ error: "Project context missing" });
+
+      await GuardsService.reconcileWorkflow(req.params.workflowId, project.id);
+      const plan = await GuardsService.getContinuationPlan(
+        req.params.workflowId,
+        project.id,
+      );
+      res.json(plan);
+    } catch (error: any) {
+      console.error("[Guards] Resume trigger error:", error);
+      res.status(500).json({ error: "Failed to resume workflow" });
+    }
+  },
+);
+
+/**
+ * Phase 8: Manually approve a side effect blocked in AWAITING_APPROVAL.
+ * POST /api/guards/effect/:id/approve
+ */
+router.post(
+  "/effect/:id/approve",
+  unifiedAuth,
+  projectAccessMiddleware("MEMBER"),
+  async (req: any, res: any) => {
+    try {
+      const { project } = req;
+      if (!project)
+        return res.status(401).json({ error: "Project context missing" });
+
+      await GuardsService.approveSideEffect(req.params.id, project.id);
+      res.json({ success: true });
+    } catch (error: any) {
+      if (error.message?.includes("not found")) {
+        return res.status(404).json({ error: error.message });
+      }
+      if (error.message?.includes("is not awaiting approval")) {
+        return res.status(400).json({ error: error.message });
+      }
+      console.error("[Guards] Approve side effect error:", error);
+      res.status(500).json({ error: "Failed to approve side effect" });
     }
   },
 );

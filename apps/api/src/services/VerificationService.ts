@@ -107,6 +107,30 @@ export class VerificationService {
     );
   }
 
+  /**
+   * Runs a verification pass on all UNKNOWN effects for a single workflow.
+   */
+  static async runWorkflowPass(
+    workflowId: string,
+    projectId: string,
+  ): Promise<VerificationPassResult> {
+    const unknownEffects = await prisma.guardSideEffect.findMany({
+      where: { workflowId, projectId, status: "UNKNOWN" },
+    });
+
+    if (unknownEffects.length === 0)
+      return { verified: 0, failed: 0, unknown: 0, total: 0 };
+
+    const providerConfigs =
+      await VerificationService.loadProviderConfigs(projectId);
+
+    return VerificationService.processEffects(
+      unknownEffects,
+      providerConfigs,
+      projectId,
+    );
+  }
+
   // ─────────────────────────────────────────────────────────────────
   // Private helpers
   // ─────────────────────────────────────────────────────────────────

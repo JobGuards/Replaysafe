@@ -1,6 +1,7 @@
 import { prisma } from "@replaysafe/db";
 import axios from "axios";
 import { validateWebhookUrl } from "../utils/validateUrl.js";
+import { GuardsService } from "./GuardsService.js";
 
 /**
  * Adds a randomized jitter delay to prevent stampeding herd effects when many
@@ -143,6 +144,32 @@ export class SelfHealingService {
         where: { monitorId },
         orderBy: { startedAt: "desc" },
       });
+
+      if (lastExecution && lastExecution.workflowId) {
+        const plan = await GuardsService.getContinuationPlan(
+          lastExecution.workflowId,
+          monitor.projectId,
+        );
+        if (plan.status === "BLOCKED") {
+          console.warn(
+            `[SelfHealing] Workflow ${lastExecution.workflowId} is BLOCKED due to semantic failures. Skipping auto-replay.`,
+          );
+          await (prisma as any).auditLog.create({
+            data: {
+              projectId: monitor.projectId,
+              action: "SELF_HEAL_BLOCKED",
+              resourceType: "MONITOR",
+              resourceId: monitorId,
+              metadata: {
+                incidentId,
+                workflowId: lastExecution.workflowId,
+                reason: "SEMANTIC failures require human approval",
+              },
+            },
+          });
+          return;
+        }
+      }
 
       const targetUrl = policy.replayUrl || policy.webhookUrl;
       if (targetUrl) {

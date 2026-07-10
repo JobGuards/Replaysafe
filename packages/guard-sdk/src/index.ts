@@ -141,6 +141,22 @@ export interface Verifier {
   verify(entry: LedgerEntry): Promise<VerificationResult>;
 }
 
+export interface ContinuationStep {
+  id: string;
+  type: string;
+  fingerprint: string;
+  target: string | null;
+  status: string;
+  failureType: FailureType | null;
+  action: "SKIP" | "RETRY" | "BLOCK";
+}
+
+export interface ContinuationPlan {
+  workflowId: string;
+  status: "CAN_RESUME" | "BLOCKED" | "COMPLETED";
+  steps: ContinuationStep[];
+}
+
 /**
  * Options for guard.effect() — the Phase 6 execution ledger primitive.
  */
@@ -239,6 +255,36 @@ export class ReplayGuard {
       if (this.config.debug)
         console.warn("[ReplayGuard] Proceeding without session (Fail Open)");
       return null;
+    }
+  }
+
+  /**
+   * Phase 8: Reconciles all UNKNOWN side effects for a workflow and retrieves
+   * a structured continuation/recovery plan.
+   */
+  async resume(workflowId: string): Promise<ContinuationPlan> {
+    try {
+      const res = await this._fetchWithRetry(
+        `${this.config.baseUrl}/api/guards/resume/${workflowId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": this.config.apiKey,
+          },
+        },
+      );
+
+      if (!res.ok) {
+        throw new Error(`Failed to resume workflow: ${await res.text()}`);
+      }
+
+      return await res.json();
+    } catch (error: any) {
+      if (this.config.debug) {
+        console.error(`[ReplayGuard] Resume failed: ${error.message}`);
+      }
+      throw error;
     }
   }
 
