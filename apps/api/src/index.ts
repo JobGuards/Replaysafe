@@ -10,4 +10,3 @@ startVerificationWorker(); // Phase 7: resolves UNKNOWN side effects
 
 // Start API server
 startServer();
-

@@ -115,7 +115,10 @@ describe("VerificationService", () => {
     it("marks effect as FAILED and sends emergency alert", async () => {
       const effect = makeEffect();
       mockGuardSideEffect.findMany.mockResolvedValueOnce([effect]);
-      mockRegistryVerify.mockResolvedValue({ status: "FAILED", failureType: "SEMANTIC" });
+      mockRegistryVerify.mockResolvedValue({
+        status: "FAILED",
+        failureType: "SEMANTIC",
+      });
       mockGuardSideEffect.update.mockResolvedValue({} as any);
       mockGuardExecution.findUnique.mockResolvedValue({
         id: "exec-1",

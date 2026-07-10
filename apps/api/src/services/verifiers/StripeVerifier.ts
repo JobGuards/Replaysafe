@@ -27,7 +27,9 @@ export class StripeVerifier implements VerifierProvider {
   ): Promise<VerificationResult> {
     const { secretKey } = config;
     if (!secretKey) {
-      console.warn("[StripeVerifier] No secretKey in provider config. Skipping.");
+      console.warn(
+        "[StripeVerifier] No secretKey in provider config. Skipping.",
+      );
       return { status: "UNKNOWN" };
     }
 

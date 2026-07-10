@@ -29,7 +29,9 @@ export class SendGridVerifier implements VerifierProvider {
   ): Promise<VerificationResult> {
     const { apiKey } = config;
     if (!apiKey) {
-      console.warn("[SendGridVerifier] No apiKey in provider config. Skipping.");
+      console.warn(
+        "[SendGridVerifier] No apiKey in provider config. Skipping.",
+      );
       return { status: "UNKNOWN" };
     }
 

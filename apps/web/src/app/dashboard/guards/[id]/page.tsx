@@ -236,11 +236,13 @@ function EffectTimelineNode({ effect }: { effect: any }) {
                 </span>
               )}
               {effect.failureType && (
-                <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border flex items-center gap-1 ${
-                  effect.failureType === "TRANSIENT"
-                    ? "bg-yellow-400/10 text-yellow-400 border-yellow-400/20"
-                    : "bg-red-500/10 text-red-400 border-red-500/20"
-                }`}>
+                <span
+                  className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border flex items-center gap-1 ${
+                    effect.failureType === "TRANSIENT"
+                      ? "bg-yellow-400/10 text-yellow-400 border-yellow-400/20"
+                      : "bg-red-500/10 text-red-400 border-red-500/20"
+                  }`}
+                >
                   {effect.failureType}
                 </span>
               )}
@@ -296,13 +298,22 @@ export default function GuardExecutionDetailPage() {
   const { activeOrganization } = useAuth();
   const params = useParams();
   const id = params.id as string;
-  const { data: execution, isLoading, mutate } = useSWR(
+  const {
+    data: execution,
+    isLoading,
+    mutate,
+  } = useSWR(
     activeOrganization ? [`/api/guards/${id}`, activeOrganization.id] : null,
     () => fetcher(id),
   );
 
   const [verifying, setVerifying] = useState(false);
-  const [verifyResult, setVerifyResult] = useState<{ verified: number; failed: number; unknown: number; total: number } | null>(null);
+  const [verifyResult, setVerifyResult] = useState<{
+    verified: number;
+    failed: number;
+    unknown: number;
+    total: number;
+  } | null>(null);
 
   const handleVerify = useCallback(async () => {
     if (!execution || verifying) return;
@@ -389,7 +400,8 @@ export default function GuardExecutionDetailPage() {
                 {verifyResult && verifyResult.total > 0 && (
                   <span className="px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border bg-emerald-400/10 border-emerald-400/30 text-emerald-400 flex items-center gap-1.5">
                     <ShieldCheck className="w-3 h-3" />
-                    {verifyResult.verified} verified · {verifyResult.failed} failed
+                    {verifyResult.verified} verified · {verifyResult.failed}{" "}
+                    failed
                   </span>
                 )}
               </div>

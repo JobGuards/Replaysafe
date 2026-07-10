@@ -196,9 +196,12 @@ class ApiClient {
   }
 
   // Phase 7: Verification
-  async verifyExecution(
-    executionId: string,
-  ): Promise<{ verified: number; failed: number; unknown: number; total: number }> {
+  async verifyExecution(executionId: string): Promise<{
+    verified: number;
+    failed: number;
+    unknown: number;
+    total: number;
+  }> {
     return this.fetch(`/guards/execution/${executionId}/verify`, {
       method: "POST",
     });
@@ -231,4 +234,3 @@ class ApiClient {
 }
 
 export const api = new ApiClient();
-

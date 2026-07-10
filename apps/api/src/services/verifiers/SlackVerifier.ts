@@ -31,7 +31,8 @@ export class SlackVerifier implements VerifierProvider {
     }
 
     const receipt = entry.receipt;
-    if (!receipt?.timestamp || !receipt?.channelId) return { status: "UNKNOWN" };
+    if (!receipt?.timestamp || !receipt?.channelId)
+      return { status: "UNKNOWN" };
 
     try {
       const res = await axios.get(

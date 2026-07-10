@@ -7,7 +7,10 @@ import { GitHubVerifier } from "./verifiers/GitHubVerifier.js";
 import { SlackVerifier } from "./verifiers/SlackVerifier.js";
 import { TwilioVerifier } from "./verifiers/TwilioVerifier.js";
 import { S3Verifier } from "./verifiers/S3Verifier.js";
-import type { LedgerEntry, VerificationResult } from "./verifiers/VerifierProvider.js";
+import type {
+  LedgerEntry,
+  VerificationResult,
+} from "./verifiers/VerifierProvider.js";
 import { decryptJSON } from "../utils/encryption.js";
 
 // Self-register all built-in verifiers on module load.
@@ -59,9 +62,8 @@ export class VerificationService {
     if (unknownEffects.length === 0)
       return { verified: 0, failed: 0, unknown: 0, total: 0 };
 
-    const providerConfigs = await VerificationService.loadProviderConfigs(
-      projectId,
-    );
+    const providerConfigs =
+      await VerificationService.loadProviderConfigs(projectId);
 
     return VerificationService.processEffects(
       unknownEffects,
@@ -95,9 +97,8 @@ export class VerificationService {
     if (unknownEffects.length === 0)
       return { verified: 0, failed: 0, unknown: 0, total: 0 };
 
-    const providerConfigs = await VerificationService.loadProviderConfigs(
-      projectId,
-    );
+    const providerConfigs =
+      await VerificationService.loadProviderConfigs(projectId);
 
     return VerificationService.processEffects(
       unknownEffects,
@@ -133,9 +134,8 @@ export class VerificationService {
         executionId: effect.executionId,
       };
 
-      const providerConfig = providerConfigs.get(
-        (effect.provider ?? "").toLowerCase(),
-      ) ?? {};
+      const providerConfig =
+        providerConfigs.get((effect.provider ?? "").toLowerCase()) ?? {};
 
       const outcome: VerificationResult = await verifierRegistry.verify(
         entry,
@@ -171,7 +171,8 @@ export class VerificationService {
       data: {
         status: newStatus,
         verifiedAt: new Date(),
-        failureType: outcome.status === "FAILED" ? outcome.failureType || null : null,
+        failureType:
+          outcome.status === "FAILED" ? outcome.failureType || null : null,
         // Preserve existing metadata and append verification info
         metadata: {
           ...(typeof effect.metadata === "object" && effect.metadata !== null
@@ -181,7 +182,10 @@ export class VerificationService {
             resolvedAt: new Date().toISOString(),
             resolvedFrom: "UNKNOWN",
             resolvedTo: newStatus,
-            failureType: outcome.status === "FAILED" ? outcome.failureType || null : undefined,
+            failureType:
+              outcome.status === "FAILED"
+                ? outcome.failureType || null
+                : undefined,
           },
         },
       },
@@ -230,9 +234,7 @@ export class VerificationService {
     for (const cfg of configs) {
       try {
         const decrypted =
-          typeof cfg.config === "string"
-            ? decryptJSON(cfg.config)
-            : cfg.config;
+          typeof cfg.config === "string" ? decryptJSON(cfg.config) : cfg.config;
         map.set(cfg.provider.toLowerCase(), decrypted);
       } catch (e) {
         console.warn(

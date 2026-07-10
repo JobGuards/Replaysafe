@@ -31,7 +31,10 @@ describe("StripeVerifier", () => {
   });
 
   it("returns UNKNOWN when no receipt is present", async () => {
-    const result = await verifier.verify({ ...baseEntry, receipt: null }, config);
+    const result = await verifier.verify(
+      { ...baseEntry, receipt: null },
+      config,
+    );
     expect(result).toEqual({ status: "UNKNOWN" });
   });
 
