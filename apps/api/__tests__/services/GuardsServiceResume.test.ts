@@ -72,7 +72,7 @@ describe("GuardsService — Resume & Recovery Planner", () => {
           status: "VERIFIED",
           failureType: null,
         },
-      ]);
+      ] as any);
       const plan = await GuardsService.getContinuationPlan("wf-123", "proj-1");
       expect(plan.status).toBe("COMPLETED");
       expect(plan.steps[0].action).toBe("SKIP");
@@ -97,7 +97,7 @@ describe("GuardsService — Resume & Recovery Planner", () => {
           status: "FAILED",
           failureType: "SEMANTIC",
         },
-      ]);
+      ] as any);
 
       const plan = await GuardsService.getContinuationPlan("wf-123", "proj-1");
       expect(plan.status).toBe("BLOCKED");
