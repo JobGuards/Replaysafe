@@ -34,10 +34,10 @@ export default function ReplayGuardDoc() {
           <p className="mb-10 leading-relaxed text-muted-foreground">
             ReplayGuard sits between your job logic and its side effects. It
             fingerprints every operation and ensures they happen{" "}
-            <strong className="text-foreground">exactly once</strong>, regardless
-            of how many times you press "Retry". Every side effect follows a
-            strict lifecycle: INTENDED → EXECUTING → COMMITTED → VERIFIED, with
-            UNKNOWN (timeout) and FAILED branches.
+            <strong className="text-foreground">exactly once</strong>,
+            regardless of how many times you press "Retry". Every side effect
+            follows a strict lifecycle: INTENDED → EXECUTING → COMMITTED →
+            VERIFIED, with UNKNOWN (timeout) and FAILED branches.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <FeatureItem

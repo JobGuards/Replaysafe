@@ -586,7 +586,10 @@ router.post(
       if (!project)
         return res.status(401).json({ error: "Project context missing" });
 
-      const result = await GuardsService.reconcileWorkflow(req.params.workflowId, project.id);
+      const result = await GuardsService.reconcileWorkflow(
+        req.params.workflowId,
+        project.id,
+      );
       res.json(result);
     } catch (error: any) {
       console.error("[Guards] Reconcile trigger error:", error);

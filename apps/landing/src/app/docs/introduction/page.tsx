@@ -13,11 +13,14 @@ export default function IntroDoc() {
     >
       <div className="space-y-16">
         <p className="text-xl leading-relaxed text-foreground/80">
-          ReplaySafe is the <strong className="text-foreground">Execution
-          Memory & Side-Effect Control Plane</strong> for AI agents. It ensures
-          that every external operation — payments, emails, API calls, database
-          writes — happens <strong className="text-foreground">exactly
-          once</strong>, even when agents retry, crash, or run concurrently.
+          ReplaySafe is the{" "}
+          <strong className="text-foreground">
+            Execution Memory & Side-Effect Control Plane
+          </strong>{" "}
+          for AI agents. It ensures that every external operation — payments,
+          emails, API calls, database writes — happens{" "}
+          <strong className="text-foreground">exactly once</strong>, even when
+          agents retry, crash, or run concurrently.
         </p>
 
         <section className="glass-panel border border-border/10 rounded-[3rem] p-12 bg-acid-lime/[0.02]">
@@ -27,9 +30,9 @@ export default function IntroDoc() {
           <p className="mb-10 leading-relaxed text-muted-foreground">
             AI agents are inherently unreliable. They retry on failure, run
             concurrently, and operate on external systems that don't guarantee
-            idempotency. ReplaySafe gives your agents a durable execution
-            ledger — a complete record of every side effect, its lifecycle
-            state, and provider-native proof of what actually happened.
+            idempotency. ReplaySafe gives your agents a durable execution ledger
+            — a complete record of every side effect, its lifecycle state, and
+            provider-native proof of what actually happened.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <FeatureItem
@@ -99,9 +102,9 @@ export default function IntroDoc() {
           </h2>
           <p className="leading-relaxed text-muted-foreground">
             Install the SDK and wrap your first side effect in under 5 minutes.
-            ReplaySafe operates on an <strong className="text-foreground">
-            execution memory</strong> model — every side effect is tracked from
-            intent to verification.
+            ReplaySafe operates on an{" "}
+            <strong className="text-foreground">execution memory</strong> model
+            — every side effect is tracked from intent to verification.
           </p>
           <div className="group relative p-10 bg-foreground/[0.02] rounded-[2.5rem] border border-border/10 hover:border-acid-lime/30 transition-all overflow-hidden">
             <div className="absolute top-0 left-0 w-1 h-full bg-acid-lime/20"></div>

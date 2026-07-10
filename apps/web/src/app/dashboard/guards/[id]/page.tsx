@@ -391,21 +391,8 @@ export default function GuardExecutionDetailPage() {
     [mutate],
   );
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-        <RefreshCw className="w-8 h-8 text-acid-lime animate-spin" />
-        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground italic">
-          Reconstructing Execution Timeline...
-        </p>
-      </div>
-    );
-  }
-
-  if (!execution) return <div>Not found</div>;
-
   // Phase 6: count statuses across side effects
-  const effects: any[] = execution.sideEffects ?? [];
+  const effects: any[] = execution?.sideEffects ?? [];
   const committed = effects.filter((e: any) =>
     ["COMMITTED", "VERIFIED", "COMPLETED"].includes(e.status),
   ).length;
@@ -431,26 +418,42 @@ export default function GuardExecutionDetailPage() {
     return roots;
   }, [effects]);
 
-  const renderEffectNode = useCallback(
-    (node: any, depth = 0) => {
-      return (
-        <div
-          key={node.id}
-          style={{ marginLeft: `${depth * 24}px` }}
-          className="relative"
-        >
-          {depth > 0 && (
-            <div className="absolute -left-4 top-5 w-4 h-[1px] bg-border/20" />
-          )}
-          <EffectTimelineNode effect={node} onApprove={handleApprove} />
-          {node.children.map((child: any) =>
-            renderEffectNode(child, depth + 1),
-          )}
-        </div>
-      );
-    },
-    [handleApprove],
-  );
+  const EffectTreeNode = ({
+    node,
+    depth,
+  }: {
+    node: any;
+    depth: number;
+  }): React.ReactNode => {
+    return (
+      <div
+        key={node.id}
+        style={{ marginLeft: `${depth * 24}px` }}
+        className="relative"
+      >
+        {depth > 0 && (
+          <div className="absolute -left-4 top-5 w-4 h-[1px] bg-border/20" />
+        )}
+        <EffectTimelineNode effect={node} onApprove={handleApprove} />
+        {node.children.map((child: any) => (
+          <EffectTreeNode key={child.id} node={child} depth={depth + 1} />
+        ))}
+      </div>
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+        <RefreshCw className="w-8 h-8 text-acid-lime animate-spin" />
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground italic">
+          Reconstructing Execution Timeline...
+        </p>
+      </div>
+    );
+  }
+
+  if (!execution) return <div>Not found</div>;
 
   return (
     <div className="flex flex-col gap-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
@@ -602,7 +605,9 @@ export default function GuardExecutionDetailPage() {
                 No side effects recorded for this execution.
               </p>
             )}
-            {treeEffects.map((node: any) => renderEffectNode(node, 0))}
+            {treeEffects.map((node: any) => (
+              <EffectTreeNode key={node.id} node={node} depth={0} />
+            ))}
           </div>
         </div>
 

@@ -591,7 +591,8 @@ export class GuardsService {
 
     if (activeConflict) {
       // Mark conflict on the other active execution's side effect
-      const existingMeta = (activeConflict.metadata as Record<string, any>) || {};
+      const existingMeta =
+        (activeConflict.metadata as Record<string, any>) || {};
       await prisma.guardSideEffect.update({
         where: { id: activeConflict.id },
         data: {

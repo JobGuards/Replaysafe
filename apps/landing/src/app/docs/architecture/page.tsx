@@ -74,9 +74,9 @@ export default function ArchitectureDoc() {
                 </h4>
                 <p className="text-muted-foreground leading-relaxed">
                   Background worker that resolves UNKNOWN side effects by
-                  querying provider APIs. Classifies failures as TRANSIENT
-                  (safe to retry) or SEMANTIC (needs human review). Polls at
-                  60s intervals with 30s grace period.
+                  querying provider APIs. Classifies failures as TRANSIENT (safe
+                  to retry) or SEMANTIC (needs human review). Polls at 60s
+                  intervals with 30s grace period.
                 </p>
               </div>
             </div>

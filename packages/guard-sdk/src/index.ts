@@ -322,7 +322,9 @@ export class ReplayGuard {
    * This resolves UNKNOWN effects via provider verification without computing a continuation plan.
    * Use this when you only want to verify pending effects, not resume execution.
    */
-  async reconcile(workflowId: string): Promise<{ verified: number; failed: number; unknown: number }> {
+  async reconcile(
+    workflowId: string,
+  ): Promise<{ verified: number; failed: number; unknown: number }> {
     try {
       const res = await this._fetchWithRetry(
         `${this.config.baseUrl}/api/guards/reconcile/${workflowId}`,
@@ -579,7 +581,7 @@ export class ReplayGuard {
    *   receipt: (result) => ({ chargeId: result.id }),
    * });
    */
-async effect<T>(options: EffectOptions<T>): Promise<T> {
+  async effect<T>(options: EffectOptions<T>): Promise<T> {
     const {
       type,
       target,
@@ -611,7 +613,11 @@ async effect<T>(options: EffectOptions<T>): Promise<T> {
     }
 
     // 2. Begin: check ledger dedup + write EXECUTING
-    let beginResult: { action: "EXECUTE" | "SKIP" | "CONFLICT"; cachedResult?: any; conflictingExecutionId?: string };
+    let beginResult: {
+      action: "EXECUTE" | "SKIP" | "CONFLICT";
+      cachedResult?: any;
+      conflictingExecutionId?: string;
+    };
     try {
       beginResult = await this._callBegin(
         fp,
@@ -638,8 +644,12 @@ async effect<T>(options: EffectOptions<T>): Promise<T> {
 
     if (beginResult.action === "CONFLICT") {
       if (this.config.debug)
-        console.warn(`[ReplayGuard] CONFLICT (effect): ${type}:${target} — another execution is already running this`);
-      throw new EffectConflictError(beginResult.conflictingExecutionId || "unknown");
+        console.warn(
+          `[ReplayGuard] CONFLICT (effect): ${type}:${target} — another execution is already running this`,
+        );
+      throw new EffectConflictError(
+        beginResult.conflictingExecutionId || "unknown",
+      );
     }
 
     // 3. Execute with optional timeout
@@ -661,7 +671,10 @@ async effect<T>(options: EffectOptions<T>): Promise<T> {
       // For regular errors: mark FAILED and re-throw
       if (!(err instanceof EffectTimeoutError)) {
         if (markFailedAsUnknown) {
-          await this._callMarkUnknown(fp, `Operation failed: ${err.message}`).catch(() => {});
+          await this._callMarkUnknown(
+            fp,
+            `Operation failed: ${err.message}`,
+          ).catch(() => {});
         } else {
           await this._callMarkFailed(fp, err.message).catch(() => {});
         }
@@ -812,7 +825,11 @@ async effect<T>(options: EffectOptions<T>): Promise<T> {
     input: any,
     provider?: string,
     scope: GuardScope = "MONITOR",
-  ): Promise<{ action: "EXECUTE" | "SKIP" | "CONFLICT"; cachedResult?: any; conflictingExecutionId?: string }> {
+  ): Promise<{
+    action: "EXECUTE" | "SKIP" | "CONFLICT";
+    cachedResult?: any;
+    conflictingExecutionId?: string;
+  }> {
     const res = await this._fetchWithRetry(
       `${this.config.baseUrl}/api/guards/effect/begin`,
       {
@@ -838,7 +855,10 @@ async effect<T>(options: EffectOptions<T>): Promise<T> {
     if (!res.ok) {
       const text = await res.text();
       if (res.status === 409) {
-        return { action: "CONFLICT", conflictingExecutionId: JSON.parse(text).conflictingExecutionId };
+        return {
+          action: "CONFLICT",
+          conflictingExecutionId: JSON.parse(text).conflictingExecutionId,
+        };
       }
       throw new Error(`[ReplayGuard] effect/begin failed: ${text}`);
     }
@@ -898,7 +918,11 @@ async effect<T>(options: EffectOptions<T>): Promise<T> {
   }
 
   /** Calls POST /api/guards/effect/failed */
-  private async _callMarkFailed(fp: string, error: string, metadata?: Record<string, any>): Promise<void> {
+  private async _callMarkFailed(
+    fp: string,
+    error: string,
+    metadata?: Record<string, any>,
+  ): Promise<void> {
     try {
       await this._fetchWithRetry(
         `${this.config.baseUrl}/api/guards/effect/failed`,

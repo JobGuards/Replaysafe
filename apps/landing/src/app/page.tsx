@@ -137,9 +137,8 @@ export default function LandingPage() {
           </h1>
           <p className="text-body-lg font-body-lg text-muted-foreground max-w-2xl mt-2">
             Agents retry. They repeat everything - double charges, duplicate
-            emails, redundant calls. ReplaySafe remembers what already
-            happened, so retries skip what succeeded and resume from where
-            they left off.
+            emails, redundant calls. ReplaySafe remembers what already happened,
+            so retries skip what succeeded and resume from where they left off.
           </p>
           <div className="flex flex-col items-center gap-lg mt-15">
             <a
@@ -627,7 +626,11 @@ async function chargeNode(state, guard) {
               { name: "Twilio", category: "SMS / Voice", icon: "\u{1F4F1}" },
               { name: "AWS S3", category: "Storage", icon: "\u{1FAA3}" },
               { name: "OpenAI", category: "AI / LLM", icon: "\u{1F916}" },
-              { name: "Anthropic MCP", category: "AI / LLM", icon: "\u{1F9E0}" },
+              {
+                name: "Anthropic MCP",
+                category: "AI / LLM",
+                icon: "\u{1F9E0}",
+              },
               { name: "Any HTTP API", category: "Custom", icon: "\u{1F310}" },
             ].map((provider) => (
               <div

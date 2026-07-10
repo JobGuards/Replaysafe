@@ -162,9 +162,9 @@ export default function APIReferenceDoc() {
                 </h3>
               </div>
               <p className="leading-relaxed">
-                Returns all side effects for a given agent across all
-                executions in the project. Used for agent fleet visibility and
-                execution memory queries.
+                Returns all side effects for a given agent across all executions
+                in the project. Used for agent fleet visibility and execution
+                memory queries.
               </p>
             </div>
           </div>

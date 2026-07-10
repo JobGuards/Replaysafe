@@ -38,7 +38,11 @@ export default function ProviderCoverageDoc() {
               category="Payments"
               verifyMethod="GET /v1/charges/:id"
               transientExamples={["network timeout", "429 rate limit"]}
-              semanticExamples={["card declined", "insufficient funds", "charge disputed"]}
+              semanticExamples={[
+                "card declined",
+                "insufficient funds",
+                "charge disputed",
+              ]}
             />
             <ProviderCard
               name="SendGrid"
@@ -62,7 +66,11 @@ export default function ProviderCoverageDoc() {
               category="Email"
               verifyMethod="Check receipt.status field"
               transientExamples={["throttling", "temporary failure"]}
-              semanticExamples={["permanent bounce", "suppressed", "invalid recipient"]}
+              semanticExamples={[
+                "permanent bounce",
+                "suppressed",
+                "invalid recipient",
+              ]}
             />
             <ProviderCard
               name="GitHub"
@@ -70,7 +78,11 @@ export default function ProviderCoverageDoc() {
               category="Dev Tools"
               verifyMethod="GET /repos/:owner/:repo/issues/:id"
               transientExamples={["rate limit (403)", "API timeout"]}
-              semanticExamples={["issue not found", "repo deleted", "permission denied"]}
+              semanticExamples={[
+                "issue not found",
+                "repo deleted",
+                "permission denied",
+              ]}
             />
             <ProviderCard
               name="Slack"
@@ -78,7 +90,11 @@ export default function ProviderCoverageDoc() {
               category="Messaging"
               verifyMethod="GET /conversations.info"
               transientExamples={["rate limit (429)", "network error"]}
-              semanticExamples={["channel not found", "token revoked", "user not in channel"]}
+              semanticExamples={[
+                "channel not found",
+                "token revoked",
+                "user not in channel",
+              ]}
             />
             <ProviderCard
               name="Twilio"
@@ -94,7 +110,11 @@ export default function ProviderCoverageDoc() {
               category="Storage"
               verifyMethod="HEAD /:bucket/:key"
               transientExamples={["connection timeout", "503 slow down"]}
-              semanticExamples={["access denied", "bucket not found", "object not found"]}
+              semanticExamples={[
+                "access denied",
+                "bucket not found",
+                "object not found",
+              ]}
             />
           </div>
         </section>
@@ -232,12 +252,12 @@ function ProviderCard({
   transientExamples,
   semanticExamples,
 }: {
-  name: string
-  icon: string
-  category: string
-  verifyMethod: string
-  transientExamples: string[]
-  semanticExamples: string[]
+  name: string;
+  icon: string;
+  category: string;
+  verifyMethod: string;
+  transientExamples: string[];
+  semanticExamples: string[];
 }) {
   return (
     <div className="p-6 rounded-2xl bg-foreground/[0.02] border border-border/10">
@@ -256,7 +276,9 @@ function ProviderCard({
           <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-1">
             Verify Method
           </p>
-          <code className="text-xs font-mono text-acid-lime">{verifyMethod}</code>
+          <code className="text-xs font-mono text-acid-lime">
+            {verifyMethod}
+          </code>
         </div>
         <div>
           <p className="text-[10px] font-black uppercase tracking-widest text-yellow-400/60 mb-1">
@@ -290,5 +312,5 @@ function ProviderCard({
         </div>
       </div>
     </div>
-  )
+  );
 }

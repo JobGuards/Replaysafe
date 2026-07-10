@@ -54,7 +54,8 @@ export default function StripeVsReplaySafeDoc() {
               {
                 aspect: "Scope",
                 stripe: "Stripe API only",
-                replay: "Any side effect — HTTP, email, DB, webhooks, custom APIs",
+                replay:
+                  "Any side effect — HTTP, email, DB, webhooks, custom APIs",
                 icon: <Database className="w-4 h-4" />,
               },
               {
@@ -66,13 +67,15 @@ export default function StripeVsReplaySafeDoc() {
               {
                 aspect: "State Machine",
                 stripe: 'Binary: "seen" / "not seen"',
-                replay: "Full lifecycle: INTENDED → EXECUTING → COMMITTED → VERIFIED",
+                replay:
+                  "Full lifecycle: INTENDED → EXECUTING → COMMITTED → VERIFIED",
                 icon: <GitMerge className="w-4 h-4" />,
               },
               {
                 aspect: "Verification",
                 stripe: "None — trusts Stripe's response",
-                replay: "Provider-side verification — calls Stripe/SendGrid/GitHub to confirm reality",
+                replay:
+                  "Provider-side verification — calls Stripe/SendGrid/GitHub to confirm reality",
                 icon: <Search className="w-4 h-4" />,
               },
               {
@@ -84,19 +87,22 @@ export default function StripeVsReplaySafeDoc() {
               {
                 aspect: "Resume / Recovery",
                 stripe: "None — you rebuild logic",
-                replay: "guard.resume() — computes minimal safe continuation plan",
+                replay:
+                  "guard.resume() — computes minimal safe continuation plan",
                 icon: <Zap className="w-4 h-4" />,
               },
               {
                 aspect: "Cross-Agent Coordination",
                 stripe: "Per-request only",
-                replay: "Project-scoped shared ledger — Agent A's work visible to Agent B",
+                replay:
+                  "Project-scoped shared ledger — Agent A's work visible to Agent B",
                 icon: <Eye className="w-4 h-4" />,
               },
               {
                 aspect: "Audit / Proof",
                 stripe: "Stripe's logs only",
-                replay: "Cryptographic receipts stored in your DB, queryable anytime",
+                replay:
+                  "Cryptographic receipts stored in your DB, queryable anytime",
                 icon: <ShieldCheck className="w-4 h-4" />,
               },
             ].map((row, i) => (
@@ -130,7 +136,9 @@ export default function StripeVsReplaySafeDoc() {
             <div className="p-6 rounded-2xl bg-red-500/5 border border-red-500/20">
               <div className="flex items-center gap-2 mb-4">
                 <XCircle className="w-5 h-5 text-red-400" />
-                <h4 className="font-bold text-foreground">Stripe Idempotency</h4>
+                <h4 className="font-bold text-foreground">
+                  Stripe Idempotency
+                </h4>
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 Prevents duplicate <em>API calls</em> to Stripe. If you send the
@@ -184,11 +192,14 @@ export default function StripeVsReplaySafeDoc() {
                   Use ReplaySafe When
                 </h4>
                 <p className="text-sm text-muted-foreground mt-1">
-                  You have multiple side effects (payments + emails + DB writes),
-                  you need provider verification when outcomes are unknown, you
-                  want crash recovery with{" "}
-                  <code className="text-acid-lime font-mono">guard.resume()</code>,
-                  or you&apos;re running multiple agents that need to coordinate.
+                  You have multiple side effects (payments + emails + DB
+                  writes), you need provider verification when outcomes are
+                  unknown, you want crash recovery with{" "}
+                  <code className="text-acid-lime font-mono">
+                    guard.resume()
+                  </code>
+                  , or you&apos;re running multiple agents that need to
+                  coordinate.
                 </p>
               </div>
             </div>
