@@ -1052,7 +1052,16 @@ export class ReplayGuard {
     operation: () => Promise<T>,
     scope: GuardScope = "MONITOR",
   ): Promise<T> {
-    return this.wrap("LANGGRAPH_NODE", nodeId, inputs, operation, scope);
+    return this.effect<T>({
+      type: "LANGGRAPH_NODE",
+      target: nodeId,
+      input: inputs,
+      execute: operation,
+      provider: "langgraph",
+      receipt: (result: any) =>
+        result && typeof result === "object" ? result : { result },
+      scope,
+    });
   }
 
   /**
@@ -1075,7 +1084,16 @@ export class ReplayGuard {
     operation: () => Promise<T>,
     scope: GuardScope = "MONITOR",
   ): Promise<T> {
-    return this.wrap("INNGEST_STEP", functionId, inputs, operation, scope);
+    return this.effect<T>({
+      type: "INNGEST_STEP",
+      target: functionId,
+      input: inputs,
+      execute: operation,
+      provider: "inngest",
+      receipt: (result: any) =>
+        result && typeof result === "object" ? result : { result },
+      scope,
+    });
   }
 
   /**
@@ -1096,7 +1114,16 @@ export class ReplayGuard {
     operation: () => Promise<T>,
     scope: GuardScope = "MONITOR",
   ): Promise<T> {
-    return this.wrap("N8N_NODE", nodeName, inputs, operation, scope);
+    return this.effect<T>({
+      type: "N8N_NODE",
+      target: nodeName,
+      input: inputs,
+      execute: operation,
+      provider: "n8n",
+      receipt: (result: any) =>
+        result && typeof result === "object" ? result : { result },
+      scope,
+    });
   }
 
   /**
@@ -1117,7 +1144,16 @@ export class ReplayGuard {
     operation: () => Promise<T>,
     scope: GuardScope = "MONITOR",
   ): Promise<T> {
-    return this.wrap("AIRFLOW_TASK", taskId, inputs, operation, scope);
+    return this.effect<T>({
+      type: "AIRFLOW_TASK",
+      target: taskId,
+      input: inputs,
+      execute: operation,
+      provider: "airflow",
+      receipt: (result: any) =>
+        result && typeof result === "object" ? result : { result },
+      scope,
+    });
   }
 
   /**
@@ -1138,7 +1174,58 @@ export class ReplayGuard {
     operation: () => Promise<T>,
     scope: GuardScope = "MONITOR",
   ): Promise<T> {
-    return this.wrap("CREWAI_TOOL", toolName, inputs, operation, scope);
+    return this.effect<T>({
+      type: "CREWAI_TOOL",
+      target: toolName,
+      input: inputs,
+      execute: operation,
+      provider: "crewai",
+      receipt: (result: any) =>
+        result && typeof result === "object" ? result : { result },
+      scope,
+    });
+  }
+
+  /**
+   * Anthropic MCP adapter — wraps MCP tool calls with full ledger lifecycle.
+   */
+  async mcp<T>(
+    toolName: string,
+    inputs: any,
+    operation: () => Promise<T>,
+    scope: GuardScope = "MONITOR",
+  ): Promise<T> {
+    return this.effect<T>({
+      type: "MCP_TOOL",
+      target: toolName,
+      input: inputs,
+      execute: operation,
+      provider: "mcp",
+      receipt: (result: any) =>
+        result && typeof result === "object" ? result : { result },
+      scope,
+    });
+  }
+
+  /**
+   * OpenAI Assistants API adapter — wraps Assistants tool calls with full ledger lifecycle.
+   */
+  async openai<T>(
+    toolName: string,
+    inputs: any,
+    operation: () => Promise<T>,
+    scope: GuardScope = "MONITOR",
+  ): Promise<T> {
+    return this.effect<T>({
+      type: "OPENAI_TOOL",
+      target: toolName,
+      input: inputs,
+      execute: operation,
+      provider: "openai",
+      receipt: (result: any) =>
+        result && typeof result === "object" ? result : { result },
+      scope,
+    });
   }
 
   /**
@@ -1158,7 +1245,16 @@ export class ReplayGuard {
     operation: () => Promise<T>,
     scope: GuardScope = "MONITOR",
   ): Promise<T> {
-    return this.wrap("STRIPE_OPERATION", operationId, inputs, operation, scope);
+    return this.effect<T>({
+      type: "STRIPE_OPERATION",
+      target: operationId,
+      input: inputs,
+      execute: operation,
+      provider: "stripe",
+      receipt: (result: any) =>
+        result && typeof result === "object" ? result : { result },
+      scope,
+    });
   }
 }
 

@@ -258,6 +258,12 @@ function EffectTimelineNode({
                   {effect.failureType}
                 </span>
               )}
+              {effect.metadata?.conflict && (
+                <span className="text-[8px] font-black uppercase tracking-widest bg-red-500/10 text-red-400 px-1.5 py-0.5 rounded border border-red-500/20 flex items-center gap-1 animate-pulse">
+                  <AlertTriangle className="w-2.5 h-2.5 text-red-400" />
+                  Concurrency Conflict
+                </span>
+              )}
             </div>
             <h4 className="text-lg font-bold text-foreground tracking-tight">
               {effect.target}
@@ -267,6 +273,24 @@ function EffectTimelineNode({
             {format(new Date(effect.executedAt), "HH:mm:ss.SSS")}
           </span>
         </div>
+
+        {effect.metadata?.conflict && (
+          <div className="mb-4 p-4 rounded-xl bg-red-500/5 border border-red-500/10 flex items-center gap-3">
+            <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 animate-bounce" />
+            <div className="flex flex-col">
+              <span className="text-xs font-black uppercase tracking-widest text-red-400">
+                Concurrency Conflict Detected
+              </span>
+              <span className="text-[10px] text-muted-foreground/75">
+                Another execution session (ID:{" "}
+                <span className="font-mono text-red-400/90">
+                  {effect.metadata.conflictingExecutionId}
+                </span>
+                ) attempted to run this side effect concurrently. Action halted.
+              </span>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="p-4 rounded-xl bg-background/40 border border-border/5 space-y-2">
@@ -389,6 +413,44 @@ export default function GuardExecutionDetailPage() {
   const unknown = effects.filter((e: any) => e.status === "UNKNOWN").length;
   const failed = effects.filter((e: any) => e.status === "FAILED").length;
   const executing = effects.filter((e: any) => e.status === "EXECUTING").length;
+
+  const treeEffects = React.useMemo(() => {
+    const idMap: Record<string, any> = {};
+    const roots: any[] = [];
+    for (const e of effects) {
+      idMap[e.id] = { ...e, children: [] };
+    }
+    for (const e of effects) {
+      const node = idMap[e.id];
+      if (e.parentSideEffectId && idMap[e.parentSideEffectId]) {
+        idMap[e.parentSideEffectId].children.push(node);
+      } else {
+        roots.push(node);
+      }
+    }
+    return roots;
+  }, [effects]);
+
+  const renderEffectNode = useCallback(
+    (node: any, depth = 0) => {
+      return (
+        <div
+          key={node.id}
+          style={{ marginLeft: `${depth * 24}px` }}
+          className="relative"
+        >
+          {depth > 0 && (
+            <div className="absolute -left-4 top-5 w-4 h-[1px] bg-border/20" />
+          )}
+          <EffectTimelineNode effect={node} onApprove={handleApprove} />
+          {node.children.map((child: any) =>
+            renderEffectNode(child, depth + 1),
+          )}
+        </div>
+      );
+    },
+    [handleApprove],
+  );
 
   return (
     <div className="flex flex-col gap-12 animate-in fade-in slide-in-from-bottom-8 duration-700">
@@ -540,13 +602,7 @@ export default function GuardExecutionDetailPage() {
                 No side effects recorded for this execution.
               </p>
             )}
-            {effects.map((effect: any) => (
-              <EffectTimelineNode
-                key={effect.id}
-                effect={effect}
-                onApprove={handleApprove}
-              />
-            ))}
+            {treeEffects.map((node: any) => renderEffectNode(node, 0))}
           </div>
         </div>
 

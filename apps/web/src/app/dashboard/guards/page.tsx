@@ -34,15 +34,31 @@ export default function GuardExecutionsPage() {
     fetcher,
   );
 
+  const [viewMode, setViewMode] = useState<"executions" | "agents">(
+    "executions",
+  );
+
   const filteredExecutions = executions?.filter((exec: any) => {
     const query = searchQuery.toLowerCase();
     return (
       (exec.externalId?.toLowerCase() || "").includes(query) ||
       (exec.id?.toLowerCase() || "").includes(query) ||
       (exec.workflowId?.toLowerCase() || "").includes(query) ||
-      (exec.monitor?.name?.toLowerCase() || "").includes(query)
+      (exec.monitor?.name?.toLowerCase() || "").includes(query) ||
+      (exec.agentId?.toLowerCase() || "").includes(query)
     );
   });
+
+  const agentGroups = React.useMemo(() => {
+    if (!filteredExecutions) return {};
+    const groups: Record<string, any[]> = {};
+    for (const exec of filteredExecutions) {
+      const key = exec.agentId || "Standalone";
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(exec);
+    }
+    return groups;
+  }, [filteredExecutions]);
 
   if (isLoading) {
     return (
@@ -97,7 +113,7 @@ export default function GuardExecutionsPage() {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40" />
             <input
               type="text"
-              placeholder="Search by Job ID, Workflow ID, or Monitor..."
+              placeholder="Search by Job ID, Workflow ID, Agent ID, or Monitor..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full h-12 pl-12 pr-6 rounded-xl bg-foreground/[0.03] border border-border/10 focus:border-acid-lime/50 transition-all text-sm font-medium"
@@ -105,6 +121,29 @@ export default function GuardExecutionsPage() {
           </div>
 
           <div className="flex items-center gap-3">
+            <div className="flex rounded-xl bg-foreground/[0.03] border border-border/10 p-1">
+              <button
+                onClick={() => setViewMode("executions")}
+                className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
+                  viewMode === "executions"
+                    ? "bg-acid-lime text-black animate-in fade-in duration-300"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Executions
+              </button>
+              <button
+                onClick={() => setViewMode("agents")}
+                className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
+                  viewMode === "agents"
+                    ? "bg-acid-lime text-black animate-in fade-in duration-300"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Agents
+              </button>
+            </div>
+
             <button
               onClick={() => mutate()}
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-foreground/[0.03] border border-border/10 text-[10px] font-black uppercase tracking-widest hover:bg-foreground/[0.05] transition-all"
@@ -116,83 +155,217 @@ export default function GuardExecutionsPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-4">
-          {filteredExecutions?.map((execution: any, index: number) => (
-            <Link key={execution.id} href={`/dashboard/guards/${execution.id}`}>
-              <div
-                className="group glass-panel border border-border/5 rounded-[2.5rem] p-8 hover:border-acid-lime/20 hover:shadow-2xl hover:shadow-acid-lime/5 transition-all duration-500 animate-in fade-in slide-in-from-bottom-8 fill-mode-both"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr_auto_auto] items-center gap-8">
-                  {/* Status Indicator */}
+          {viewMode === "executions"
+            ? filteredExecutions?.map((execution: any, index: number) => (
+                <Link
+                  key={execution.id}
+                  href={`/dashboard/guards/${execution.id}`}
+                >
                   <div
-                    className={`w-14 h-14 rounded-2xl flex items-center justify-center border shadow-lg transition-all group-hover:scale-110 ${
-                      execution.status === "SUCCESS"
-                        ? "bg-acid-lime/10 border-acid-lime/20 text-acid-lime shadow-acid-lime/5"
-                        : execution.status === "RUNNING"
-                          ? "bg-yellow-400/10 border-yellow-400/20 text-yellow-400 animate-pulse"
-                          : execution.status === "UNKNOWN"
-                            ? "bg-orange-400/10 border-orange-400/20 text-orange-400 animate-pulse"
-                            : "bg-destructive/10 border-destructive/20 text-destructive shadow-destructive/5"
-                    }`}
+                    className="group glass-panel border border-border/5 rounded-[2.5rem] p-8 hover:border-acid-lime/20 hover:shadow-2xl hover:shadow-acid-lime/5 transition-all duration-500 animate-in fade-in slide-in-from-bottom-8 fill-mode-both"
+                    style={{ animationDelay: `${index * 50}ms` }}
                   >
-                    {execution.status === "SUCCESS" ? (
-                      <CheckCircle2 className="w-7 h-7" />
-                    ) : (
-                      <Activity className="w-7 h-7" />
-                    )}
-                  </div>
-
-                  {/* Info */}
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <h3 className="text-xl font-black uppercase tracking-tighter italic group-hover:text-acid-lime transition-colors">
-                        {execution.externalId ||
-                          `Session ${execution.id.slice(0, 8)}`}
-                      </h3>
-                      <span className="text-[10px] font-black px-2 py-0.5 rounded bg-foreground/5 text-muted-foreground uppercase tracking-widest">
-                        Attempt {execution.attempt}
-                      </span>
-                      {execution.workflowId && (
-                        <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-acid-lime/10 border border-acid-lime/15 text-acid-lime uppercase tracking-wider">
-                          WF: {execution.workflowId.slice(0, 8)}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-4 text-muted-foreground flex-wrap">
-                      <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest italic opacity-60">
-                        <Activity className="w-3 h-3 text-acid-lime" />
-                        {execution.monitor.name}
+                    <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr_auto_auto] items-center gap-8">
+                      {/* Status Indicator */}
+                      <div
+                        className={`w-14 h-14 rounded-2xl flex items-center justify-center border shadow-lg transition-all group-hover:scale-110 ${
+                          execution.status === "SUCCESS"
+                            ? "bg-acid-lime/10 border-acid-lime/20 text-acid-lime shadow-acid-lime/5"
+                            : execution.status === "RUNNING"
+                              ? "bg-yellow-400/10 border-yellow-400/20 text-yellow-400 animate-pulse"
+                              : execution.status === "UNKNOWN"
+                                ? "bg-orange-400/10 border-orange-400/20 text-orange-400 animate-pulse"
+                                : "bg-destructive/10 border-destructive/20 text-destructive shadow-destructive/5"
+                        }`}
+                      >
+                        {execution.status === "SUCCESS" ? (
+                          <CheckCircle2 className="w-7 h-7" />
+                        ) : (
+                          <Activity className="w-7 h-7" />
+                        )}
                       </div>
-                      <div className="h-1 w-1 rounded-full bg-muted-foreground/30" />
-                      <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest italic opacity-60">
-                        <Clock className="w-3 h-3" />
-                        {formatDistanceToNow(new Date(execution.startedAt), {
-                          addSuffix: true,
-                        })}
+
+                      {/* Info */}
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <h3 className="text-xl font-black uppercase tracking-tighter italic group-hover:text-acid-lime transition-colors">
+                            {execution.externalId ||
+                              `Session ${execution.id.slice(0, 8)}`}
+                          </h3>
+                          <span className="text-[10px] font-black px-2 py-0.5 rounded bg-foreground/5 text-muted-foreground uppercase tracking-widest">
+                            Attempt {execution.attempt}
+                          </span>
+                          {execution.workflowId && (
+                            <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-acid-lime/10 border border-acid-lime/15 text-acid-lime uppercase tracking-wider">
+                              WF: {execution.workflowId.slice(0, 8)}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-4 text-muted-foreground flex-wrap">
+                          <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest italic opacity-60">
+                            <Activity className="w-3 h-3 text-acid-lime" />
+                            {execution.monitor.name}
+                          </div>
+                          <div className="h-1 w-1 rounded-full bg-muted-foreground/30" />
+                          <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest italic opacity-60">
+                            <Clock className="w-3 h-3" />
+                            {formatDistanceToNow(
+                              new Date(execution.startedAt),
+                              {
+                                addSuffix: true,
+                              },
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Stats */}
+                      <div className="hidden md:flex items-center gap-12 px-8 border-x border-border/5">
+                        <div className="flex flex-col items-center">
+                          <span className="text-[8px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 mb-1">
+                            Side Effects
+                          </span>
+                          <span className="text-lg font-black italic text-foreground">
+                            {execution._count?.sideEffects || 0}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Arrow */}
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center group-hover:bg-acid-lime group-hover:text-primary-foreground transition-all">
+                        <ChevronRight className="w-5 h-5" />
                       </div>
                     </div>
                   </div>
+                </Link>
+              ))
+            : Object.entries(agentGroups).map(
+                ([agentId, jobs]: any, index: number) => {
+                  const totalEffects = jobs.reduce(
+                    (sum: number, j: any) => sum + (j._count?.sideEffects || 0),
+                    0,
+                  );
+                  const successes = jobs.filter(
+                    (j: any) => j.status === "SUCCESS",
+                  ).length;
+                  const running = jobs.filter(
+                    (j: any) => j.status === "RUNNING",
+                  ).length;
+                  const unknown = jobs.filter(
+                    (j: any) => j.status === "UNKNOWN",
+                  ).length;
+                  const failed = jobs.filter(
+                    (j: any) => j.status === "FAILED",
+                  ).length;
 
-                  {/* Stats */}
-                  <div className="hidden md:flex items-center gap-12 px-8 border-x border-border/5">
-                    <div className="flex flex-col items-center">
-                      <span className="text-[8px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 mb-1">
-                        Side Effects
-                      </span>
-                      <span className="text-lg font-black italic text-foreground">
-                        {execution._count?.sideEffects || 0}
-                      </span>
+                  return (
+                    <div
+                      key={agentId}
+                      className="group glass-panel border border-border/5 rounded-[2.5rem] p-8 hover:border-acid-lime/20 transition-all duration-500 animate-in fade-in slide-in-from-bottom-8 fill-mode-both"
+                      style={{ animationDelay: `${index * 50}ms` }}
+                    >
+                      <div className="flex flex-col gap-6">
+                        <div className="flex flex-wrap items-center justify-between gap-4">
+                          <div>
+                            <h3 className="text-2xl font-black uppercase tracking-tighter italic text-foreground flex items-center gap-2">
+                              <Shield className="w-6 h-6 text-acid-lime" />
+                              {agentId}
+                            </h3>
+                            <p className="text-xs text-muted-foreground/60">
+                              Execution Memory History ({jobs.length} total
+                              runs)
+                            </p>
+                          </div>
+
+                          <div className="flex items-center gap-3">
+                            {successes > 0 && (
+                              <span className="text-[10px] font-black uppercase tracking-widest bg-acid-lime/10 border border-acid-lime/20 text-acid-lime px-2.5 py-0.5 rounded">
+                                {successes} OK
+                              </span>
+                            )}
+                            {running > 0 && (
+                              <span className="text-[10px] font-black uppercase tracking-widest bg-yellow-400/10 border border-yellow-400/20 text-yellow-400 px-2.5 py-0.5 rounded">
+                                {running} RUNNING
+                              </span>
+                            )}
+                            {unknown > 0 && (
+                              <span className="text-[10px] font-black uppercase tracking-widest bg-orange-400/10 border border-orange-400/20 text-orange-400 px-2.5 py-0.5 rounded">
+                                {unknown} UNKNOWN
+                              </span>
+                            )}
+                            {failed > 0 && (
+                              <span className="text-[10px] font-black uppercase tracking-widest bg-destructive/10 border border-destructive/20 text-destructive px-2.5 py-0.5 rounded">
+                                {failed} FAILED
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-border/5 pt-6">
+                          <div className="p-4 rounded-xl bg-background/20 border border-border/5">
+                            <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/60 block mb-1">
+                              Total Side Effects
+                            </span>
+                            <span className="text-xl font-black text-foreground">
+                              {totalEffects}
+                            </span>
+                          </div>
+                          <div className="p-4 rounded-xl bg-background/20 border border-border/5">
+                            <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/60 block mb-1">
+                              Runs Logged
+                            </span>
+                            <span className="text-xl font-black text-foreground">
+                              {jobs.length}
+                            </span>
+                          </div>
+                          <div className="p-4 rounded-xl bg-background/20 border border-border/5">
+                            <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground/60 block mb-1">
+                              Active Protection
+                            </span>
+                            <span className="text-xl font-black text-acid-lime uppercase tracking-widest">
+                              Sentinel On
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="space-y-3">
+                          <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
+                            Jobs History
+                          </h4>
+                          <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto pr-2">
+                            {jobs.map((job: any) => (
+                              <Link
+                                key={job.id}
+                                href={`/dashboard/guards/${job.id}`}
+                              >
+                                <div className="flex items-center justify-between p-3 rounded-xl bg-foreground/[0.02] border border-border/5 hover:border-acid-lime/20 transition-all">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs font-bold font-mono text-foreground">
+                                      {job.externalId || job.id.slice(0, 8)}
+                                    </span>
+                                    <span className="text-[8px] font-black px-1.5 py-0.5 rounded bg-foreground/5 text-muted-foreground">
+                                      Attempt #{job.attempt}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-3">
+                                    <span className="text-[10px] text-muted-foreground/60 font-medium">
+                                      {formatDistanceToNow(
+                                        new Date(job.startedAt),
+                                        { addSuffix: true },
+                                      )}
+                                    </span>
+                                    <ChevronRight className="w-4 h-4 text-muted-foreground/40" />
+                                  </div>
+                                </div>
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-
-                  {/* Arrow */}
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center group-hover:bg-acid-lime group-hover:text-primary-foreground transition-all">
-                    <ChevronRight className="w-5 h-5" />
-                  </div>
-                </div>
-              </div>
-            </Link>
-          ))}
+                  );
+                },
+              )}
         </div>
       </div>
     </div>

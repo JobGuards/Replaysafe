@@ -7,6 +7,7 @@ vi.mock("@replaysafe/db", () => ({
       findMany: vi.fn(),
       update: vi.fn(),
       findFirst: vi.fn(),
+      create: vi.fn(),
     },
     guardExecution: {
       findUnique: vi.fn(),
@@ -25,6 +26,7 @@ import { GuardsService } from "../../src/services/GuardsService.ts";
 import { VerificationService } from "../../src/services/VerificationService.ts";
 
 const mockGuardSideEffect = vi.mocked(prisma.guardSideEffect);
+const mockGuardExecution = vi.mocked(prisma.guardExecution);
 const mockRunWorkflowPass = vi.mocked(VerificationService.runWorkflowPass);
 
 describe("GuardsService — Resume & Recovery Planner", () => {
@@ -138,6 +140,50 @@ describe("GuardsService — Resume & Recovery Planner", () => {
       await expect(
         GuardsService.approveSideEffect("e1", "proj-1"),
       ).rejects.toThrow("Side effect is not awaiting approval");
+    });
+  });
+
+  describe("beginSideEffect concurrency conflict", () => {
+    it("flags conflict when a concurrent EXECUTING side effect exists", async () => {
+      mockGuardExecution.findUnique.mockResolvedValueOnce({
+        id: "exec-2",
+        monitor: { projectId: "proj-1" },
+      } as any);
+
+      // Deduplication check: none
+      mockGuardSideEffect.findFirst.mockResolvedValueOnce(null);
+
+      // Concurrency check: mock active conflict
+      mockGuardSideEffect.findFirst.mockResolvedValueOnce({
+        id: "active-1",
+        executionId: "exec-1",
+        metadata: {},
+      } as any);
+
+      await GuardsService.beginSideEffect("exec-2", "fp-123", "T1", "t1", "h1");
+
+      // Verifies update on conflicting side effect
+      expect(mockGuardSideEffect.update).toHaveBeenCalledWith({
+        where: { id: "active-1" },
+        data: {
+          metadata: {
+            conflict: true,
+            conflictingExecutionId: "exec-2",
+          },
+        },
+      });
+
+      // Verifies creation of the new side effect with conflict metadata
+      expect(mockGuardSideEffect.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          executionId: "exec-2",
+          status: "EXECUTING",
+          metadata: {
+            conflict: true,
+            conflictingExecutionId: "exec-1",
+          },
+        }),
+      });
     });
   });
 });

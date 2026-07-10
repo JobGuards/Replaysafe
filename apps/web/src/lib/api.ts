@@ -238,6 +238,11 @@ class ApiClient {
       method: "POST",
     });
   }
+
+  // Phase 9: Agent Execution Memory
+  async getAgentEffects(agentId: string): Promise<any[]> {
+    return this.fetch<any[]>(`/agents/${agentId}/effects`);
+  }
 }
 
 export const api = new ApiClient();

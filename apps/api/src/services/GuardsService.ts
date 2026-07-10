@@ -530,7 +530,7 @@ export class GuardsService {
     // Deduplication Logic
     const searchCriteria: any = {
       fingerprint,
-      status: "COMMITTED",
+      status: { in: ["COMMITTED", "VERIFIED"] },
       projectId,
     };
 
@@ -571,6 +571,39 @@ export class GuardsService {
       };
     }
 
+    // Concurrency Conflict Detection
+    const activeConflict = await prisma.guardSideEffect.findFirst({
+      where: {
+        fingerprint,
+        status: "EXECUTING",
+        projectId,
+        executionId: { not: executionId },
+      },
+    });
+
+    const isConflict = !!activeConflict;
+    const initialMetadata: any = isConflict
+      ? {
+          conflict: true,
+          conflictingExecutionId: activeConflict.executionId,
+        }
+      : {};
+
+    if (activeConflict) {
+      // Mark conflict on the other active execution's side effect
+      const existingMeta = (activeConflict.metadata as Record<string, any>) || {};
+      await prisma.guardSideEffect.update({
+        where: { id: activeConflict.id },
+        data: {
+          metadata: {
+            ...existingMeta,
+            conflict: true,
+            conflictingExecutionId: executionId,
+          },
+        },
+      });
+    }
+
     try {
       await prisma.guardSideEffect.create({
         data: {
@@ -585,6 +618,7 @@ export class GuardsService {
           startedAt: new Date(),
           workflowId: workflowId || currentExecution.workflowId,
           agentId: agentId || currentExecution.agentId,
+          metadata: initialMetadata,
         },
       });
     } catch (error: any) {
