@@ -60,28 +60,29 @@ export default function StripeVsReplaySafeDoc() {
               },
               {
                 aspect: "Lifetime",
-                stripe: "24 hours (configurable up to 30 days)",
+                stripe: "24 hours (default)",
                 replay: "Forever - ledger persists indefinitely",
                 icon: <Clock className="w-4 h-4" />,
               },
               {
                 aspect: "State Machine",
-                stripe: 'Binary: "seen" / "not seen"',
+                stripe: "Not seen → Process → Seen (return cached)",
                 replay:
                   "Full lifecycle: INTENDED → EXECUTING → COMMITTED → VERIFIED",
                 icon: <GitMerge className="w-4 h-4" />,
               },
               {
                 aspect: "Verification",
-                stripe: "None - trusts Stripe's response",
+                stripe: "Returns cached response on retry (idempotent)",
                 replay:
-                  "Provider-side verification - calls Stripe/SendGrid/GitHub to confirm reality",
+                  "Provider-side verification - calls Stripe/SendGrid/GitHub to confirm what actually happened",
                 icon: <Search className="w-4 h-4" />,
               },
               {
                 aspect: "Failure Classification",
-                stripe: "None",
-                replay: "TRANSIENT vs SEMANTIC - knows why it failed",
+                stripe:
+                  "Per-error type (card_error, api_connection_error, etc.)",
+                replay: "Unified TRANSIENT vs SEMANTIC across all providers",
                 icon: <Shield className="w-4 h-4" />,
               },
               {

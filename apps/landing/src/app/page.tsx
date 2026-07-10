@@ -50,7 +50,7 @@ export default function LandingPage() {
     },
     {
       q: "Why not just use Stripe's idempotency keys?",
-      a: "Stripe only prevents duplicate Stripe calls. ReplaySafe prevents duplicate real-world consequences across your entire system - emails, webhooks, database writes, GitHub issues, and any custom API. It also provides provider-side verification (checks with Stripe if a charge actually went through), failure classification (transient vs semantic), and cross-agent coordination.",
+      a: "Stripe only prevents duplicate Stripe calls. ReplaySafe prevents duplicate real-world consequences across your entire system - emails, webhooks, database writes, GitHub issues, and any custom API. It also provides unified failure classification across all providers (Stripe, SendGrid, GitHub, etc.), cross-agent coordination, and crash recovery with a structured continuation plan.",
     },
     {
       q: "What providers does ReplaySafe cover?",
@@ -78,7 +78,7 @@ export default function LandingPage() {
     },
     {
       q: "What happens when something fails semantically?",
-      a: "A SEMANTIC failure means the call succeeded but returned a wrong/stale result (e.g., card declined, email bounced). ReplaySafe blocks automatic retry and routes it to AWAITING_APPROVAL - a human must approve or the agent must re-plan with different input.",
+      a: "A SEMANTIC failure means the operation completed but the result is wrong or unusable - e.g., card declined, email bounced, resource not found. Retrying with the same input will produce the same result. ReplaySafe blocks automatic retry and routes it to AWAITING_APPROVAL - a human must approve or the agent must re-plan with different input.",
     },
     {
       q: "Is ReplaySafe self-hosted?",
