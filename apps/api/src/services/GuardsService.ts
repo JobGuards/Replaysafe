@@ -364,7 +364,7 @@ export class GuardsService {
    */
   static async completeExecution(
     executionId: string,
-    status: "SUCCESS" | "FAILED",
+    status: "SUCCESS" | "FAILED" | "UNKNOWN",
     shouldRollback: boolean = false,
   ) {
     const execution = await prisma.guardExecution.update({
@@ -623,6 +623,22 @@ export class GuardsService {
       });
     } catch (error: any) {
       if (error.code === "P2002") {
+        const executingEffect = await prisma.guardSideEffect.findFirst({
+          where: {
+            fingerprint,
+            status: "EXECUTING",
+            projectId,
+            executionId: { not: executionId },
+          },
+        });
+
+        if (executingEffect) {
+          return {
+            action: "CONFLICT" as const,
+            conflictingExecutionId: executingEffect.executionId,
+          };
+        }
+
         const raceEffect = await prisma.guardSideEffect.findFirst({
           where: searchCriteria,
           orderBy: { executedAt: "desc" },
@@ -675,6 +691,27 @@ export class GuardsService {
         status: "UNKNOWN",
         finishedAt: new Date(),
         metadata: { reason },
+      },
+    });
+  }
+
+  /**
+   * Phase 6: Mark a side effect FAILED (non-timeout error)
+   * Used by the SDK when an operation throws, to track the failure without
+   * triggering Phase 7 verification (unlike UNKNOWN).
+   */
+  static async markFailed(
+    executionId: string,
+    fingerprint: string,
+    error: string,
+    metadata?: Record<string, any>,
+  ) {
+    await prisma.guardSideEffect.update({
+      where: { executionId_fingerprint: { executionId, fingerprint } },
+      data: {
+        status: "FAILED",
+        finishedAt: new Date(),
+        metadata: { error, ...metadata },
       },
     });
   }

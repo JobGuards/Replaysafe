@@ -13,6 +13,7 @@ import {
   Search,
   Filter,
   RefreshCw,
+  RotateCcw,
 } from "lucide-react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
@@ -230,6 +231,27 @@ export default function GuardExecutionsPage() {
                           </span>
                         </div>
                       </div>
+
+                      {/* Resume button for incomplete executions with workflowId */}
+                      {execution.workflowId && execution.status !== "SUCCESS" && (
+                        <button
+                          className="w-10 h-10 rounded-full flex items-center justify-center group-hover:bg-acid-lime group-hover:text-primary-foreground transition-all text-acid-lime hover:text-primary-foreground"
+                          title="Resume workflow"
+                          onClick={async (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            try {
+                              await api.resumeWorkflow(execution.workflowId);
+                              window.location.reload();
+                            } catch (err) {
+                              console.error("Resume failed:", err);
+                              alert("Failed to resume workflow");
+                            }
+                          }}
+                        >
+                          <RotateCcw className="w-5 h-5" />
+                        </button>
+                      )}
 
                       {/* Arrow */}
                       <div className="w-10 h-10 rounded-full flex items-center justify-center group-hover:bg-acid-lime group-hover:text-primary-foreground transition-all">

@@ -3,6 +3,8 @@ import { alertService } from "./AlertService.js";
 import { verifierRegistry } from "./verifiers/VerifierRegistry.js";
 import { StripeVerifier } from "./verifiers/StripeVerifier.js";
 import { SendGridVerifier } from "./verifiers/SendGridVerifier.js";
+import { PostmarkVerifier } from "./verifiers/PostmarkVerifier.js";
+import { SESVerifier } from "./verifiers/SESVerifier.js";
 import { GitHubVerifier } from "./verifiers/GitHubVerifier.js";
 import { SlackVerifier } from "./verifiers/SlackVerifier.js";
 import { TwilioVerifier } from "./verifiers/TwilioVerifier.js";
@@ -17,6 +19,8 @@ import { decryptJSON } from "../utils/encryption.js";
 // The registry is a singleton — import order doesn't matter.
 verifierRegistry.register(new StripeVerifier());
 verifierRegistry.register(new SendGridVerifier());
+verifierRegistry.register(new PostmarkVerifier());
+verifierRegistry.register(new SESVerifier());
 verifierRegistry.register(new GitHubVerifier());
 verifierRegistry.register(new SlackVerifier());
 verifierRegistry.register(new TwilioVerifier());

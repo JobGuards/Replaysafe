@@ -239,6 +239,13 @@ class ApiClient {
     });
   }
 
+  // Phase 8: Resume workflow
+  async resumeWorkflow(workflowId: string): Promise<any> {
+    return this.fetch(`/guards/resume/${workflowId}`, {
+      method: "POST",
+    });
+  }
+
   // Phase 9: Agent Execution Memory
   async getAgentEffects(agentId: string): Promise<any[]> {
     return this.fetch<any[]>(`/agents/${agentId}/effects`);
