@@ -15,14 +15,16 @@ export default function ReplayGuardDoc() {
   return (
     <DocLayout
       title="ReplayGuard SDK"
-      subtitle="Execution Safety Layer"
-      category="Advanced Safety"
+      subtitle="Execution Memory & Side-Effect Control Plane"
+      category="Core Concept"
     >
       <div className="space-y-16">
         <p className="text-xl leading-relaxed text-foreground/80">
           ReplayGuard makes retrying failed background jobs safe by preventing
           duplicate side effects like double payments, emails, or data
-          corruption.
+          corruption. It tracks every operation through a full lifecycle — from
+          intent to verification — giving you complete execution memory for AI
+          agents.
         </p>
 
         <section className="glass-panel border border-border/10 rounded-[3rem] p-12 bg-acid-lime/[0.02]">
@@ -31,8 +33,11 @@ export default function ReplayGuardDoc() {
           </h3>
           <p className="mb-10 leading-relaxed text-muted-foreground">
             ReplayGuard sits between your job logic and its side effects. It
-            fingerprints every operation and ensures they happen **exactly
-            once**, regardless of how many times you press "Retry".
+            fingerprints every operation and ensures they happen{" "}
+            <strong className="text-foreground">exactly once</strong>, regardless
+            of how many times you press "Retry". Every side effect follows a
+            strict lifecycle: INTENDED → EXECUTING → COMMITTED → VERIFIED, with
+            UNKNOWN (timeout) and FAILED branches.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <FeatureItem
@@ -60,9 +65,9 @@ export default function ReplayGuardDoc() {
           </h2>
           <p className="leading-relaxed text-muted-foreground">
             Sometimes a job fails mid-way, leaving your system in an
-            inconsistent state. ReplayGuard allows you to register
-            **Compensation Hooks** that run automatically if the job terminates
-            unsuccessfully.
+            inconsistent state. ReplayGuard allows you to register{" "}
+            <strong className="text-foreground">Compensation Hooks</strong> that
+            run automatically if the job terminates unsuccessfully.
           </p>
           <div className="glass-panel border border-border/10 rounded-[2.5rem] p-8 bg-foreground/[0.02]">
             <pre className="text-sm font-mono text-foreground/80 leading-relaxed overflow-x-auto">
@@ -95,7 +100,10 @@ export default function ReplayGuardDoc() {
             Wrap your job with{" "}
             <code className="text-acid-lime font-mono">withReplayGuard</code>{" "}
             and use the <code className="text-acid-lime font-mono">guard</code>{" "}
-            instance for side effects.
+            instance for side effects.{" "}
+            <code className="text-acid-lime font-mono">guard.effect()</code> is
+            the primary primitive — it gives you full lifecycle tracking and
+            automatic deduplication.
           </p>
 
           <div className="glass-panel border border-border/10 rounded-[2.5rem] overflow-hidden">
@@ -202,9 +210,11 @@ export const processPayment = async (orderId: string) => {
             Integration with Replaysafe
           </h2>
           <p className="leading-relaxed text-muted-foreground">
-            Once integrated, your job executions will appear in the **Sentinel
-            Hub Dashboard** under "Guarded Replays", where you can audit every
-            side effect and safely trigger retries.
+            Once integrated, your job executions will appear in the{" "}
+            <strong className="text-foreground">Guard Dashboard</strong> under
+            "Guarded Replays", where you can audit every side effect, view
+            verification results, trigger resume, and safely retry failed
+            workflows.
           </p>
           <div className="flex gap-4">
             <button className="flex items-center gap-2 bg-acid-lime text-black px-8 py-3 rounded-full font-black uppercase tracking-widest text-[10px] hover:scale-105 transition-all">

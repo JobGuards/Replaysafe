@@ -9,8 +9,8 @@ export default function APIReferenceDoc() {
     <DocLayout title="API Reference" subtitle="Developers" category="Reference">
       <div className="space-y-16">
         <p className="text-xl leading-relaxed">
-          Robust, secure, and developer-friendly endpoints for infrastructure
-          monitoring.
+          Robust, secure, and developer-friendly endpoints for execution memory
+          and side-effect coordination for AI agents.
         </p>
 
         <section className="space-y-6">
@@ -31,7 +31,148 @@ export default function APIReferenceDoc() {
 
         <section className="space-y-12 pt-12 border-t border-border/10">
           <h2 className="text-3xl font-black uppercase tracking-tight text-foreground">
-            Endpoints
+            Guard API Endpoints
+          </h2>
+
+          <div className="space-y-12">
+            {/* Effect Begin */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <span className="px-3 py-1 bg-acid-lime text-primary-foreground text-[10px] font-black uppercase tracking-widest rounded-lg">
+                  POST
+                </span>
+                <h3 className="text-xl font-black text-foreground uppercase tracking-tight">
+                  /api/guards/effect/begin
+                </h3>
+              </div>
+              <p className="leading-relaxed">
+                Begin a side effect — checks deduplication, writes EXECUTING
+                status. Returns CONFLICT if another agent is already executing
+                the same operation.
+              </p>
+              <div className="p-6 bg-foreground/5 rounded-2xl space-y-4">
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                  Request Body
+                </p>
+                <pre className="text-xs font-mono text-foreground whitespace-pre-wrap">
+                  {`{
+  "executionId": "exec_abc123",
+  "fingerprint": "hash_of_operation",
+  "type": "STRIPE_OPERATION",
+  "target": "stripe-charge",
+  "inputHash": "hash_of_inputs",
+  "provider": "stripe",
+  "workflowId": "wf_order_123",
+  "agentId": "agent_order_processor"
+}`}
+                </pre>
+              </div>
+            </div>
+
+            {/* Effect Commit */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <span className="px-3 py-1 bg-acid-lime text-primary-foreground text-[10px] font-black uppercase tracking-widest rounded-lg">
+                  POST
+                </span>
+                <h3 className="text-xl font-black text-foreground uppercase tracking-tight">
+                  /api/guards/effect/commit
+                </h3>
+              </div>
+              <p className="leading-relaxed">
+                Commit a side effect — transitions EXECUTING → COMMITTED, stores
+                result and provider-native receipt.
+              </p>
+            </div>
+
+            {/* Effect Unknown */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <span className="px-3 py-1 bg-acid-lime text-primary-foreground text-[10px] font-black uppercase tracking-widest rounded-lg">
+                  POST
+                </span>
+                <h3 className="text-xl font-black text-foreground uppercase tracking-tight">
+                  /api/guards/effect/unknown
+                </h3>
+              </div>
+              <p className="leading-relaxed">
+                Mark a side effect UNKNOWN — transitions EXECUTING → UNKNOWN.
+                Called when the SDK operation times out with no confirmed
+                response.
+              </p>
+            </div>
+
+            {/* Effect Failed */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <span className="px-3 py-1 bg-acid-lime text-primary-foreground text-[10px] font-black uppercase tracking-widest rounded-lg">
+                  POST
+                </span>
+                <h3 className="text-xl font-black text-foreground uppercase tracking-tight">
+                  /api/guards/effect/failed
+                </h3>
+              </div>
+              <p className="leading-relaxed">
+                Mark a side effect FAILED — transitions EXECUTING → FAILED.
+                Called when the SDK operation throws an error (non-timeout).
+              </p>
+            </div>
+
+            {/* Resume */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <span className="px-3 py-1 bg-acid-lime text-primary-foreground text-[10px] font-black uppercase tracking-widest rounded-lg">
+                  POST
+                </span>
+                <h3 className="text-xl font-black text-foreground uppercase tracking-tight">
+                  /api/guards/resume/:workflowId
+                </h3>
+              </div>
+              <p className="leading-relaxed">
+                Reconcile and retrieve recovery plan for a workflow. Returns a
+                ContinuationPlan with SKIP, RETRY, and BLOCK actions.
+              </p>
+            </div>
+
+            {/* Reconcile */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <span className="px-3 py-1 bg-acid-lime text-primary-foreground text-[10px] font-black uppercase tracking-widest rounded-lg">
+                  POST
+                </span>
+                <h3 className="text-xl font-black text-foreground uppercase tracking-tight">
+                  /api/guards/reconcile/:workflowId
+                </h3>
+              </div>
+              <p className="leading-relaxed">
+                Trigger reconciliation of all UNKNOWN side effects for a
+                workflow. Resolves UNKNOWN effects via provider verification
+                without computing a continuation plan.
+              </p>
+            </div>
+
+            {/* Agent Effects */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <span className="px-3 py-1 bg-foreground/[0.05] text-foreground/60 text-[10px] font-black uppercase tracking-widest rounded-lg">
+                  GET
+                </span>
+                <h3 className="text-xl font-black text-foreground uppercase tracking-tight">
+                  /api/agents/:agentId/effects
+                </h3>
+              </div>
+              <p className="leading-relaxed">
+                Returns all side effects for a given agent across all
+                executions in the project. Used for agent fleet visibility and
+                execution memory queries.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="space-y-12 pt-12 border-t border-border/10">
+          <h2 className="text-3xl font-black uppercase tracking-tight text-foreground">
+            Monitoring Endpoints
           </h2>
 
           <div className="space-y-12">

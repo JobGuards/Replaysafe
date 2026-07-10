@@ -45,28 +45,44 @@ export default function LandingPage() {
 
   const faqs = [
     {
-      q: "What is Replaysafe?",
-      a: "Replaysafe is a reliability platform that combines heartbeat monitoring for infrastructure with ReplayGuard for background job safety. We ensure your backups run and your job retries are idempotent.",
+      q: "What is ReplaySafe?",
+      a: "ReplaySafe is the execution memory and side-effect control plane for AI agents. It remembers every action your agent takes, so if anything crashes, times out, or gets retried, it never does the same thing twice and knows exactly where to resume.",
     },
     {
-      q: "What is ReplayGuard?",
-      a: "ReplayGuard makes retrying failed jobs safe. It tracks side effects (payments, emails) using cryptographic fingerprints to prevent duplicate execution during retries.",
+      q: "Why not just use Stripe's idempotency keys?",
+      a: "Stripe only prevents duplicate Stripe calls. ReplaySafe prevents duplicate real-world consequences across your entire system — emails, webhooks, database writes, GitHub issues, and any custom API. It also provides provider-side verification (checks with Stripe if a charge actually went through), failure classification (transient vs semantic), and cross-agent coordination.",
     },
     {
-      q: "How does it monitor Tunnels?",
-      a: "We track handshake age and latency for WireGuard, SSH, and OpenVPN. If your tunnel degrades or keys go stale, we detect it without intercepting traffic.",
+      q: "What providers does ReplaySafe cover?",
+      a: "Built-in verification for Stripe, SendGrid, Postmark, SES, GitHub, Slack, Twilio, and AWS S3. Plus any HTTP API, webhook, database write, or custom operation via guard.effect().",
     },
     {
-      q: "Can I report failures explicitly?",
-      a: "Yes! You can use our CLI or SDK to report failures, measure latency, and guard side effects with replay-safe deduplication - preventing duplicate actions even across aggressive retries.",
+      q: "How does verification work?",
+      a: "When an operation times out (UNKNOWN status), ReplaySafe's verification worker queries the provider's API to check if it actually succeeded — e.g., calls Stripe to check charge status, SendGrid for email delivery, GitHub for issue existence.",
     },
     {
-      q: "What is 'Execution Memory'?",
-      a: "Replaysafe remembers past failures and successful side effects. We help you find patterns and ensure that retrying a job never charges a customer twice.",
+      q: "What is the Execution Ledger?",
+      a: "A complete lifecycle record of every side effect: INTENDED → EXECUTING → COMMITTED → VERIFIED. Each transition has a timestamp. If something times out, it shows UNKNOWN. If it fails, it shows FAILED with a failure type (TRANSIENT or SEMANTIC).",
+    },
+    {
+      q: "How does agent crash recovery work?",
+      a: "Call guard.resume(workflowId) and ReplaySafe returns a continuation plan: which steps are VERIFIED (skip), which are UNKNOWN (verify first), which are TRANSIENT failures (safe to retry), and which are SEMANTIC failures (blocked, needs human approval).",
     },
     {
       q: "Does it work with my existing orchestration framework?",
-      a: "Yes - ReplayGuard ships with named adapters for LangGraph, CrewAI, Inngest, n8n, and Airflow. Each is a drop-in wrapper over the same safety engine. No framework lock-in, no rewrites. If you use a custom runner or any other framework, the generic guard.wrap() method works anywhere.",
+      a: "Yes — ReplaySafe ships with drop-in adapters for LangGraph, CrewAI, Inngest, n8n, Airflow, Anthropic MCP, and OpenAI Assistants. Each adapter writes full ledger entries automatically.",
+    },
+    {
+      q: "Can multiple agents share execution memory?",
+      a: "Yes. GuardSideEffect has project-scoped deduplication. Agent A's VERIFIED charge for order_123 is visible to Agent B before it attempts the same operation. Concurrent conflicts are flagged in the ledger and dashboard.",
+    },
+    {
+      q: "What happens when something fails semantically?",
+      a: "A SEMANTIC failure means the call succeeded but returned a wrong/stale result (e.g., card declined, email bounced). ReplaySafe blocks automatic retry and routes it to AWAITING_APPROVAL — a human must approve or the agent must re-plan with different input.",
+    },
+    {
+      q: "Is ReplaySafe self-hosted?",
+      a: "Yes. Docker Compose provides a one-command local stack (API + Web + Postgres + Redis). Zero external telemetry. AGPL-3.0 licensed.",
     },
   ];
 
@@ -103,7 +119,7 @@ export default function LandingPage() {
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-acid-lime/20 bg-acid-lime/5 backdrop-blur text-xs font-code-md text-acid-lime shadow-[0_0_15px_rgba(var(--theme-lime-rgb),0.1)]">
               <span className="w-2 h-2 rounded-full bg-acid-lime animate-pulse"></span>
               <span className="tracking-[0.2em] uppercase text-[10px] font-black italic">
-                Replay-Safe Active
+                Execution Memory Active
               </span>
             </div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/5 backdrop-blur text-xs font-code-md text-muted-foreground">
@@ -120,9 +136,10 @@ export default function LandingPage() {
             </span>
           </h1>
           <p className="text-body-lg font-body-lg text-muted-foreground max-w-2xl mt-2">
-            When AI agents fail and retry, they repeat every action they already
-            took - double charges, duplicate emails, redundant API calls.
-            ReplayGuard intercepts duplicate side effects before they happen.
+            Agents retry. They repeat everything - double charges, duplicate
+            emails, redundant calls. ReplaySafe remembers what already
+            happened, so retries skip what succeeded and resume from where
+            they left off.
           </p>
           <div className="flex flex-col items-center gap-lg mt-15">
             <a
@@ -196,13 +213,13 @@ export default function LandingPage() {
               {/* Center Node */}
               <div className="bg-surface-container-highest border-2 border-acid-lime rounded-2xl p-8 flex flex-col items-center gap-4 shadow-[0_0_40px_rgba(217,255,0,0.2)] w-56 relative group hover:scale-105 transition-transform duration-500">
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#0d0d15] px-2 text-[10px] text-acid-lime font-code-md tracking-[0.3em] font-black uppercase">
-                  Sentinel_Core
+                  Guard_Core
                 </div>
                 <div className="w-16 h-16 rounded-xl bg-acid-lime/10 flex items-center justify-center border border-acid-lime/30 group-hover:bg-acid-lime/20 transition-colors">
                   <ShieldCheck className="text-acid-lime w-8 h-8" />
                 </div>
                 <span className="font-black text-foreground text-2xl uppercase tracking-tighter italic">
-                  Replaysafe
+                  ReplaySafe
                 </span>
               </div>
 
@@ -276,7 +293,7 @@ export default function LandingPage() {
           <div className="max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
             <div className="space-y-10">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-acid-lime/20 bg-acid-lime/5 backdrop-blur text-[10px] font-black italic text-acid-lime uppercase tracking-widest">
-                Replay-Safe Execution
+                Execution Memory
               </div>
               <h3 className="text-5xl md:text-6xl font-black uppercase tracking-tighter leading-none italic">
                 Execution <br /> <span className="glow-lime">Memory</span>.
@@ -397,11 +414,11 @@ export default function LandingPage() {
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="w-4 h-4 text-acid-lime" />
                     <span className="text-[10px] font-black uppercase tracking-widest italic">
-                      Sentinel Insight
+                      ReplaySafe Insight
                     </span>
                   </div>
                   <p className="text-[11px] text-muted-foreground leading-relaxed font-medium">
-                    "Replaysafe detected a successful payment fingerprint in{" "}
+                    "ReplaySafe detected a successful payment fingerprint in{" "}
                     <span className="text-acid-lime">Attempt_01</span>.
                     Execution halted to prevent double-spend. Replaying cached
                     receipt."
@@ -416,7 +433,7 @@ export default function LandingPage() {
           {/* Works With - Framework Compatibility Strip */}
           <div className="mt-16 w-full mx-auto">
             <p className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground/50 mb-6 italic text-center">
-              Drop-in safety proxy for
+              Drop-in safety for
             </p>
             <div className="flex flex-wrap justify-center items-center gap-3">
               {[
@@ -527,7 +544,7 @@ async function chargeNode(state, guard) {
         <section className="w-full py-24 relative overflow-hidden">
           <div className="text-center mb-20">
             <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-acid-lime mb-4 italic">
-              Visibility for the Replay Engine
+              Infrastructure Visibility
             </h2>
             <h3 className="text-4xl md:text-5xl font-black uppercase tracking-tight">
               Infrastructure <span className="glow-lime">Telemetry</span>.
@@ -548,7 +565,7 @@ async function chargeNode(state, guard) {
               </h4>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 Zero-config cron and job monitoring. If your background job
-                stops reporting, Replaysafe fires an alert before any agent
+                stops reporting, ReplaySafe fires an alert before any agent
                 retries into a broken state.
               </p>
             </div>
@@ -575,10 +592,84 @@ async function chargeNode(state, guard) {
                 Failure Pattern Intelligence
               </h4>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Replaysafe tracks recurring failure windows, health score
+                ReplaySafe tracks recurring failure windows, health score
                 trends, and cascade incidents - giving agents and engineers
                 actionable context, not just raw alerts.
               </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Beyond Payments — Provider Grid */}
+        <section className="w-full py-24 relative overflow-hidden">
+          <div className="text-center mb-16">
+            <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-acid-lime mb-4 italic">
+              Beyond Payments
+            </h2>
+            <h3 className="text-4xl md:text-5xl font-black uppercase tracking-tight">
+              Every Provider. <span className="glow-lime">One Safety Net.</span>
+            </h3>
+            <p className="text-muted-foreground mt-6 max-w-2xl mx-auto text-lg leading-relaxed">
+              ReplaySafe sits between your agents and ALL your side-effect
+              providers — Stripe is just one of many.
+            </p>
+          </div>
+
+          <div className="max-w-6xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { name: "Stripe", category: "Payments", icon: "\u{1F4B3}" },
+              { name: "SendGrid", category: "Email", icon: "\u{1F4E7}" },
+              { name: "Postmark", category: "Email", icon: "\u{1F4EE}" },
+              { name: "AWS SES", category: "Email", icon: "\u{1F4EC}" },
+              { name: "GitHub", category: "Dev Tools", icon: "\u{1F419}" },
+              { name: "GitLab", category: "Dev Tools", icon: "\u{1F98A}" },
+              { name: "Slack", category: "Messaging", icon: "\u{1F4AC}" },
+              { name: "Twilio", category: "SMS / Voice", icon: "\u{1F4F1}" },
+              { name: "AWS S3", category: "Storage", icon: "\u{1FAA3}" },
+              { name: "OpenAI", category: "AI / LLM", icon: "\u{1F916}" },
+              { name: "Anthropic MCP", category: "AI / LLM", icon: "\u{1F9E0}" },
+              { name: "Any HTTP API", category: "Custom", icon: "\u{1F310}" },
+            ].map((provider) => (
+              <div
+                key={provider.name}
+                className="glass-panel rounded-xl p-4 border border-border/10 hover:border-acid-lime/30 transition-all group text-center"
+              >
+                <div className="text-2xl mb-2">{provider.icon}</div>
+                <div className="text-xs font-black uppercase tracking-tight">
+                  {provider.name}
+                </div>
+                <div className="text-[9px] text-muted-foreground/60 uppercase tracking-widest">
+                  {provider.category}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Plus Any Operation */}
+          <div className="max-w-6xl mx-auto px-6 mt-8">
+            <div className="glass-panel rounded-2xl p-8 border border-acid-lime/20 bg-acid-lime/5 text-center">
+              <p className="text-sm font-bold text-acid-lime mb-4">
+                Plus any operation via guard.effect()
+              </p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  "Outbound Webhooks",
+                  "Database Writes",
+                  "LLM / AI Calls",
+                  "Infrastructure (Terraform, K8s)",
+                  "File Uploads",
+                  "Custom REST APIs",
+                  "Queue Messages",
+                  "Cron / Scheduled Jobs",
+                ].map((item) => (
+                  <div
+                    key={item}
+                    className="text-xs font-bold text-foreground/80 bg-foreground/[0.05] rounded-lg p-3"
+                  >
+                    {item}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
@@ -592,7 +683,7 @@ async function chargeNode(state, guard) {
           Built for the Problems You're Already Hitting
         </h2>
         <p className="text-muted-foreground text-center max-w-2xl text-sm leading-relaxed">
-          Replaysafe is in early access. We're working directly with engineering
+          ReplaySafe is in early access. We're working directly with engineering
           teams who are deploying AI agents in production and hitting the
           duplicate side-effect problem. If that's you, we want to hear from
           you.
