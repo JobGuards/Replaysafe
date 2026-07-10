@@ -33,9 +33,11 @@
   --theme-lime-border: rgba(18, 18, 20, 0.15);
   --theme-lime-rgb: 18, 18, 20;
   --theme-grid-color: rgba(18, 18, 20, 0.02);
-  --theme-radial-glow: radial-gradient(circle at 50% 30%,
-      rgba(18, 18, 20, 0.02) 0%,
-      transparent 60%);
+  --theme-radial-glow: radial-gradient(
+    circle at 50% 30%,
+    rgba(18, 18, 20, 0.02) 0%,
+    transparent 60%
+  );
   --theme-circuit-stroke: rgba(18, 18, 20, 0.5);
 }
 
@@ -68,9 +70,11 @@
   --theme-lime-border: rgba(255, 255, 255, 0.1);
   --theme-lime-rgb: 255, 255, 255;
   --theme-grid-color: rgba(255, 255, 255, 0.015);
-  --theme-radial-glow: radial-gradient(circle at 50% 30%,
-      rgba(255, 255, 255, 0.01) 0%,
-      transparent 60%);
+  --theme-radial-glow: radial-gradient(
+    circle at 50% 30%,
+    rgba(255, 255, 255, 0.01) 0%,
+    transparent 60%
+  );
   --theme-circuit-stroke: rgba(255, 255, 255, 0.6);
 }
 
@@ -233,10 +237,12 @@
   top: 0;
   width: 1px;
   height: 60px;
-  background: linear-gradient(to bottom,
-      transparent,
-      rgba(255, 255, 255, 0.15),
-      transparent);
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(255, 255, 255, 0.15),
+    transparent
+  );
   animation: dataFlow 5s linear infinite;
 }
 
