@@ -527,7 +527,7 @@ function PaymentContent() {
                         <div className="flex items-center gap-3">
                           <ShieldCheck className="w-5 h-5" />
                           <span>
-                            Activate_Pro_Sentinel —{" "}
+                            Activate_Pro_Sentinel -{" "}
                             {typeof plans[plan].price === "number"
                               ? `$${plans[plan].price}`
                               : plans[plan].price}
@@ -537,7 +537,7 @@ function PaymentContent() {
                       )}
                     </Button>
                     <p className="text-[9px] text-muted-foreground text-center font-bold uppercase tracking-[0.2em] italic opacity-40">
-                      Encrypted_Gateway — Your payment information is never
+                      Encrypted_Gateway - Your payment information is never
                       stored in plaintext.
                     </p>
                   </div>

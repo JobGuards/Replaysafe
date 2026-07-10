@@ -298,7 +298,7 @@ export function FailurePatternsPanel({ patterns }: { patterns: Pattern[] }) {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground text-center py-4">
-            No patterns detected — monitor looks healthy!
+            No patterns detected - monitor looks healthy!
           </p>
         </CardContent>
       </Card>

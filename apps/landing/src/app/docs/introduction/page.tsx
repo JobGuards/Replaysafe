@@ -17,8 +17,8 @@ export default function IntroDoc() {
           <strong className="text-foreground">
             Execution Memory & Side-Effect Control Plane
           </strong>{" "}
-          for AI agents. It ensures that every external operation — payments,
-          emails, API calls, database writes — happens{" "}
+          for AI agents. It ensures that every external operation - payments,
+          emails, API calls, database writes - happens{" "}
           <strong className="text-foreground">exactly once</strong>, even when
           agents retry, crash, or run concurrently.
         </p>
@@ -31,7 +31,7 @@ export default function IntroDoc() {
             AI agents are inherently unreliable. They retry on failure, run
             concurrently, and operate on external systems that don't guarantee
             idempotency. ReplaySafe gives your agents a durable execution ledger
-            — a complete record of every side effect, its lifecycle state, and
+            - a complete record of every side effect, its lifecycle state, and
             provider-native proof of what actually happened.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -85,7 +85,7 @@ export default function IntroDoc() {
                 03. Recovery Engine
               </h4>
               <p className="leading-relaxed text-muted-foreground text-lg">
-                guard.resume() computes a minimal safe continuation plan — skip
+                guard.resume() computes a minimal safe continuation plan - skip
                 verified effects, retry transient failures, block semantic
                 failures for human approval. No more restarting from scratch.
               </p>
@@ -104,7 +104,7 @@ export default function IntroDoc() {
             Install the SDK and wrap your first side effect in under 5 minutes.
             ReplaySafe operates on an{" "}
             <strong className="text-foreground">execution memory</strong> model
-            — every side effect is tracked from intent to verification.
+            - every side effect is tracked from intent to verification.
           </p>
           <div className="group relative p-10 bg-foreground/[0.02] rounded-[2.5rem] border border-border/10 hover:border-acid-lime/30 transition-all overflow-hidden">
             <div className="absolute top-0 left-0 w-1 h-full bg-acid-lime/20"></div>

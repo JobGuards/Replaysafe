@@ -34,7 +34,7 @@ export default function SelfHostingDoc() {
           </h3>
           <p className="leading-relaxed text-muted-foreground">
             Automation on consumer hardware and non-deterministic AI agents are
-            prone to "Silent Failures"—reboots, state drift, and execution
+            prone to "Silent Failures" - reboots, state drift, and execution
             loops. Replaysafe provides the "Safety Primitives" to handle these
             gracefully.
           </p>

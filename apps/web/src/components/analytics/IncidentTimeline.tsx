@@ -206,7 +206,7 @@ function IncidentCard({
                 </SelectContent>
               </Select>
               <Textarea
-                placeholder="What caused this? What fixed it? (e.g. 'Disk was full — ran cleanup script')"
+                placeholder="What caused this? What fixed it? (e.g. 'Disk was full - ran cleanup script')"
                 className="text-sm min-h-[70px] resize-none"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}

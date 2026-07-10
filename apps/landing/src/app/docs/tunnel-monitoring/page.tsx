@@ -23,7 +23,7 @@ export default function TunnelMonitoringDoc() {
             Problem
           </h3>
           <p className="leading-relaxed text-muted-foreground mb-8">
-            Network tunnels often fail "silently"—the process remains active,
+            Network tunnels often fail "silently" - the process remains active,
             but data flow is obstructed due to stale handshakes or routing
             loops. Replaysafe Sentinel monitors the **Pulse** of the tunnel, not
             just the process status.

@@ -28,7 +28,7 @@ export default function StripeVsReplaySafeDoc() {
           Stripe&apos;s idempotency keys prevent duplicate Stripe API calls.
           ReplaySafe prevents duplicate{" "}
           <strong className="text-foreground">real-world consequences</strong>{" "}
-          across your entire system — emails, webhooks, database writes, GitHub
+          across your entire system - emails, webhooks, database writes, GitHub
           issues, and any custom API.
         </p>
 
@@ -55,47 +55,48 @@ export default function StripeVsReplaySafeDoc() {
                 aspect: "Scope",
                 stripe: "Stripe API only",
                 replay:
-                  "Any side effect — HTTP, email, DB, webhooks, custom APIs",
+                  "Any side effect - HTTP, email, DB, webhooks, custom APIs",
                 icon: <Database className="w-4 h-4" />,
               },
               {
                 aspect: "Lifetime",
-                stripe: "24 hours (configurable up to 30 days)",
-                replay: "Forever — ledger persists indefinitely",
+                stripe: "24 hours (default)",
+                replay: "Forever - ledger persists indefinitely",
                 icon: <Clock className="w-4 h-4" />,
               },
               {
                 aspect: "State Machine",
-                stripe: 'Binary: "seen" / "not seen"',
+                stripe: "Not seen → Process → Seen (return cached)",
                 replay:
                   "Full lifecycle: INTENDED → EXECUTING → COMMITTED → VERIFIED",
                 icon: <GitMerge className="w-4 h-4" />,
               },
               {
                 aspect: "Verification",
-                stripe: "None — trusts Stripe's response",
+                stripe: "Returns cached response on retry (idempotent)",
                 replay:
-                  "Provider-side verification — calls Stripe/SendGrid/GitHub to confirm reality",
+                  "Provider-side verification - calls Stripe/SendGrid/GitHub to confirm what actually happened",
                 icon: <Search className="w-4 h-4" />,
               },
               {
                 aspect: "Failure Classification",
-                stripe: "None",
-                replay: "TRANSIENT vs SEMANTIC — knows why it failed",
+                stripe:
+                  "Per-error type (card_error, api_connection_error, etc.)",
+                replay: "Unified TRANSIENT vs SEMANTIC across all providers",
                 icon: <Shield className="w-4 h-4" />,
               },
               {
                 aspect: "Resume / Recovery",
-                stripe: "None — you rebuild logic",
+                stripe: "None - you rebuild logic",
                 replay:
-                  "guard.resume() — computes minimal safe continuation plan",
+                  "guard.resume() - computes minimal safe continuation plan",
                 icon: <Zap className="w-4 h-4" />,
               },
               {
                 aspect: "Cross-Agent Coordination",
                 stripe: "Per-request only",
                 replay:
-                  "Project-scoped shared ledger — Agent A's work visible to Agent B",
+                  "Project-scoped shared ledger - Agent A's work visible to Agent B",
                 icon: <Eye className="w-4 h-4" />,
               },
               {
