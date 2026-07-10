@@ -12,6 +12,8 @@ export class GuardsService {
     monitorId: string,
     projectId: string,
     externalId?: string,
+    workflowId?: string,
+    agentId?: string,
   ) {
     const monitor = await prisma.monitor.findUnique({
       where: { id: monitorId },
@@ -145,6 +147,8 @@ export class GuardsService {
         externalId,
         attempt,
         status: "RUNNING",
+        workflowId,
+        agentId,
       },
     });
 
@@ -208,7 +212,7 @@ export class GuardsService {
           type,
           target,
           inputHash,
-          status: "COMPLETED",
+          status: "COMMITTED",
           metadata: {
             ...(metadata || {}),
             driftDetected,
@@ -223,7 +227,7 @@ export class GuardsService {
     // Deduplication Logic
     const searchCriteria: any = {
       fingerprint,
-      status: "COMPLETED",
+      status: "COMMITTED",
     };
 
     if (scope === "PROJECT") {
@@ -297,7 +301,7 @@ export class GuardsService {
           type,
           target,
           inputHash,
-          status: "COMPLETED",
+          status: "COMMITTED",
           metadata,
         },
       });
@@ -497,5 +501,161 @@ export class GuardsService {
     }
 
     return execution;
+  }
+  /**
+   * Phase 6: Begin a side effect — check dedup, write EXECUTING status
+   */
+  static async beginSideEffect(
+    executionId: string,
+    fingerprint: string,
+    type: string,
+    target: string,
+    inputHash: string,
+    provider?: string,
+    workflowId?: string,
+    agentId?: string,
+  ) {
+    const currentExecution = await prisma.guardExecution.findUnique({
+      where: { id: executionId },
+      include: { monitor: true },
+    });
+
+    if (!currentExecution) {
+      throw new Error("Execution not found");
+    }
+
+    const projectId = currentExecution.monitor.projectId;
+
+    // Deduplication Logic
+    const searchCriteria: any = {
+      fingerprint,
+      status: "COMMITTED",
+      projectId,
+    };
+
+    const priorEffect = await prisma.guardSideEffect.findFirst({
+      where: searchCriteria,
+      orderBy: { executedAt: "desc" },
+    });
+
+    if (priorEffect) {
+      if (priorEffect.executionId === executionId) {
+        return { action: "EXECUTE" as const };
+      }
+
+      // Record that we skipped this in the current execution
+      await prisma.guardSideEffect.create({
+        data: {
+          executionId,
+          projectId,
+          fingerprint,
+          type,
+          target,
+          inputHash,
+          status: "SKIPPED",
+          workflowId: workflowId || currentExecution.workflowId,
+          agentId: agentId || currentExecution.agentId,
+          metadata: {
+            originalExecutionId: priorEffect.executionId,
+            message: "Bypassed via Global Memory",
+          },
+        },
+      });
+
+      return {
+        action: "SKIP" as const,
+        cachedResult: priorEffect.metadata || {
+          message: "Already executed successfully",
+        },
+      };
+    }
+
+    try {
+      await prisma.guardSideEffect.create({
+        data: {
+          executionId,
+          projectId,
+          fingerprint,
+          type,
+          target,
+          inputHash,
+          provider,
+          status: "EXECUTING",
+          startedAt: new Date(),
+          workflowId: workflowId || currentExecution.workflowId,
+          agentId: agentId || currentExecution.agentId,
+        },
+      });
+    } catch (error: any) {
+      if (error.code === "P2002") {
+        const raceEffect = await prisma.guardSideEffect.findFirst({
+          where: searchCriteria,
+          orderBy: { executedAt: "desc" },
+        });
+
+        return {
+          action: "SKIP" as const,
+          cachedResult: raceEffect?.metadata || {
+            message: "Already executed (race condition handled)",
+          },
+        };
+      }
+      throw error;
+    }
+
+    return { action: "EXECUTE" as const };
+  }
+
+  /**
+   * Phase 6: Commit a side effect
+   */
+  static async commitSideEffect(
+    executionId: string,
+    fingerprint: string,
+    result: any,
+    receipt?: any,
+  ) {
+    await prisma.guardSideEffect.update({
+      where: { executionId_fingerprint: { executionId, fingerprint } },
+      data: {
+        status: "COMMITTED",
+        finishedAt: new Date(),
+        metadata: result || {},
+        receipt,
+      },
+    });
+  }
+
+  /**
+   * Phase 6: Mark a side effect UNKNOWN
+   */
+  static async markUnknown(
+    executionId: string,
+    fingerprint: string,
+    reason: string,
+  ) {
+    await prisma.guardSideEffect.update({
+      where: { executionId_fingerprint: { executionId, fingerprint } },
+      data: {
+        status: "UNKNOWN",
+        finishedAt: new Date(),
+        metadata: { reason },
+      },
+    });
+  }
+
+  /**
+   * Phase 6: List effects by workflow
+   */
+  static async listEffectsByWorkflow(workflowId: string, projectId: string) {
+    return await prisma.guardSideEffect.findMany({
+      where: { workflowId, projectId },
+      orderBy: { executedAt: "desc" },
+      include: {
+        execution: {
+          select: { monitor: { select: { name: true } } },
+        },
+      },
+    });
   }
 }

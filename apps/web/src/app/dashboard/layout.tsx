@@ -118,31 +118,31 @@ export default function DashboardLayout({
             <SidebarLink
               href="/dashboard/monitors"
               icon={<Activity className="w-4 h-4" />}
-              label="Monitors"
+              label="Agents"
               active={pathname?.startsWith("/dashboard/monitors")}
             />
             <SidebarLink
               href="/dashboard/activity"
               icon={<Clock className="w-4 h-4" />}
-              label="Activity"
+              label="Liveness Logs"
               active={pathname === "/dashboard/activity"}
             />
             <SidebarLink
               href="/dashboard/incidents"
               icon={<AlertTriangle className="w-4 h-4" />}
-              label="Incidents"
+              label="Crashes"
               active={pathname === "/dashboard/incidents"}
             />
             <SidebarLink
               href="/dashboard/guards"
               icon={<ShieldCheck className="w-4 h-4" />}
-              label="Replays"
+              label="Execution Ledger"
               active={pathname === "/dashboard/guards"}
             />
             <SidebarLink
               href="/dashboard/webhooks"
               icon={<Globe className="w-4 h-4" />}
-              label="Webhooks"
+              label="Escalations"
               active={pathname === "/dashboard/webhooks"}
             />
             <SidebarLink

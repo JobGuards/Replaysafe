@@ -32,11 +32,12 @@ export default function MonitorsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] items-center gap-12 relative z-10">
           <div className="space-y-6">
             <h1 className="text-5xl md:text-6xl font-black tracking-tighter text-foreground uppercase italic leading-none">
-              Sentinel <span className="text-acid-lime">Hub</span>
+              Agent <span className="text-acid-lime">Profiles</span>
             </h1>
             <p className="text-muted-foreground text-lg md:text-xl font-medium leading-relaxed max-w-2xl">
-              Fleet management for your global crons, backups, and secure
-              network tunnels. Real-time telemetry and proactive safety audits.
+              Track liveness, health status, and execution budgets of background
+              agent daemons. Proactive loop protection and rollback sentinel
+              metrics.
             </p>
           </div>
 
@@ -46,7 +47,7 @@ export default function MonitorsPage() {
               className="bg-acid-lime text-primary-foreground gap-4 px-12 h-16 rounded-2xl shadow-2xl shadow-acid-lime/20 hover:shadow-acid-lime/40 transition-all font-black uppercase tracking-widest text-sm group"
             >
               <Plus className="h-5 w-5 group-hover:rotate-90 transition-transform" />{" "}
-              Deploy Monitor
+              Register Agent
             </Button>
           </Link>
         </div>

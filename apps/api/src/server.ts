@@ -18,6 +18,7 @@ import stripeRoutes from "./routes/stripe.js";
 import guardRoutes from "./routes/guards.js";
 import apiKeyRoutes from "./routes/api-keys.js";
 import projectRoutes from "./routes/projects.js";
+import providerConfigRoutes from "./routes/provider-configs.js";
 import {
   apiRateLimiter,
   authRateLimiter,
@@ -122,6 +123,9 @@ export function createApp() {
 
   // 17. API Key management
   app.use("/api/api-keys", apiKeyRoutes);
+
+  // 18. Phase 7: Provider verification configs
+  app.use("/api/provider-configs", providerConfigRoutes);
 
   // Sentry Error Handler (must be after all controllers)
   Sentry.setupExpressErrorHandler(app);

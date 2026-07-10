@@ -40,10 +40,11 @@ export default function WebhookHub() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
         <div>
           <h1 className="text-4xl font-black tracking-tighter text-foreground uppercase">
-            Webhook Hub
+            Escalations
           </h1>
           <p className="text-muted-foreground text-lg mt-1">
-            Global visibility for outbound communication and idempotency
+            Global visibility for outbound alert webhooks, web notifications,
+            and webhook-driven safety escalations.
           </p>
         </div>
       </div>
@@ -60,10 +61,12 @@ export default function WebhookHub() {
         </div>
         <div className="glass-panel border border-border/10 rounded-2xl p-6 flex flex-col gap-1">
           <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-            Delivered
+            Committed / Sent
           </span>
           <span className="text-2xl font-black text-acid-lime">
-            {webhooks?.filter((h: any) => h.status === "COMPLETED").length || 0}
+            {webhooks?.filter((h: any) =>
+              ["COMMITTED", "COMPLETED"].includes(h.status),
+            ).length || 0}
           </span>
         </div>
         <div className="glass-panel border border-border/10 rounded-2xl p-6 flex flex-col gap-1">

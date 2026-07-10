@@ -10,6 +10,27 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// =============================================================================
+// EXECUTION LEDGER — Phase 6
+// Tracks the full lifecycle of every guarded side effect.
+// =============================================================================
+
+enum SideEffectStatus {
+  INTENDED     // guard.effect() declared intent, before lambda runs
+  EXECUTING    // lambda invoked, waiting for result
+  COMMITTED    // result received and stored (was "COMPLETED" pre-Phase 6)
+  VERIFIED     // confirmed correct by provider-side check (Phase 7)
+  UNKNOWN      // timed out / process died mid-call — outcome uncertain
+  FAILED       // lambda threw, no receipt stored
+  COMPENSATED  // rollback for this effect has completed
+  SKIPPED      // already ran in a prior attempt; cached result returned
+}
+
+enum SideEffectFailureType {
+  TRANSIENT
+  SEMANTIC
+}
+
 model User {
   id             String    @id @default(cuid())
   name           String?
@@ -49,6 +70,7 @@ model Project {
   alertChannels    AlertChannel[]
   auditLogs        AuditLog[]
   guardSideEffects GuardSideEffect[]
+  providerConfigs  ProjectProviderConfig[]
 }
 
 enum ProjectRole {
@@ -376,11 +398,15 @@ model GuardExecution {
   monitorId       String
   externalId      String?   // User's job ID
   attempt         Int       @default(1)
-  status          String    @default("RUNNING") // "RUNNING", "SUCCESS", "FAILED"
+  status          String    @default("RUNNING") // "RUNNING", "SUCCESS", "FAILED", "UNKNOWN"
   payloadHash     String?
   environmentHash String?
   startedAt       DateTime  @default(now())
   finishedAt      DateTime?
+
+  // Phase 6: group executions under a workflow and identify the calling agent
+  workflowId      String?   // Groups all executions belonging to one agent run
+  agentId         String?   // Identifies the agent / process that triggered this
 
   monitor         Monitor           @relation(fields: [monitorId], references: [id])
   sideEffects     GuardSideEffect[]
@@ -388,27 +414,50 @@ model GuardExecution {
 
   @@index([monitorId, status])
   @@index([externalId])
+  @@index([workflowId])
+  @@index([agentId])
 }
 
 model GuardSideEffect {
-  id              String    @id @default(cuid())
-  executionId     String
-  projectId       String    // Phase 2: Added for project-wide deduplication speed
-  type            String    // "HTTP", "DB", "EMAIL", etc.
-  fingerprint     String
-  target          String?   // URL, Table Name, Email
-  inputHash       String    // Hash of the arguments/payload
-  status          String    @default("COMPLETED")
-  executedAt      DateTime  @default(now())
-  metadata        Json?
+  id          String           @id @default(cuid())
+  executionId String
+  projectId   String           // For project-wide deduplication queries
+  type        String           // "HTTP", "STRIPE_OPERATION", "AI_GENERATION", etc.
+  fingerprint String
+  target      String?          // URL, table name, email, order ID, etc.
+  inputHash   String           // Hash of the semantic arguments/payload
 
-  execution       GuardExecution @relation(fields: [executionId], references: [id])
-  project         Project        @relation(fields: [projectId], references: [id])
-  rollback        GuardRollback?
+  // Phase 6: full lifecycle status (replaces the old String "COMPLETED"/"SKIPPED")
+  status      SideEffectStatus @default(COMMITTED)
+
+  // Phase 6: timestamps at each transition
+  startedAt   DateTime?        // Set when status moves to EXECUTING
+  finishedAt  DateTime?        // Set when status moves to COMMITTED/FAILED/UNKNOWN/VERIFIED
+  executedAt  DateTime         @default(now()) // Creation timestamp — kept for backward compat
+  verifiedAt  DateTime?        // Phase 7: Set when verification resolves UNKNOWN → VERIFIED | FAILED
+  failureType SideEffectFailureType? // Phase 7: Classification of failure (TRANSIENT vs SEMANTIC)
+
+  // Phase 6: provider-native proof and metadata
+  receipt     Json?            // e.g. { chargeId: "ch_3P...", messageId: "msg_..." }
+  provider    String?          // "stripe" | "sendgrid" | "github" | "slack" | "twilio" | "s3"
+  metadata    Json?            // Operation result / cached return value (existing field)
+
+  // Phase 6: workflow grouping and agent identity (denormalized for fast queries)
+  workflowId         String?  // Copied from GuardExecution.workflowId
+  agentId            String?  // Copied from GuardExecution.agentId
+  parentSideEffectId String?  // For sub-agent / nested tool call lineage
+
+  execution  GuardExecution @relation(fields: [executionId], references: [id])
+  project    Project        @relation(fields: [projectId], references: [id])
+  rollback   GuardRollback?
 
   @@unique([executionId, fingerprint])
   @@index([projectId, fingerprint])
   @@index([executionId])
+  @@index([workflowId])
+  @@index([agentId])
+  @@index([status])
+  @@index([projectId, status])
 }
 
 model GuardRollback {
@@ -436,4 +485,24 @@ model CloudInterest {
   source    String   @default("pricing_page")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// =============================================================================
+// Phase 7 — Provider Configs
+// Stores encrypted API credentials for each provider verifier per project.
+// =============================================================================
+
+model ProjectProviderConfig {
+  id        String   @id @default(cuid())
+  projectId String
+  provider  String   // "stripe" | "sendgrid" | "github" | "slack" | "twilio" | "s3"
+  config    Json     // Encrypted provider-specific credentials
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, provider])
+  @@index([projectId])
 }

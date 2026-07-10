@@ -49,7 +49,8 @@ export default function DashboardPage() {
             Control <span className="text-acid-lime">Center</span>
           </h1>
           <p className="text-muted-foreground text-lg mt-3 font-medium">
-            Global infrastructure health and sentinel security status.
+            AI Agent execution control, liveness tracking, and side-effect
+            safety status.
           </p>
         </div>
         <Link href="/dashboard/monitors/new">
@@ -58,7 +59,7 @@ export default function DashboardPage() {
             className="bg-acid-lime text-primary-foreground gap-3 px-10 h-16 rounded-2xl shadow-2xl shadow-acid-lime/20 hover:shadow-acid-lime/40 transition-all font-black uppercase tracking-widest text-sm group"
           >
             <Plus className="h-5 w-5 group-hover:rotate-90 transition-transform" />{" "}
-            Deploy Monitor
+            Register Agent
           </Button>
         </Link>
       </div>
@@ -66,38 +67,38 @@ export default function DashboardPage() {
       {/* Stats Grid */}
       <div className="grid gap-8 grid-cols-1 md:grid-cols-2 xl:grid-cols-4">
         <StatCard
-          title="Active Sentinels"
+          title="Active Agents"
           value={totalMonitors}
           icon={<Activity className="h-5 w-5" />}
-          subtitle="Configured endpoints"
+          subtitle="Monitored agent profiles"
           color="muted"
         />
 
         <StatCard
-          title="Secure Tunnels"
+          title="Secure Handshakes"
           value={tunnelMonitors}
           icon={<Lock className="h-5 w-5" />}
           color="acid-lime"
-          subtitle="Encrypted connections"
+          subtitle="Tunnel connections"
         />
 
         <StatCard
-          title="Security Risks"
+          title="Execution Risks"
           value={securityRisks}
           icon={<ShieldAlert className="h-5 w-5" />}
           color={securityRisks > 0 ? "destructive" : "muted"}
           subtitle={
-            securityRisks > 0 ? "Risk patterns detected" : "Infrastructure safe"
+            securityRisks > 0 ? "Abnormal behaviors flagged" : "Operations safe"
           }
         />
 
         <StatCard
-          title="Active Incidents"
+          title="Active Crashes"
           value={openIncidents}
           icon={<Zap className="h-5 w-5" />}
           color={openIncidents > 0 ? "orange" : "muted"}
-          link={openIncidents > 0 ? "/incidents" : undefined}
-          subtitle="Critical service errors"
+          link={openIncidents > 0 ? "/dashboard/incidents" : undefined}
+          subtitle="Unresolved agent loops"
         />
       </div>
 
@@ -105,7 +106,7 @@ export default function DashboardPage() {
       <section className="space-y-8 pt-4">
         <div className="flex items-center justify-between px-4">
           <h2 className="text-2xl font-black uppercase tracking-tight italic">
-            Infrastructure Pulse
+            Agent Fleet Status
           </h2>
           <div className="flex items-center gap-4 bg-foreground/[0.03] px-6 py-2 rounded-full border border-border/5">
             <span className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em]">
