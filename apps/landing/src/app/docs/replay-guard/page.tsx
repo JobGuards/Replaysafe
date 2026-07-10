@@ -22,8 +22,8 @@ export default function ReplayGuardDoc() {
         <p className="text-xl leading-relaxed text-foreground/80">
           ReplayGuard makes retrying failed background jobs safe by preventing
           duplicate side effects like double payments, emails, or data
-          corruption. It tracks every operation through a full lifecycle — from
-          intent to verification — giving you complete execution memory for AI
+          corruption. It tracks every operation through a full lifecycle - from
+          intent to verification - giving you complete execution memory for AI
           agents.
         </p>
 
@@ -102,7 +102,7 @@ export default function ReplayGuardDoc() {
             and use the <code className="text-acid-lime font-mono">guard</code>{" "}
             instance for side effects.{" "}
             <code className="text-acid-lime font-mono">guard.effect()</code> is
-            the primary primitive — it gives you full lifecycle tracking and
+            the primary primitive - it gives you full lifecycle tracking and
             automatic deduplication.
           </p>
 

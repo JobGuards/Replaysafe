@@ -193,7 +193,7 @@ await guard.openai('code-interpreter', { input },
           <p className="leading-relaxed text-muted-foreground">
             Don&apos;t see your framework? Use{" "}
             <code className="text-acid-lime font-mono">guard.effect()</code>{" "}
-            directly — it works with any async function. The adapter just
+            directly - it works with any async function. The adapter just
             provides convenience methods for receipt extraction.
           </p>
           <div className="glass-panel border border-border/10 rounded-[2.5rem] p-8 bg-foreground/[0.02]">

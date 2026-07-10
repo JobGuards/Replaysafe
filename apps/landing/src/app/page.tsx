@@ -50,7 +50,7 @@ export default function LandingPage() {
     },
     {
       q: "Why not just use Stripe's idempotency keys?",
-      a: "Stripe only prevents duplicate Stripe calls. ReplaySafe prevents duplicate real-world consequences across your entire system — emails, webhooks, database writes, GitHub issues, and any custom API. It also provides provider-side verification (checks with Stripe if a charge actually went through), failure classification (transient vs semantic), and cross-agent coordination.",
+      a: "Stripe only prevents duplicate Stripe calls. ReplaySafe prevents duplicate real-world consequences across your entire system - emails, webhooks, database writes, GitHub issues, and any custom API. It also provides provider-side verification (checks with Stripe if a charge actually went through), failure classification (transient vs semantic), and cross-agent coordination.",
     },
     {
       q: "What providers does ReplaySafe cover?",
@@ -58,7 +58,7 @@ export default function LandingPage() {
     },
     {
       q: "How does verification work?",
-      a: "When an operation times out (UNKNOWN status), ReplaySafe's verification worker queries the provider's API to check if it actually succeeded — e.g., calls Stripe to check charge status, SendGrid for email delivery, GitHub for issue existence.",
+      a: "When an operation times out (UNKNOWN status), ReplaySafe's verification worker queries the provider's API to check if it actually succeeded - e.g., calls Stripe to check charge status, SendGrid for email delivery, GitHub for issue existence.",
     },
     {
       q: "What is the Execution Ledger?",
@@ -70,7 +70,7 @@ export default function LandingPage() {
     },
     {
       q: "Does it work with my existing orchestration framework?",
-      a: "Yes — ReplaySafe ships with drop-in adapters for LangGraph, CrewAI, Inngest, n8n, Airflow, Anthropic MCP, and OpenAI Assistants. Each adapter writes full ledger entries automatically.",
+      a: "Yes - ReplaySafe ships with drop-in adapters for LangGraph, CrewAI, Inngest, n8n, Airflow, Anthropic MCP, and OpenAI Assistants. Each adapter writes full ledger entries automatically.",
     },
     {
       q: "Can multiple agents share execution memory?",
@@ -78,7 +78,7 @@ export default function LandingPage() {
     },
     {
       q: "What happens when something fails semantically?",
-      a: "A SEMANTIC failure means the call succeeded but returned a wrong/stale result (e.g., card declined, email bounced). ReplaySafe blocks automatic retry and routes it to AWAITING_APPROVAL — a human must approve or the agent must re-plan with different input.",
+      a: "A SEMANTIC failure means the call succeeded but returned a wrong/stale result (e.g., card declined, email bounced). ReplaySafe blocks automatic retry and routes it to AWAITING_APPROVAL - a human must approve or the agent must re-plan with different input.",
     },
     {
       q: "Is ReplaySafe self-hosted?",
@@ -179,7 +179,7 @@ export default function LandingPage() {
 
         {/* Visual Schematic */}
         <section className="w-full max-w-6xl mx-auto relative py-xl mt-8">
-          <div className="glass-panel micro-border-lime rounded-3xl p-12 relative overflow-hidden shadow-[0_0_50px_rgba(217,255,0,0.05)] bg-[#0d0d15]/80">
+          <div className="glass-panel micro-border-lime rounded-3xl p-12 relative overflow-hidden shadow-2xl bg-[#0d0d15]/80">
             <svg
               className="absolute inset-0 w-full h-full pointer-events-none opacity-30"
               preserveAspectRatio="none"
@@ -203,14 +203,14 @@ export default function LandingPage() {
                 fill="none"
                 style={{ animationDelay: "-0.5s" }}
               ></path>
-              <circle cx="500" cy="200" fill="#d9ff00" r="4"></circle>
-              <circle cx="100" cy="100" fill="#d9ff00" r="4"></circle>
-              <circle cx="900" cy="300" fill="#d9ff00" r="4"></circle>
-              <circle cx="900" cy="50" fill="#d9ff00" r="4"></circle>
+              <circle cx="500" cy="200" fill="currentColor" r="4"></circle>
+              <circle cx="100" cy="100" fill="currentColor" r="4"></circle>
+              <circle cx="900" cy="300" fill="currentColor" r="4"></circle>
+              <circle cx="900" cy="50" fill="currentColor" r="4"></circle>
             </svg>
             <div className="flex flex-col lg:flex-row justify-center items-center gap-16 relative z-10">
               {/* Center Node */}
-              <div className="bg-surface-container-highest border-2 border-acid-lime rounded-2xl p-8 flex flex-col items-center gap-4 shadow-[0_0_40px_rgba(217,255,0,0.2)] w-56 relative group hover:scale-105 transition-transform duration-500">
+              <div className="bg-surface-container-highest border border-acid-lime rounded-xl p-8 flex flex-col items-center gap-4 shadow-xl w-56 relative group hover:scale-105 transition-transform duration-500">
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#0d0d15] px-2 text-[10px] text-acid-lime font-code-md tracking-[0.3em] font-black uppercase">
                   Guard_Core
                 </div>
@@ -224,7 +224,7 @@ export default function LandingPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 z-10 w-full lg:w-auto">
                 {/* Node 1 - LangGraph Agent */}
-                <div className="glass-panel rounded-2xl p-6 flex flex-col gap-4 border-border/10 hover:border-acid-lime/50 transition-all hover:shadow-[0_0_20px_rgba(217,255,0,0.1)] relative overflow-hidden group">
+                <div className="glass-panel rounded-2xl p-6 flex flex-col gap-4 border-border/10 hover:border-acid-lime/50 transition-all hover:shadow-xl relative overflow-hidden group">
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-xl bg-foreground/[0.03] flex items-center justify-center border border-border/10">
                       <Activity className="text-acid-lime w-5 h-5" />
@@ -244,7 +244,7 @@ export default function LandingPage() {
                 </div>
 
                 {/* Node 2 - Stripe Charge */}
-                <div className="glass-panel rounded-2xl p-6 flex flex-col gap-4 border-border/10 hover:border-acid-lime/50 transition-all hover:shadow-[0_0_20px_rgba(217,255,0,0.1)] relative overflow-hidden group bg-acid-lime/[0.02]">
+                <div className="glass-panel rounded-2xl p-6 flex flex-col gap-4 border-border/10 hover:border-acid-lime/50 transition-all hover:shadow-xl relative overflow-hidden group bg-acid-lime/[0.02]">
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-xl bg-acid-lime/10 flex items-center justify-center border border-acid-lime/20">
                       <Zap className="text-acid-lime w-5 h-5" />
@@ -264,7 +264,7 @@ export default function LandingPage() {
                 </div>
 
                 {/* Node 3 - LLM Call */}
-                <div className="glass-panel rounded-2xl p-6 flex flex-col gap-4 border-border/10 hover:border-acid-lime/50 transition-all hover:shadow-[0_0_20px_rgba(217,255,0,0.1)] relative overflow-hidden group border-acid-lime/20 bg-acid-lime/5">
+                <div className="glass-panel rounded-2xl p-6 flex flex-col gap-4 border-border/10 hover:border-acid-lime/50 transition-all hover:shadow-xl relative overflow-hidden group border-acid-lime/20 bg-acid-lime/5">
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-xl bg-foreground/[0.03] flex items-center justify-center border border-border/10">
                       <Database className="text-acid-lime w-5 h-5" />
@@ -295,7 +295,7 @@ export default function LandingPage() {
                 Execution Memory
               </div>
               <h3 className="text-5xl md:text-6xl font-black uppercase tracking-tighter leading-none italic">
-                Execution <br /> <span className="glow-lime">Memory</span>.
+                Execution Memory.
               </h3>
               <p className="text-lg text-muted-foreground leading-relaxed font-medium">
                 Autonomous agents fail. It’s inevitable. But retrying a failed
@@ -610,7 +610,7 @@ async function chargeNode(state, guard) {
             </h3>
             <p className="text-muted-foreground mt-6 max-w-2xl mx-auto text-lg leading-relaxed">
               ReplaySafe sits between your agents and ALL your side-effect
-              providers — Stripe is just one of many.
+              providers - Stripe is just one of many.
             </p>
           </div>
 

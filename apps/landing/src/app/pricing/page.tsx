@@ -88,7 +88,7 @@ export default function PricingPage() {
             </span>
           </div>
           <h1 className="text-7xl md:text-8xl font-black tracking-tighter text-foreground uppercase italic leading-[0.85]">
-            Scale your <br /> <span className="glow-lime">Reliability</span>
+            Scale your Reliability
           </h1>
           <p className="text-muted-foreground text-xl max-w-2xl mx-auto font-medium opacity-80">
             Deploy the Sentinel that fits your scale. From basic crons to global
