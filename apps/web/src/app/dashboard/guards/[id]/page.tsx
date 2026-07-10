@@ -95,6 +95,12 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
     icon: RotateCcw,
     label: "Compensated",
   },
+  AWAITING_APPROVAL: {
+    color: "text-yellow-500",
+    dotColor: "bg-yellow-500",
+    icon: Clock,
+    label: "Awaiting Approval",
+  },
   // Legacy fallbacks
   COMPLETED: {
     color: "text-acid-lime",
@@ -159,7 +165,13 @@ function ReceiptPanel({ receipt }: { receipt: Record<string, any> }) {
 // Timeline node for a single side effect
 // ─────────────────────────────────────────────────────────────────────────────
 
-function EffectTimelineNode({ effect }: { effect: any }) {
+function EffectTimelineNode({
+  effect,
+  onApprove,
+}: {
+  effect: any;
+  onApprove?: (effectId: string) => Promise<void>;
+}) {
   const cfg = getStatusConfig(effect.status);
   const Icon = cfg.icon;
 
@@ -285,6 +297,19 @@ function EffectTimelineNode({ effect }: { effect: any }) {
         {effect.receipt && typeof effect.receipt === "object" && (
           <ReceiptPanel receipt={effect.receipt} />
         )}
+
+        {/* Phase 8: Manual approval checkpoint */}
+        {effect.status === "AWAITING_APPROVAL" && onApprove && (
+          <div className="mt-4 pt-4 border-t border-border/5 flex items-center justify-end">
+            <button
+              onClick={() => onApprove(effect.id)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 text-xs font-bold hover:bg-yellow-500/20 transition-all"
+            >
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              Approve & Mark Verified
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -329,6 +354,18 @@ export default function GuardExecutionDetailPage() {
       setVerifying(false);
     }
   }, [execution, id, mutate, verifying]);
+
+  const handleApprove = useCallback(
+    async (effectId: string) => {
+      try {
+        await api.approveSideEffect(effectId);
+        await mutate();
+      } catch (e: any) {
+        console.error("[GuardDetail] Approval failed:", e.message);
+      }
+    },
+    [mutate],
+  );
 
   if (isLoading) {
     return (
@@ -504,7 +541,11 @@ export default function GuardExecutionDetailPage() {
               </p>
             )}
             {effects.map((effect: any) => (
-              <EffectTimelineNode key={effect.id} effect={effect} />
+              <EffectTimelineNode
+                key={effect.id}
+                effect={effect}
+                onApprove={handleApprove}
+              />
             ))}
           </div>
         </div>

@@ -22,6 +22,7 @@ enum SideEffectStatus {
   VERIFIED     // confirmed correct by provider-side check (Phase 7)
   UNKNOWN      // timed out / process died mid-call — outcome uncertain
   FAILED       // lambda threw, no receipt stored
+  AWAITING_APPROVAL // Phase 8: human in the loop checkpoint
   COMPENSATED  // rollback for this effect has completed
   SKIPPED      // already ran in a prior attempt; cached result returned
 }

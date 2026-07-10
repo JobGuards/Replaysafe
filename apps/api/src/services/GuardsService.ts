@@ -2,6 +2,7 @@ import { prisma } from "@replaysafe/db";
 import { alertService } from "./AlertService.js";
 import { LoopDetectionCache } from "../lib/LoopDetectionCache.js";
 import axios from "axios";
+import { VerificationService } from "./VerificationService.js";
 
 export class GuardsService {
   /**
@@ -654,6 +655,122 @@ export class GuardsService {
       include: {
         execution: {
           select: { monitor: { select: { name: true } } },
+        },
+      },
+    });
+  }
+
+  /**
+   * Phase 8: Reconcile all UNKNOWN side effects for a workflow
+   */
+  static async reconcileWorkflow(workflowId: string, projectId: string) {
+    return await VerificationService.runWorkflowPass(workflowId, projectId);
+  }
+
+  /**
+   * Phase 8: Computes the minimal safe continuation set for a workflow
+   */
+  static async getContinuationPlan(workflowId: string, projectId: string) {
+    const effects = await prisma.guardSideEffect.findMany({
+      where: { workflowId, projectId },
+      orderBy: { executedAt: "asc" },
+    });
+
+    const steps = [];
+    let isBlocked = false;
+    let allCompleted = true;
+
+    for (const effect of effects) {
+      let action: "SKIP" | "RETRY" | "BLOCK" = "SKIP";
+      let status = effect.status;
+
+      if (["COMMITTED", "VERIFIED", "SKIPPED"].includes(status)) {
+        action = "SKIP";
+      } else if (status === "UNKNOWN") {
+        action = "BLOCK";
+        isBlocked = true;
+        allCompleted = false;
+      } else if (status === "AWAITING_APPROVAL") {
+        action = "BLOCK";
+        isBlocked = true;
+        allCompleted = false;
+      } else if (status === "FAILED") {
+        allCompleted = false;
+        if (effect.failureType === "TRANSIENT") {
+          action = "RETRY";
+        } else {
+          // SEMANTIC failure, or no failureType categorized (default to SEMANTIC for safety)
+          action = "BLOCK";
+          isBlocked = true;
+          // Auto-transition to AWAITING_APPROVAL in DB
+          await prisma.guardSideEffect.update({
+            where: { id: effect.id },
+            data: { status: "AWAITING_APPROVAL" },
+          });
+          status = "AWAITING_APPROVAL";
+        }
+      } else {
+        // INTENDED / EXECUTING / COMPENSATED etc
+        action = "RETRY";
+        allCompleted = false;
+      }
+
+      steps.push({
+        id: effect.id,
+        type: effect.type,
+        fingerprint: effect.fingerprint,
+        target: effect.target,
+        status,
+        failureType: effect.failureType,
+        action,
+      });
+    }
+
+    let overallStatus: "CAN_RESUME" | "BLOCKED" | "COMPLETED" = "CAN_RESUME";
+    if (effects.length === 0) {
+      overallStatus = "CAN_RESUME"; // Nothing run yet, start fresh
+    } else if (isBlocked) {
+      overallStatus = "BLOCKED";
+    } else if (allCompleted) {
+      overallStatus = "COMPLETED";
+    }
+
+    return {
+      workflowId,
+      status: overallStatus,
+      steps,
+    };
+  }
+
+  /**
+   * Phase 8: Manually approve a side effect blocked in AWAITING_APPROVAL status
+   */
+  static async approveSideEffect(effectId: string, projectId: string) {
+    const effect = await prisma.guardSideEffect.findFirst({
+      where: { id: effectId, projectId },
+    });
+
+    if (!effect) {
+      throw new Error("Side effect not found");
+    }
+
+    if (effect.status !== "AWAITING_APPROVAL") {
+      throw new Error("Side effect is not awaiting approval");
+    }
+
+    return await prisma.guardSideEffect.update({
+      where: { id: effectId },
+      data: {
+        status: "VERIFIED",
+        verifiedAt: new Date(),
+        metadata: {
+          ...(typeof effect.metadata === "object" && effect.metadata !== null
+            ? (effect.metadata as any)
+            : {}),
+          _approval: {
+            approvedAt: new Date().toISOString(),
+            notes: "Manually approved via Dashboard",
+          },
         },
       },
     });

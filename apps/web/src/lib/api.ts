@@ -231,6 +231,13 @@ class ApiClient {
       method: "DELETE",
     });
   }
+
+  // Phase 8: Approve side effect
+  async approveSideEffect(effectId: string): Promise<{ success: boolean }> {
+    return this.fetch(`/guards/effect/${effectId}/approve`, {
+      method: "POST",
+    });
+  }
 }
 
 export const api = new ApiClient();

@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "SideEffectStatus" ADD VALUE 'AWAITING_APPROVAL';
