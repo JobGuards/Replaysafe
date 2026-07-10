@@ -199,6 +199,14 @@ router.post("/effect/begin", apiKeyMiddleware, async (req, res) => {
       agentId,
     );
 
+    if (result.action === "CONFLICT") {
+      return res.status(409).json({
+        error: "Concurrent execution detected",
+        action: "CONFLICT",
+        conflictingExecutionId: result.conflictingExecutionId,
+      });
+    }
+
     res.json(result);
   } catch (error: any) {
     console.error("[Guards] Effect begin error:", error.message);
@@ -272,6 +280,42 @@ router.post("/effect/unknown", apiKeyMiddleware, async (req, res) => {
     console.error("[Guards] Effect unknown error:", error.message);
     res.status(500).json({
       error: "Failed to mark side effect unknown",
+      details: error.message,
+    });
+  }
+});
+
+/**
+ * Mark a side effect FAILED — transition EXECUTING → FAILED
+ * Called when the SDK operation throws an error (non-timeout).
+ * POST /api/guards/effect/failed
+ */
+router.post("/effect/failed", apiKeyMiddleware, async (req, res) => {
+  try {
+    const { executionId, fingerprint, token, error, metadata } = req.body;
+
+    if (!executionId || !fingerprint) {
+      return res
+        .status(400)
+        .json({ error: "executionId and fingerprint are required" });
+    }
+
+    if (!isValidToken(executionId, token)) {
+      return res.status(401).json({ error: "Invalid session token" });
+    }
+
+    await GuardsService.markFailed(
+      executionId,
+      fingerprint,
+      error || "Operation failed",
+      metadata,
+    );
+
+    res.json({ ok: true });
+  } catch (error: any) {
+    console.error("[Guards] Effect failed error:", error.message);
+    res.status(500).json({
+      error: "Failed to mark side effect failed",
       details: error.message,
     });
   }
@@ -523,6 +567,33 @@ router.post(
     } catch (error: any) {
       console.error("[Guards] Resume trigger error:", error);
       res.status(500).json({ error: "Failed to resume workflow" });
+    }
+  },
+);
+
+/**
+ * Phase 8: Trigger reconciliation of all UNKNOWN side effects for a workflow.
+ * POST /api/guards/reconcile/:workflowId
+ * This resolves UNKNOWN effects via provider verification without computing a continuation plan.
+ */
+router.post(
+  "/reconcile/:workflowId",
+  unifiedAuth,
+  projectAccessMiddleware("MEMBER"),
+  async (req: any, res: any) => {
+    try {
+      const { project } = req;
+      if (!project)
+        return res.status(401).json({ error: "Project context missing" });
+
+      const result = await GuardsService.reconcileWorkflow(
+        req.params.workflowId,
+        project.id,
+      );
+      res.json(result);
+    } catch (error: any) {
+      console.error("[Guards] Reconcile trigger error:", error);
+      res.status(500).json({ error: "Failed to reconcile workflow" });
     }
   },
 );

@@ -146,6 +146,11 @@ export class SelfHealingService {
       });
 
       if (lastExecution && lastExecution.workflowId) {
+        // Phase 8: Resolve UNKNOWN effects before computing continuation plan
+        await GuardsService.reconcileWorkflow(
+          lastExecution.workflowId,
+          monitor.projectId,
+        );
         const plan = await GuardsService.getContinuationPlan(
           lastExecution.workflowId,
           monitor.projectId,

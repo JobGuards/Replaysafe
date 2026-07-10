@@ -14,7 +14,8 @@ export default function ArchitectureDoc() {
       <div className="space-y-16">
         <p className="text-xl leading-relaxed">
           A modular, scalable, and security-hardened infrastructure built for
-          high-performance monitoring.
+          high-performance execution memory and side-effect coordination for AI
+          agents.
         </p>
 
         <section className="space-y-6">
@@ -29,6 +30,14 @@ export default function ArchitectureDoc() {
             <StackItem title="Backend" content="Express, Node.js, Fastify" />
             <StackItem title="Database" content="PostgreSQL, Redis" />
             <StackItem title="ORM" content="Prisma" />
+            <StackItem
+              title="SDK"
+              content="@replaysafe/guard-sdk (TypeScript)"
+            />
+            <StackItem
+              title="Verification"
+              content="Postmark, SES, Stripe, SendGrid, GitHub, Slack, Twilio, S3"
+            />
           </div>
         </section>
 
@@ -44,12 +53,13 @@ export default function ArchitectureDoc() {
               </div>
               <div className="space-y-3">
                 <h4 className="font-black uppercase tracking-[0.3em] text-[10px] text-acid-lime italic">
-                  Sentinel_Gateway
+                  Guard_API
                 </h4>
                 <p className="text-muted-foreground leading-relaxed">
-                  The primary ingest layer for high-fidelity telemetry.
-                  Optimized for millisecond-latency processing of both heartbeat
-                  pushes and complex tunnel handshake data.
+                  The primary API layer for execution memory operations. Handles
+                  side effect lifecycle management, conflict detection, provider
+                  verification, and recovery plan computation. Optimized for
+                  millisecond-latency processing.
                 </p>
               </div>
             </div>
@@ -60,13 +70,30 @@ export default function ArchitectureDoc() {
               </div>
               <div className="space-y-3">
                 <h4 className="font-black uppercase tracking-[0.3em] text-[10px] text-acid-lime italic">
-                  Intelligence_Engine
+                  Verification_Engine
                 </h4>
                 <p className="text-muted-foreground leading-relaxed">
-                  A high-concurrency processing layer that calculates health
-                  scores in real-time. It detects silent failures and network
-                  degradation using advanced statistical analysis of historical
-                  pulse data.
+                  Background worker that resolves UNKNOWN side effects by
+                  querying provider APIs. Classifies failures as TRANSIENT (safe
+                  to retry) or SEMANTIC (needs human review). Polls at 60s
+                  intervals with 30s grace period.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-8 group">
+              <div className="flex-shrink-0 w-14 h-14 rounded-2xl bg-acid-lime/10 flex items-center justify-center border border-acid-lime/20 text-acid-lime group-hover:scale-110 transition-transform duration-500">
+                <Database className="w-7 h-7" />
+              </div>
+              <div className="space-y-3">
+                <h4 className="font-black uppercase tracking-[0.3em] text-[10px] text-acid-lime italic">
+                  Execution_Ledger
+                </h4>
+                <p className="text-muted-foreground leading-relaxed">
+                  PostgreSQL-backed durable storage for all side effect
+                  lifecycle records. Partial unique index on (fingerprint,
+                  projectId) WHERE status = 'EXECUTING' prevents TOCTOU race
+                  conditions for cross-agent coordination.
                 </p>
               </div>
             </div>
@@ -81,9 +108,9 @@ export default function ArchitectureDoc() {
                 </h4>
                 <p className="text-muted-foreground leading-relaxed">
                   Implements field-level AES-256-GCM encryption for all
-                  sensitive infrastructure configurations. Manages the lifecycle
-                  of cryptographic keys and performs the proactive Security
-                  Audits.
+                  sensitive provider credentials and configuration. Manages the
+                  lifecycle of cryptographic keys and performs proactive
+                  security audits.
                 </p>
               </div>
             </div>

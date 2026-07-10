@@ -76,6 +76,21 @@ export function DocLayout({
       group: "Reference",
       items: [
         {
+          title: "Stripe vs ReplaySafe",
+          href: "/docs/stripe-vs-replaysafe",
+          icon: <ShieldCheck className="w-4 h-4" />,
+        },
+        {
+          title: "Provider Coverage",
+          href: "/docs/provider-coverage",
+          icon: <ShieldCheck className="w-4 h-4" />,
+        },
+        {
+          title: "Framework Adapters",
+          href: "/docs/framework-adapters",
+          icon: <ShieldCheck className="w-4 h-4" />,
+        },
+        {
           title: "API Reference",
           href: "/docs/api-reference",
           icon: <Terminal className="w-4 h-4" />,

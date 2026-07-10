@@ -444,9 +444,10 @@ model GuardSideEffect {
   metadata    Json?            // Operation result / cached return value (existing field)
 
   // Phase 6: workflow grouping and agent identity (denormalized for fast queries)
-  workflowId         String?  // Copied from GuardExecution.workflowId
-  agentId            String?  // Copied from GuardExecution.agentId
-  parentSideEffectId String?  // For sub-agent / nested tool call lineage
+  workflowId           String?  // Copied from GuardExecution.workflowId
+  agentId              String?  // Copied from GuardExecution.agentId
+  parentSideEffectId   String?  // For sub-agent / nested tool call lineage
+  parentExecutionId    String?  // For execution-level fork/sub-agent tracing
 
   execution  GuardExecution @relation(fields: [executionId], references: [id])
   project    Project        @relation(fields: [projectId], references: [id])

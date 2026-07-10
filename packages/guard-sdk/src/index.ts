@@ -103,6 +103,18 @@ export class EffectTimeoutError extends Error {
 }
 
 /**
+ * Thrown when another execution is already running the same effect (CONFLICT)
+ */
+export class EffectConflictError extends Error {
+  readonly conflictingExecutionId: string;
+  constructor(conflictingExecutionId: string) {
+    super(`Concurrent execution detected: ${conflictingExecutionId}`);
+    this.name = "EffectConflictError";
+    this.conflictingExecutionId = conflictingExecutionId;
+  }
+}
+
+/**
  * Phase 7 — Custom Verifier Interface
  *
  * Implement this interface to build a custom verifier for any internal system
@@ -158,6 +170,16 @@ export interface ContinuationPlan {
 }
 
 /**
+ * Result of a reconciliation pass on a workflow's UNKNOWN side effects.
+ */
+export interface ReconciliationResult {
+  verified: number;
+  failed: number;
+  unknown: number;
+  total: number;
+}
+
+/**
  * Options for guard.effect() — the Phase 6 execution ledger primitive.
  */
 export interface EffectOptions<T> {
@@ -185,6 +207,13 @@ export interface EffectOptions<T> {
   timeoutMs?: number;
   /** Deduplication scope. Default: 'MONITOR' */
   scope?: GuardScope;
+  /**
+   * If true (default), marks failures as UNKNOWN in the ledger so Phase 7
+   * verification can resolve them. If false, failures just throw without
+   * creating an UNKNOWN record — preserving pre-Phase 6 behavior.
+   * Default: true
+   */
+  markFailedAsUnknown?: boolean;
 }
 
 export class ReplayGuard {
@@ -283,6 +312,39 @@ export class ReplayGuard {
     } catch (error: any) {
       if (this.config.debug) {
         console.error(`[ReplayGuard] Resume failed: ${error.message}`);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Phase 8: Triggers a reconciliation pass on all UNKNOWN side effects for a workflow.
+   * This resolves UNKNOWN effects via provider verification without computing a continuation plan.
+   * Use this when you only want to verify pending effects, not resume execution.
+   */
+  async reconcile(
+    workflowId: string,
+  ): Promise<{ verified: number; failed: number; unknown: number }> {
+    try {
+      const res = await this._fetchWithRetry(
+        `${this.config.baseUrl}/api/guards/reconcile/${workflowId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": this.config.apiKey,
+          },
+        },
+      );
+
+      if (!res.ok) {
+        throw new Error(`Failed to reconcile workflow: ${await res.text()}`);
+      }
+
+      return await res.json();
+    } catch (error: any) {
+      if (this.config.debug) {
+        console.error(`[ReplayGuard] Reconcile failed: ${error.message}`);
       }
       throw error;
     }
@@ -529,6 +591,7 @@ export class ReplayGuard {
       receipt,
       timeoutMs = 30_000,
       scope = "MONITOR",
+      markFailedAsUnknown = true,
     } = options;
     const fp = this.fingerprint(type, target, input);
 
@@ -550,7 +613,11 @@ export class ReplayGuard {
     }
 
     // 2. Begin: check ledger dedup + write EXECUTING
-    let beginResult: { action: "EXECUTE" | "SKIP"; cachedResult?: any };
+    let beginResult: {
+      action: "EXECUTE" | "SKIP" | "CONFLICT";
+      cachedResult?: any;
+      conflictingExecutionId?: string;
+    };
     try {
       beginResult = await this._callBegin(
         fp,
@@ -575,6 +642,16 @@ export class ReplayGuard {
       return beginResult.cachedResult as T;
     }
 
+    if (beginResult.action === "CONFLICT") {
+      if (this.config.debug)
+        console.warn(
+          `[ReplayGuard] CONFLICT (effect): ${type}:${target} — another execution is already running this`,
+        );
+      throw new EffectConflictError(
+        beginResult.conflictingExecutionId || "unknown",
+      );
+    }
+
     // 3. Execute with optional timeout
     let result: T;
     try {
@@ -593,7 +670,14 @@ export class ReplayGuard {
       // EffectTimeoutError is already handled inside _withOperationTimeout (UNKNOWN marked)
       // For regular errors: mark FAILED and re-throw
       if (!(err instanceof EffectTimeoutError)) {
-        await this._callMarkFailed(fp, err.message).catch(() => {});
+        if (markFailedAsUnknown) {
+          await this._callMarkUnknown(
+            fp,
+            `Operation failed: ${err.message}`,
+          ).catch(() => {});
+        } else {
+          await this._callMarkFailed(fp, err.message).catch(() => {});
+        }
       }
       throw err;
     }
@@ -613,7 +697,8 @@ export class ReplayGuard {
    * Generic wrapper for any dangerous operation.
    *
    * Backward-compatible shim over guard.effect().
-   * Existing behavior is preserved exactly — no EXECUTING phase, no timeout.
+   * Existing behavior is preserved exactly — no EXECUTING phase, no timeout,
+   * and failures do not create UNKNOWN records (they just throw).
    * For full lifecycle tracking, use guard.effect() instead.
    */
   async wrap<T>(
@@ -630,6 +715,7 @@ export class ReplayGuard {
       execute: operation,
       timeoutMs: 0, // preserve existing behavior: no operation timeout
       scope,
+      markFailedAsUnknown: false, // preserve existing behavior: failures just throw
     });
   }
 
@@ -739,7 +825,11 @@ export class ReplayGuard {
     input: any,
     provider?: string,
     scope: GuardScope = "MONITOR",
-  ): Promise<{ action: "EXECUTE" | "SKIP"; cachedResult?: any }> {
+  ): Promise<{
+    action: "EXECUTE" | "SKIP" | "CONFLICT";
+    cachedResult?: any;
+    conflictingExecutionId?: string;
+  }> {
     const res = await this._fetchWithRetry(
       `${this.config.baseUrl}/api/guards/effect/begin`,
       {
@@ -762,8 +852,16 @@ export class ReplayGuard {
         }),
       },
     );
-    if (!res.ok)
-      throw new Error(`[ReplayGuard] effect/begin failed: ${await res.text()}`);
+    if (!res.ok) {
+      const text = await res.text();
+      if (res.status === 409) {
+        return {
+          action: "CONFLICT",
+          conflictingExecutionId: JSON.parse(text).conflictingExecutionId,
+        };
+      }
+      throw new Error(`[ReplayGuard] effect/begin failed: ${text}`);
+    }
     return res.json();
   }
 
@@ -819,16 +917,15 @@ export class ReplayGuard {
     }
   }
 
-  /** Calls POST /api/guards/effect/unknown for FAILED outcomes */
+  /** Calls POST /api/guards/effect/failed */
   private async _callMarkFailed(
     fp: string,
-    errorMessage: string,
+    error: string,
+    metadata?: Record<string, any>,
   ): Promise<void> {
     try {
-      // Reuse the unknown route with a descriptive reason; Phase 7 will resolve status
-      // A dedicated /effect/failed route is available on the API if needed in the future.
       await this._fetchWithRetry(
-        `${this.config.baseUrl}/api/guards/effect/unknown`,
+        `${this.config.baseUrl}/api/guards/effect/failed`,
         {
           method: "POST",
           headers: {
@@ -839,13 +936,14 @@ export class ReplayGuard {
             executionId: this.context!.executionId,
             token: this.context!.token,
             fingerprint: fp,
-            reason: `Operation failed: ${errorMessage}`,
+            error,
+            metadata,
           }),
         },
       );
     } catch (e: any) {
       if (this.config.debug)
-        console.error(`[ReplayGuard] effect/markFailed failed: ${e.message}`);
+        console.error(`[ReplayGuard] effect/failed failed: ${e.message}`);
     }
   }
 
@@ -1052,7 +1150,16 @@ export class ReplayGuard {
     operation: () => Promise<T>,
     scope: GuardScope = "MONITOR",
   ): Promise<T> {
-    return this.wrap("LANGGRAPH_NODE", nodeId, inputs, operation, scope);
+    return this.effect<T>({
+      type: "LANGGRAPH_NODE",
+      target: nodeId,
+      input: inputs,
+      execute: operation,
+      provider: "langgraph",
+      receipt: (result: any) =>
+        result && typeof result === "object" ? result : { result },
+      scope,
+    });
   }
 
   /**
@@ -1075,7 +1182,16 @@ export class ReplayGuard {
     operation: () => Promise<T>,
     scope: GuardScope = "MONITOR",
   ): Promise<T> {
-    return this.wrap("INNGEST_STEP", functionId, inputs, operation, scope);
+    return this.effect<T>({
+      type: "INNGEST_STEP",
+      target: functionId,
+      input: inputs,
+      execute: operation,
+      provider: "inngest",
+      receipt: (result: any) =>
+        result && typeof result === "object" ? result : { result },
+      scope,
+    });
   }
 
   /**
@@ -1096,7 +1212,16 @@ export class ReplayGuard {
     operation: () => Promise<T>,
     scope: GuardScope = "MONITOR",
   ): Promise<T> {
-    return this.wrap("N8N_NODE", nodeName, inputs, operation, scope);
+    return this.effect<T>({
+      type: "N8N_NODE",
+      target: nodeName,
+      input: inputs,
+      execute: operation,
+      provider: "n8n",
+      receipt: (result: any) =>
+        result && typeof result === "object" ? result : { result },
+      scope,
+    });
   }
 
   /**
@@ -1117,7 +1242,16 @@ export class ReplayGuard {
     operation: () => Promise<T>,
     scope: GuardScope = "MONITOR",
   ): Promise<T> {
-    return this.wrap("AIRFLOW_TASK", taskId, inputs, operation, scope);
+    return this.effect<T>({
+      type: "AIRFLOW_TASK",
+      target: taskId,
+      input: inputs,
+      execute: operation,
+      provider: "airflow",
+      receipt: (result: any) =>
+        result && typeof result === "object" ? result : { result },
+      scope,
+    });
   }
 
   /**
@@ -1138,7 +1272,58 @@ export class ReplayGuard {
     operation: () => Promise<T>,
     scope: GuardScope = "MONITOR",
   ): Promise<T> {
-    return this.wrap("CREWAI_TOOL", toolName, inputs, operation, scope);
+    return this.effect<T>({
+      type: "CREWAI_TOOL",
+      target: toolName,
+      input: inputs,
+      execute: operation,
+      provider: "crewai",
+      receipt: (result: any) =>
+        result && typeof result === "object" ? result : { result },
+      scope,
+    });
+  }
+
+  /**
+   * Anthropic MCP adapter — wraps MCP tool calls with full ledger lifecycle.
+   */
+  async mcp<T>(
+    toolName: string,
+    inputs: any,
+    operation: () => Promise<T>,
+    scope: GuardScope = "MONITOR",
+  ): Promise<T> {
+    return this.effect<T>({
+      type: "MCP_TOOL",
+      target: toolName,
+      input: inputs,
+      execute: operation,
+      provider: "mcp",
+      receipt: (result: any) =>
+        result && typeof result === "object" ? result : { result },
+      scope,
+    });
+  }
+
+  /**
+   * OpenAI Assistants API adapter — wraps Assistants tool calls with full ledger lifecycle.
+   */
+  async openai<T>(
+    toolName: string,
+    inputs: any,
+    operation: () => Promise<T>,
+    scope: GuardScope = "MONITOR",
+  ): Promise<T> {
+    return this.effect<T>({
+      type: "OPENAI_TOOL",
+      target: toolName,
+      input: inputs,
+      execute: operation,
+      provider: "openai",
+      receipt: (result: any) =>
+        result && typeof result === "object" ? result : { result },
+      scope,
+    });
   }
 
   /**
@@ -1158,7 +1343,16 @@ export class ReplayGuard {
     operation: () => Promise<T>,
     scope: GuardScope = "MONITOR",
   ): Promise<T> {
-    return this.wrap("STRIPE_OPERATION", operationId, inputs, operation, scope);
+    return this.effect<T>({
+      type: "STRIPE_OPERATION",
+      target: operationId,
+      input: inputs,
+      execute: operation,
+      provider: "stripe",
+      receipt: (result: any) =>
+        result && typeof result === "object" ? result : { result },
+      scope,
+    });
   }
 }
 

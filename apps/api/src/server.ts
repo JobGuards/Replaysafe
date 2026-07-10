@@ -19,6 +19,7 @@ import guardRoutes from "./routes/guards.js";
 import apiKeyRoutes from "./routes/api-keys.js";
 import projectRoutes from "./routes/projects.js";
 import providerConfigRoutes from "./routes/provider-configs.js";
+import agentRoutes from "./routes/agents.js";
 import {
   apiRateLimiter,
   authRateLimiter,
@@ -126,6 +127,9 @@ export function createApp() {
 
   // 18. Phase 7: Provider verification configs
   app.use("/api/provider-configs", providerConfigRoutes);
+
+  // 19. Phase 9: Agent Execution Memory
+  app.use("/api/agents", agentRoutes);
 
   // Sentry Error Handler (must be after all controllers)
   Sentry.setupExpressErrorHandler(app);
