@@ -603,6 +603,33 @@ export class GuardsService {
           },
         },
       });
+
+      await prisma.guardSideEffect.create({
+        data: {
+          executionId,
+          projectId,
+          fingerprint,
+          type,
+          target,
+          inputHash,
+          provider,
+          status: "FAILED",
+          startedAt: new Date(),
+          finishedAt: new Date(),
+          workflowId: workflowId || currentExecution.workflowId,
+          agentId: agentId || currentExecution.agentId,
+          metadata: {
+            conflict: true,
+            conflictingExecutionId: activeConflict.executionId,
+            message: "Halted due to concurrent execution of the same fingerprint",
+          },
+        },
+      });
+
+      return {
+        action: "CONFLICT" as const,
+        conflictingExecutionId: activeConflict.executionId,
+      };
     }
 
     try {
@@ -619,7 +646,7 @@ export class GuardsService {
           startedAt: new Date(),
           workflowId: workflowId || currentExecution.workflowId,
           agentId: agentId || currentExecution.agentId,
-          metadata: initialMetadata,
+          metadata: {},
         },
       });
     } catch (error: any) {

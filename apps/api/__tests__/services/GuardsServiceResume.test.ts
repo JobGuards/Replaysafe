@@ -177,10 +177,11 @@ describe("GuardsService — Resume & Recovery Planner", () => {
       expect(mockGuardSideEffect.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           executionId: "exec-2",
-          status: "EXECUTING",
+          status: "FAILED",
           metadata: {
             conflict: true,
             conflictingExecutionId: "exec-1",
+            message: "Halted due to concurrent execution of the same fingerprint",
           },
         }),
       });
