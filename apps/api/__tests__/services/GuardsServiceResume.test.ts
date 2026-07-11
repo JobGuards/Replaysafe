@@ -181,7 +181,8 @@ describe("GuardsService — Resume & Recovery Planner", () => {
           metadata: {
             conflict: true,
             conflictingExecutionId: "exec-1",
-            message: "Halted due to concurrent execution of the same fingerprint",
+            message:
+              "Halted due to concurrent execution of the same fingerprint",
           },
         }),
       });

@@ -621,7 +621,8 @@ export class GuardsService {
           metadata: {
             conflict: true,
             conflictingExecutionId: activeConflict.executionId,
-            message: "Halted due to concurrent execution of the same fingerprint",
+            message:
+              "Halted due to concurrent execution of the same fingerprint",
           },
         },
       });
