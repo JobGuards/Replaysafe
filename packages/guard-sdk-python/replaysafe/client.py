@@ -2,6 +2,7 @@ import time
 import random
 import requests
 import os
+import threading
 from typing import Callable, Any, Dict, Optional, List
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
 
@@ -24,6 +25,7 @@ class ReplayGuard:
         }
         self.context = None
         self.local_cache = {}
+        self._cache_lock = threading.Lock()
         self.executor = ThreadPoolExecutor(max_workers=10)
 
     def start(
@@ -105,7 +107,7 @@ class ReplayGuard:
         provider: Optional[str] = None,
         receipt_fn: Optional[Callable[[Any], Dict[str, Any]]] = None,
         timeout_ms: int = 30000,
-        scope: str = "PROJECT",
+        scope: str = "MONITOR",
         mark_failed_as_unknown: bool = True,
     ) -> Any:
         input_hash = build_input_hash(
@@ -120,10 +122,11 @@ class ReplayGuard:
                 print("[ReplayGuard] No session. Running effect without safety layer.")
             return execute_fn()
 
-        if fp in self.local_cache:
-            if self.config.get("debug"):
-                print(f"[ReplayGuard] Local cache hit (effect): {type_str}:{target}")
-            return self.local_cache[fp]
+        with self._cache_lock:
+            if fp in self.local_cache:
+                if self.config.get("debug"):
+                    print(f"[ReplayGuard] Local cache hit (effect): {type_str}:{target}")
+                return self.local_cache[fp]
 
         # 2. Begin phase
         try:
@@ -138,7 +141,8 @@ class ReplayGuard:
         if begin_res.get("action") == "SKIP":
             if self.config.get("debug"):
                 print(f"[ReplayGuard] SKIP (effect): {type_str}:{target}")
-            self.local_cache[fp] = begin_res.get("cachedResult")
+            with self._cache_lock:
+                self.local_cache[fp] = begin_res.get("cachedResult")
             return begin_res.get("cachedResult")
 
         if begin_res.get("action") == "CONFLICT":
@@ -169,7 +173,8 @@ class ReplayGuard:
             if self.config.get("debug"):
                 print(f"[ReplayGuard] effect.commit failed: {e}")
 
-        self.local_cache[fp] = result
+        with self._cache_lock:
+            self.local_cache[fp] = result
         return result
 
     def wrap(
@@ -222,7 +227,7 @@ class ReplayGuard:
         target: str,
         input_data: Any,
         provider: Optional[str] = None,
-        scope: str = "PROJECT",
+        scope: str = "MONITOR",
     ) -> Dict[str, Any]:
         res = self._fetch_with_retry(
             "POST",
