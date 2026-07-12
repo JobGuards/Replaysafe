@@ -58,7 +58,7 @@ import { ReplayGuard } from "@replaysafe/guard-sdk";
 
 const guard = new ReplayGuard({
   apiKey: process.env.REPLAYSAFE_API_KEY,
-  monitorId: "your-monitor-id"
+  monitorId: "your-monitor-id",
 });
 
 // Start an agent execution session
@@ -117,33 +117,34 @@ Replaysafe features native SDK support for both Node.js/TypeScript and Python.
 
 ### Core Ledger Primitives
 
-| Method | What it does |
-| --- | --- |
-| `guard.effect(options)` | Standard ledger wrapper (tracks lifecycle `INTENDED → EXECUTING → COMMITTED → VERIFIED`) |
-| `guard.resume(workflowId)` | Load continuation/recovery plan for crashed workflows |
-| `guard.reconcile(workflowId)` | Trigger explicit verification check for `UNKNOWN` states |
-| `guard.compensate(...)` | Register rollback action for autonomous compensation |
-| `guard.snapshot(key, state)` | Capture state checkpoints to detect drift between retries |
+| Method                        | What it does                                                                             |
+| ----------------------------- | ---------------------------------------------------------------------------------------- |
+| `guard.effect(options)`       | Standard ledger wrapper (tracks lifecycle `INTENDED → EXECUTING → COMMITTED → VERIFIED`) |
+| `guard.resume(workflowId)`    | Load continuation/recovery plan for crashed workflows                                    |
+| `guard.reconcile(workflowId)` | Trigger explicit verification check for `UNKNOWN` states                                 |
+| `guard.compensate(...)`       | Register rollback action for autonomous compensation                                     |
+| `guard.snapshot(key, state)`  | Capture state checkpoints to detect drift between retries                                |
 
 ### Framework-Native Adapters
 
 Drop-in wrappers/decorators for major AI agent and workflow orchestrators:
 
-| Orchestrator | TS/JS Adapter | Python Adapter |
-| --- | --- | --- |
-| **CrewAI** | `guard.crewai(toolName, inputs, fn)` | `@replay_safe_tool(guard, ...)` |
-| **LangChain / LangGraph** | `guard.langGraph(nodeId, inputs, fn)` | `@replay_safe_langchain_tool(...)` |
-| **Anthropic MCP** | `guard.mcp(toolName, inputs, fn)` | Built-in tool wrappers |
-| **OpenAI Assistants** | `guard.openai(toolName, inputs, fn)` | Built-in tool wrappers |
-| **Inngest** | `guard.inngest(functionId, inputs, fn)` | — |
-| **n8n** | `guard.n8n(nodeName, inputs, fn)` | — |
-| **Apache Airflow** | `guard.airflow(taskId, inputs, fn)` | — |
+| Orchestrator              | TS/JS Adapter                           | Python Adapter                     |
+| ------------------------- | --------------------------------------- | ---------------------------------- |
+| **CrewAI**                | `guard.crewai(toolName, inputs, fn)`    | `@replay_safe_tool(guard, ...)`    |
+| **LangChain / LangGraph** | `guard.langGraph(nodeId, inputs, fn)`   | `@replay_safe_langchain_tool(...)` |
+| **Anthropic MCP**         | `guard.mcp(toolName, inputs, fn)`       | Built-in tool wrappers             |
+| **OpenAI Assistants**     | `guard.openai(toolName, inputs, fn)`    | Built-in tool wrappers             |
+| **Inngest**               | `guard.inngest(functionId, inputs, fn)` | —                                  |
+| **n8n**                   | `guard.n8n(nodeName, inputs, fn)`       | —                                  |
+| **Apache Airflow**        | `guard.airflow(taskId, inputs, fn)`     | —                                  |
 
 ---
 
 ## Advanced Capabilities (Phases 6–10)
 
 Replaysafe features the following production-grade agent resilience primitives:
+
 - **Automatic Provider Verification**: When side effects time out or crash, they transition to `UNKNOWN`. Before retry, Replaysafe queries the provider (Stripe, Twilio, SES, SendGrid, Slack, AWS S3) to verify if the action completed.
 - **Semantic/Transient Classification**: Distinguishes structural bugs (`SEMANTIC` failures requiring human intervention or re-planning) from transient errors (`TRANSIENT` network errors safe to auto-retry).
 - **Cross-Agent Coordination**: A project-wide shared ledger dynamically detects concurrency conflicts and automatically blocks/fails duplicate operations before double-charges occur.
@@ -165,10 +166,10 @@ Visit `http://localhost:3000` for the dashboard. Zero external telemetry. Sovere
 
 Choose how the SDK behaves if the API is down:
 
-| Policy | Behavior | Use when |
-| --- | --- | --- |
-| `OPEN` (default) | Proceed with execution | High availability matters more than strict dedup |
-| `CLOSED` | Block execution | Duplicate side effects are catastrophic (payments, emails) |
+| Policy           | Behavior               | Use when                                                   |
+| ---------------- | ---------------------- | ---------------------------------------------------------- |
+| `OPEN` (default) | Proceed with execution | High availability matters more than strict dedup           |
+| `CLOSED`         | Block execution        | Duplicate side effects are catastrophic (payments, emails) |
 
 The SDK never blocks your agent due to its own network issues. Every API call has a 3s timeout with exponential backoff — if Replaysafe is slow, your agent doesn't wait.
 
