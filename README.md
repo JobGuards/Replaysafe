@@ -47,99 +47,106 @@ The workflow code itself doesn't change. Each call to `guard.wrap()` is the chec
 
 ## Quick Start
 
+### TypeScript/JavaScript
+
 ```bash
 npm install @replaysafe/guard-sdk
 ```
 
 ```typescript
-import { withReplayGuard } from "@replaysafe/guard-sdk";
+import { ReplayGuard } from "@replaysafe/guard-sdk";
 
-await withReplayGuard(
-  { apiKey: process.env.REPLAYSAFE_API_KEY, monitorId: "your-monitor-id" },
-  async (guard) => {
-    const inputs = { amount: 5000, currency: "usd", orderId: "order_9832" };
+const guard = new ReplayGuard({
+  apiKey: process.env.REPLAYSAFE_API_KEY,
+  monitorId: "your-monitor-id"
+});
 
-    // Wrap the Stripe call — records proof in Replaysafe's ledger that this step ran.
-    // On retry: Replaysafe skips re-calling Stripe AND knows the charge completed,
-    // so downstream steps (email, CRM) can also be safely skipped.
-    // Stripe's own idempotency key handles the Stripe-level dedup — the fingerprint
-    // passed here gives Stripe a deterministic key that survives process restarts.
-    const charge = await guard.stripe("order_9832", inputs, async () =>
-      stripe.charges.create(
-        { amount: 5000, currency: "usd" },
-        {
-          idempotencyKey: guard.fingerprint(
-            "STRIPE_OPERATION",
-            "order_9832",
-            inputs,
-          ),
-        },
-      ),
-    );
+// Start an agent execution session
+await guard.start("order_9832", "workflow_abc", "agent_123");
 
-    // Register a rollback — auto-triggered if the workflow throws after this point.
-    await guard.compensate("STRIPE_OPERATION", "order_9832", inputs, {
-      type: "STRIPE_REFUND",
-      target: charge.id,
-    });
+// Protect side effects with execution lifecycle
+const charge = await guard.effect({
+  type: "STRIPE_CHARGE",
+  target: "order_9832",
+  input: { amount: 5000, currency: "usd" },
+  provider: "stripe",
+  execute: () => stripe.charges.create({ amount: 5000, currency: "usd" }),
+  receipt: (result) => ({ chargeId: result.id }),
+});
 
-    // This crashes and the agent retries — the charge above is NOT repeated.
-    await db.orders.update({ id: "order_9832", status: "PAID" });
-  },
-  {
-    onRollback: async (action) => {
-      if (action.type === "STRIPE_REFUND") {
-        await stripe.refunds.create({ charge: action.target });
-      }
-    },
-  },
-);
+// Finalize session
+await guard.complete("SUCCESS");
+```
+
+### Python
+
+```bash
+pip install guard-sdk-python
+```
+
+```python
+from replaysafe import ReplayGuard
+
+guard = ReplayGuard({
+    "apiKey": "your-api-key",
+    "monitorId": "your-monitor-id"
+})
+
+# Start an agent execution session
+guard.start(external_id="order_9832", workflow_id="workflow_abc", agent_id="agent_123")
+
+# Protect side effects with execution lifecycle
+charge = guard.effect(
+    type_str="STRIPE_CHARGE",
+    target="order_9832",
+    execute_fn=lambda: stripe.charges.create(amount=5000, currency="usd"),
+    input_data={"amount": 5000, "currency": "usd"},
+    provider="stripe",
+    receipt_fn=lambda res: {"charge_id": res.id}
+)
+
+# Finalize session
+guard.complete(status="SUCCESS")
 ```
 
 ---
 
-## What Gets Recorded
+## SDK Methods & Framework Adapters
 
-Every guarded operation creates a ledger entry:
+Replaysafe features native SDK support for both Node.js/TypeScript and Python.
 
-```
-status: COMPLETED  — operation ran and result was stored
-status: SKIPPED    — already ran in a previous attempt, cached result returned
-status: PENDING    — rollback registered, waiting to fire
-```
+### Core Ledger Primitives
 
-Each entry stores the operation type, target, input fingerprint, result, and timestamp. On any retry, the ledger is checked first — matching fingerprint means skip.
+| Method | What it does |
+| --- | --- |
+| `guard.effect(options)` | Standard ledger wrapper (tracks lifecycle `INTENDED → EXECUTING → COMMITTED → VERIFIED`) |
+| `guard.resume(workflowId)` | Load continuation/recovery plan for crashed workflows |
+| `guard.reconcile(workflowId)` | Trigger explicit verification check for `UNKNOWN` states |
+| `guard.compensate(...)` | Register rollback action for autonomous compensation |
+| `guard.snapshot(key, state)` | Capture state checkpoints to detect drift between retries |
 
-> **Upcoming (on the roadmap):** An `UNKNOWN` state for timed-out calls, and automatic provider-side verification (checking Stripe, SendGrid, etc.) before any retry.
+### Framework-Native Adapters
+
+Drop-in wrappers/decorators for major AI agent and workflow orchestrators:
+
+| Orchestrator | TS/JS Adapter | Python Adapter |
+| --- | --- | --- |
+| **CrewAI** | `guard.crewai(toolName, inputs, fn)` | `@replay_safe_tool(guard, ...)` |
+| **LangChain / LangGraph** | `guard.langGraph(nodeId, inputs, fn)` | `@replay_safe_langchain_tool(...)` |
+| **Anthropic MCP** | `guard.mcp(toolName, inputs, fn)` | Built-in tool wrappers |
+| **OpenAI Assistants** | `guard.openai(toolName, inputs, fn)` | Built-in tool wrappers |
+| **Inngest** | `guard.inngest(functionId, inputs, fn)` | — |
+| **n8n** | `guard.n8n(nodeName, inputs, fn)` | — |
+| **Apache Airflow** | `guard.airflow(taskId, inputs, fn)` | — |
 
 ---
 
-## SDK Methods
+## Advanced Capabilities (Phases 6–10)
 
-| Method                                             | What it does                                                                                       |
-| -------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `guard.wrap(type, target, inputs, fn)`             | Generic operation wrapper — deduplicate any side effect                                            |
-| `guard.stripe(opId, inputs, fn)`                   | Records Stripe calls in the ledger; passes a deterministic fingerprint as Stripe's idempotency key |
-| `guard.ai(model, params, fn)`                      | LLM call deduplication — pay for expensive generations once                                        |
-| `guard.webhook(target, payload, fn)`               | Outbound webhook safety                                                                            |
-| `guard.fetch(url, options)`                        | HTTP wrapper with auto-injected `Idempotency-Key` header                                           |
-| `guard.compensate(type, target, inputs, rollback)` | Register a rollback action for auto-trigger on failure                                             |
-| `guard.fingerprint(type, target, inputs)`          | Compute and expose the fingerprint (pass to Stripe, etc.)                                          |
-| `guard.snapshot(key, state)`                       | Record infrastructure state to detect drift between retries                                        |
-
-### Framework Adapters
-
-Drop-in adapters for AI and workflow frameworks — same safety engine, semantically named:
-
-| Framework             | Method                                  |
-| --------------------- | --------------------------------------- |
-| **LangGraph**         | `guard.langGraph(nodeId, inputs, fn)`   |
-| **CrewAI**            | `guard.crewai(toolName, inputs, fn)`    |
-| **Inngest**           | `guard.inngest(functionId, inputs, fn)` |
-| **n8n**               | `guard.n8n(nodeName, inputs, fn)`       |
-| **Apache Airflow**    | `guard.airflow(taskId, inputs, fn)`     |
-| **Anthropic MCP**     | `guard.mcp()` _(coming in Phase 9)_     |
-| **OpenAI Assistants** | `guard.openai()` _(coming in Phase 9)_  |
+Replaysafe features the following production-grade agent resilience primitives:
+- **Automatic Provider Verification**: When side effects time out or crash, they transition to `UNKNOWN`. Before retry, Replaysafe queries the provider (Stripe, Twilio, SES, SendGrid, Slack, AWS S3) to verify if the action completed.
+- **Semantic/Transient Classification**: Distinguishes structural bugs (`SEMANTIC` failures requiring human intervention or re-planning) from transient errors (`TRANSIENT` network errors safe to auto-retry).
+- **Cross-Agent Coordination**: A project-wide shared ledger dynamically detects concurrency conflicts and automatically blocks/fails duplicate operations before double-charges occur.
 
 ---
 
@@ -158,24 +165,12 @@ Visit `http://localhost:3000` for the dashboard. Zero external telemetry. Sovere
 
 Choose how the SDK behaves if the API is down:
 
-| Policy           | Behavior               | Use when                                                   |
-| ---------------- | ---------------------- | ---------------------------------------------------------- |
-| `OPEN` (default) | Proceed with execution | High availability matters more than strict dedup           |
-| `CLOSED`         | Block execution        | Duplicate side effects are catastrophic (payments, emails) |
+| Policy | Behavior | Use when |
+| --- | --- | --- |
+| `OPEN` (default) | Proceed with execution | High availability matters more than strict dedup |
+| `CLOSED` | Block execution | Duplicate side effects are catastrophic (payments, emails) |
 
 The SDK never blocks your agent due to its own network issues. Every API call has a 3s timeout with exponential backoff — if Replaysafe is slow, your agent doesn't wait.
-
----
-
-## Upcoming
-
-- **Execution Ledger (`guard.effect()`)** — full lifecycle per side effect: `INTENDED → EXECUTING → COMMITTED → VERIFIED`, with timestamps at every transition and a stored provider receipt (charge ID, message ID, etc.).
-- **`UNKNOWN` state** — when a call times out mid-flight, the effect is flagged `UNKNOWN` instead of silently missing, giving a defined state to recover from rather than guessing.
-- **Provider-side Verification** — before any retry of an `UNKNOWN` effect, Replaysafe checks the provider directly (Stripe, SendGrid, GitHub, Slack, Twilio) to confirm whether it actually completed.
-- **`guard.resume(workflowId)`** — crashed multi-step workflows continue from the minimal safe checkpoint: verified steps skip, uncertain steps are checked first, failed steps trigger compensation.
-- **Anthropic MCP & OpenAI Assistants adapters** — `guard.mcp()` and `guard.openai()` wrap framework-native tool calls with ledger-backed memory so retries skip already-completed tool calls automatically.
-- **Agent Execution Memory API** — `GET /agents/:id/effects` answers "what has this agent already done?" across all runs: verified, unknown, and failed effects queryable in one call.
-- **Cross-agent coordination** — shared project-level ledger means two independent agents operating on the same resource cannot silently double-execute; conflict is flagged before it causes damage.
 
 ---
 
