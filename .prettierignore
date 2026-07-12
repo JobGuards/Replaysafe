@@ -33,6 +33,13 @@ build/
 .DS_Store
 Thumbs.db
 
+# Python
+.pytest_cache/
+__pycache__/
+
+# Lockfiles
+pnpm-lock.yaml
+
 # Local utilities
 /scripts/
 .turbo/

@@ -41,13 +41,13 @@ export function Footer() {
             Company
           </h4>
           <Link
-            href="/about"
+            href="/docs"
             className="text-body-md text-muted-foreground hover:text-acid-lime transition-colors"
           >
             About
           </Link>
           <Link
-            href="/blog"
+            href="/docs"
             className="text-body-md text-muted-foreground hover:text-acid-lime transition-colors"
           >
             Blog

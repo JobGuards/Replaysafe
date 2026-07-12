@@ -52,7 +52,7 @@ export async function POST(req: Request) {
         baseUrl: process.env.REPLAYSAFE_API_URL || "http://localhost:4040",
         debug: true,
       },
-      async (guard) => {
+      async (guard: any) => {
         // Run fulfillment side effect inside the guard
         const fulfillmentResult = await guard.wrap(
           "ORDER_FULFILLMENT",
@@ -108,7 +108,7 @@ export async function POST(req: Request) {
       {
         // Use order ID as execution ID / externalId to track across retries
         externalId: razorpay_order_id,
-        onRollback: async (action) => {
+        onRollback: async (action: any) => {
           console.log(
             `[ROLLBACK_TRIGGERED] ReplayGuard compensation executed:`,
             action,

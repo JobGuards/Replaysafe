@@ -53,7 +53,6 @@ export default function Settings() {
 
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log("[v0] Updating profile:", { fullName, email });
       setSuccessMessage("Profile updated successfully");
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
@@ -82,7 +81,6 @@ export default function Settings() {
 
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log("[v0] Changing password");
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
