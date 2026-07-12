@@ -134,6 +134,24 @@ export function createApp() {
   // Sentry Error Handler (must be after all controllers)
   Sentry.setupExpressErrorHandler(app);
 
+  // Global error handler (must be last)
+  app.use(
+    (
+      err: Error,
+      _req: express.Request,
+      res: express.Response,
+      _next: express.NextFunction,
+    ) => {
+      console.error("Unhandled error:", err);
+      res.status(500).json({
+        error:
+          process.env.NODE_ENV === "production"
+            ? "Internal server error"
+            : err.message,
+      });
+    },
+  );
+
   return app;
 }
 

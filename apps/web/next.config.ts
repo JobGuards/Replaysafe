@@ -26,6 +26,23 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   transpilePackages: ["@replaysafe/shared"],
+  images: {
+    unoptimized: true,
+  },
+  async redirects() {
+    return [
+      {
+        source: "/signin",
+        destination: "/auth/signin",
+        permanent: true,
+      },
+      {
+        source: "/signup",
+        destination: "/auth/signup",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

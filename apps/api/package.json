@@ -22,7 +22,6 @@
     "@replaysafe/shared": "workspace:*",
     "@sentry/node": "^10.52.0",
     "@sentry/profiling-node": "^10.52.0",
-    "@types/cors": "^2.8.19",
     "axios": "^1.16.1",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
@@ -45,6 +44,7 @@
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
     "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.0.8",

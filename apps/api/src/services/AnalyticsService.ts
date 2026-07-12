@@ -1,7 +1,5 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@replaysafe/db";
 import { subDays, startOfDay } from "date-fns";
-
-const prisma = new PrismaClient();
 
 export class AnalyticsService {
   /**

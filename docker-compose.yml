@@ -29,8 +29,8 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/replaysafe?schema=public
       PORT: 4000
-      JWT_SECRET: ${JWT_SECRET:-sovereign-default-secret-change-me}
-      MASTER_ENCRYPTION_KEY: ${MASTER_ENCRYPTION_KEY:-replaysafe-encryption-sentinel-key-32chars}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      MASTER_ENCRYPTION_KEY: ${MASTER_ENCRYPTION_KEY:?MASTER_ENCRYPTION_KEY is required}
       FRONTEND_URL: http://localhost:3000
     depends_on:
       db:
